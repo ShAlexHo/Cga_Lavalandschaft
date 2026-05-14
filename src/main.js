@@ -19,12 +19,12 @@ const material = new THREE.MeshStandardMaterial({ color: 0xff4500 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
+const ambient_light = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambient_light);
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(5, 5, 5);
-scene.add(dirLight);
+const directional_light = new THREE.DirectionalLight(0xffffff, 1);
+directional_light.position.set(5, 5, 5);
+scene.add(directional_light);
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -32,12 +32,12 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-function animate() {
+const animate = () => {
   requestAnimationFrame(animate);
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
   controls.update();
   renderer.render(scene, camera);
-}
+};
 
 animate();
