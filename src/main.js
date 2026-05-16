@@ -33,7 +33,7 @@ const animate = () => {
     const elapsed_time = clock.getElapsedTime();
     controls.update();
     update_metaballs(effect, elapsed_time);
-    update_light(material, camera);
+    update_light(material, camera, elapsed_time);
     renderer.render(scene, camera);
 };
 

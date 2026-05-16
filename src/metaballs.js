@@ -3,11 +3,11 @@ import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
 import vertexShader   from './shaders/metaball.vert?raw';
 import fragmentShader from './shaders/metaball.frag?raw';
 
-export const MAX_BALLS = 30;
+import { rand, rand3 } from './rand.js';
+
+const MAX_BALLS = 30;
 
 export const settings = { count: 16, spread: 1.0, speed_factor: 1.86, max_count: MAX_BALLS };
-
-import { rand, rand3 } from './rand.js';
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
     x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: rand(25, 45),
@@ -29,8 +29,11 @@ export function create_metaballs(scene) {
         fragmentShader,
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
-            u_color_hot: { value: new THREE.Color(1.00, 0.08, 0.08) },
-            u_color_cool: { value: new THREE.Color(0.45, 0.00, 0.00) },
+            u_time:           { value: 0.0 },
+            u_glow_enabled:   { value: 1.0 },
+            u_glow_color:     { value: new THREE.Color(1.0, 0.05, 0.0) },
+            u_color_hot: { value: new THREE.Color(0.89, 0.13, 0.09) },
+            u_color_cool: { value: new THREE.Color(0.20, 0.03, 0.02) },
         },
         side: THREE.DoubleSide,
     });
@@ -67,7 +70,8 @@ export function update_metaballs(effect, time) {
     rebuild_field(effect);
 }
 
-export function update_light(material, camera) {
+export function update_light(material, camera, time) {
     _light_view_position.copy(LIGHT_WORLD_POSITION).applyMatrix4(camera.matrixWorldInverse);
     material.uniforms.u_light_position.value.copy(_light_view_position);
+    material.uniforms.u_time.value = time;
 }
