@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { create_metaballs, rebuild_field, update_light, METABALLS } from './metaballs.js';
+import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
 import { setup_gui } from './gui.js';
 
 const scene = new THREE.Scene();
@@ -17,8 +17,10 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
+const clock = new THREE.Clock();
+
 const { effect, material } = create_metaballs(scene);
-setup_gui(effect, material, METABALLS, rebuild_field);
+setup_gui(effect, material, settings, rebuild_field);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -28,7 +30,9 @@ window.addEventListener('resize', () => {
 
 const animate = () => {
     requestAnimationFrame(animate);
+    const elapsed_time = clock.getElapsedTime();
     controls.update();
+    update_metaballs(effect, elapsed_time);
     update_light(material, camera);
     renderer.render(scene, camera);
 };

@@ -3,15 +3,25 @@ import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
 import vertexShader   from './shaders/metaball.vert?raw';
 import fragmentShader from './shaders/metaball.frag?raw';
 
-export const METABALLS = [
-    { x: 0.50, y: 0.50, z: 0.50, strength: 1.2, subtract: 12 },
-    { x: 0.65, y: 0.45, z: 0.45, strength: 1.0, subtract: 12 },
-    { x: 0.30, y: 0.40, z: 0.60, strength: 1.0, subtract: 12 },
-    { x: 0.55, y: 0.65, z: 0.35, strength: 0.9, subtract: 12 },
-];
+export const MAX_BALLS = 30;
 
-const LIGHT_WORLD_POSITION  = new THREE.Vector3(6, 8, 6);
-const _light_view_position  = new THREE.Vector3();
+export const settings = { count: 16, spread: 1.0, speed_factor: 1.86, max_count: MAX_BALLS };
+
+import { rand, rand3 } from './rand.js';
+
+const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
+    x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: rand(25, 45),
+}));
+
+const ANIMATIONS = Array.from({ length: MAX_BALLS }, () => ({
+    base: rand3(0.32, 0.68),
+    speed: rand3(0.5, 1.2),
+    amplitude: rand(0.05, 0.09),
+    phase: rand3(0, Math.PI * 2),
+}));
+
+const LIGHT_WORLD_POSITION = new THREE.Vector3(6, 8, 6);
+const _light_view_position = new THREE.Vector3();
 
 export function create_metaballs(scene) {
     const material = new THREE.ShaderMaterial({
@@ -19,15 +29,16 @@ export function create_metaballs(scene) {
         fragmentShader,
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
-            u_color_hot:      { value: new THREE.Color(1.00, 0.08, 0.08) },
-            u_color_cool:     { value: new THREE.Color(0.45, 0.00, 0.00) },
+            u_color_hot: { value: new THREE.Color(1.00, 0.08, 0.08) },
+            u_color_cool: { value: new THREE.Color(0.45, 0.00, 0.00) },
         },
         side: THREE.DoubleSide,
     });
 
-    const resolution        = 32;
-    const max_polygon_count = 100_000;
+    const resolution = 60;
+    const max_polygon_count = 200_000;
     const effect = new MarchingCubes(resolution, material, false, false, max_polygon_count);
+    effect.isolation = 50;
     effect.scale.setScalar(3.0);
     scene.add(effect);
 
@@ -38,10 +49,22 @@ export function create_metaballs(scene) {
 
 export function rebuild_field(effect) {
     effect.reset();
-    for (const ball of METABALLS) {
+    for (let index = 0; index < settings.count; index++) {
+        const ball = BALL_POOL[index];
         effect.addBall(ball.x, ball.y, ball.z, ball.strength, ball.subtract);
     }
     effect.update();
+}
+
+export function update_metaballs(effect, time) {
+    for (let index = 0; index < settings.count; index++) {
+        const ball = BALL_POOL[index];
+        const animation = ANIMATIONS[index];
+        ball.x = 0.5 + (animation.base[0] - 0.5) * settings.spread + Math.sin(time * animation.speed[0] * settings.speed_factor + animation.phase[0]) * animation.amplitude;
+        ball.y = 0.5 + (animation.base[1] - 0.5) * settings.spread + Math.sin(time * animation.speed[1] * settings.speed_factor + animation.phase[1]) * animation.amplitude;
+        ball.z = 0.5 + (animation.base[2] - 0.5) * settings.spread + Math.sin(time * animation.speed[2] * settings.speed_factor + animation.phase[2]) * animation.amplitude;
+    }
+    rebuild_field(effect);
 }
 
 export function update_light(material, camera) {

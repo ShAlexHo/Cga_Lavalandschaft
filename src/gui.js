@@ -1,24 +1,19 @@
 import { GUI } from 'dat.gui';
 
-export function setup_gui(effect, material, metaballs, rebuild) {
+export function setup_gui(effect, material, settings, rebuild) {
     const gui = new GUI();
 
-    const marching_cubes_folder = gui.addFolder('Marching Cubes');
-    marching_cubes_folder.add(effect, 'isolation', 1, 300, 1)
-        .name('Isolation')
-        .onChange(() => rebuild(effect));
-    marching_cubes_folder.open();
-
     const metaballs_folder = gui.addFolder('Metaballs');
-    metaballs.forEach((ball, index) => {
-        const ball_folder = metaballs_folder.addFolder(`Ball ${index + 1}`);
-        ball_folder.add(ball, 'strength', 0.1, 3.0, 0.01)
-            .name('Stärke')
-            .onChange(() => rebuild(effect));
-        ball_folder.add(ball, 'subtract', 1, 30, 0.5)
-            .name('Radius')
-            .onChange(() => rebuild(effect));
-    });
+    metaballs_folder.add(settings, 'count', 1, settings.max_count, 1)
+        .name('Anzahl')
+        .onChange(() => rebuild(effect));
+    metaballs_folder.add(effect, 'isolation', 1, 100, 1)
+        .name('Threshold')
+        .onChange(() => rebuild(effect));
+    metaballs_folder.add(settings, 'spread', 0.1, 2.0, 0.01)
+        .name('Verteilung');
+    metaballs_folder.add(settings, 'speed_factor', 0.0, 4.0, 0.01)
+        .name('Geschwindigkeit');
     metaballs_folder.open();
 
     const color_params = {
