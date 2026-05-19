@@ -25,6 +25,12 @@ export function setup_gui(effect, material, settings, rebuild) {
         glueh_farbe: '#' + material.uniforms.u_glow_color.value.getHexString(),
     };
 
+    const noise_params = {
+        noise: true,
+        noise_farbe_1: '#' + material.uniforms.u_noise_color_1.value.getHexString(),
+        noise_farbe_2: '#' + material.uniforms.u_noise_color_2.value.getHexString(),
+    };
+
     const colors_folder = gui.addFolder('Lavafarbe');
     colors_folder.addColor(color_params, 'farbe_hell')
         .name('Hell (beleuchtet)')
@@ -39,6 +45,18 @@ export function setup_gui(effect, material, settings, rebuild) {
         .name('Glühfarbe')
         .onChange(value => material.uniforms.u_glow_color.value.set(value));
     colors_folder.open();
+
+    const noise_folder = gui.addFolder('Noise');
+    noise_folder.add(noise_params, 'noise')
+        .name('Aktiviert')
+        .onChange(value => { material.uniforms.u_noise_enabled.value = value ? 1.0 : 0.0; });
+    noise_folder.addColor(noise_params, 'noise_farbe_1')
+        .name('primäre Farbe')
+        .onChange(value => material.uniforms.u_noise_color_1.value.set(value));
+    noise_folder.addColor(noise_params, 'noise_farbe_2')
+        .name('sekundäre Farbe')
+        .onChange(value => material.uniforms.u_noise_color_2.value.set(value));
+    noise_folder.open();
 
     return gui;
 }

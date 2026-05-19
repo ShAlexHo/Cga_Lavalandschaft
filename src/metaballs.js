@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
-import vertexShader   from './shaders/metaball.vert?raw';
-import fragmentShader from './shaders/metaball.frag?raw';
+import vertexShader  from './shaders/metaball.vert?raw';
+import noiseGlsl     from './shaders/noise.glsl?raw';
+import fragGlsl      from './shaders/metaball.frag?raw';
+
+const fragmentShader = noiseGlsl + fragGlsl;
 
 import { rand, rand3 } from './rand.js';
 
@@ -29,11 +32,14 @@ export function create_metaballs(scene) {
         fragmentShader,
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
-            u_time:           { value: 0.0 },
-            u_glow_enabled:   { value: 1.0 },
-            u_glow_color:     { value: new THREE.Color(1.0, 0.05, 0.0) },
+            u_time: { value: 0.0 },
+            u_glow_enabled: { value: 1.0 },
+            u_glow_color: { value: new THREE.Color(1.0, 0.05, 0.0) },
             u_color_hot: { value: new THREE.Color(0.89, 0.13, 0.09) },
             u_color_cool: { value: new THREE.Color(0.20, 0.03, 0.02) },
+            u_noise_enabled: { value: 1.0 },
+            u_noise_color_1: { value: new THREE.Color(0.0, 0.0, 0.0) },
+            u_noise_color_2: { value: new THREE.Color(0.82, 0.14, 0.02) },
         },
         side: THREE.DoubleSide,
     });
