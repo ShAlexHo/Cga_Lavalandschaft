@@ -14,6 +14,8 @@ export function setup_gui(effect, material, settings, rebuild) {
         .name('Verteilung');
     metaballs_folder.add(settings, 'speed_factor', 0.0, 4.0, 0.01)
         .name('Geschwindigkeit');
+    metaballs_folder.add(settings, 'agitation', 0.0, 5.0, 0.01)
+        .name('Agitation');
     metaballs_folder.open();
 
     const color_params = {

@@ -7,7 +7,7 @@ import { rand, rand3 } from './rand.js';
 
 const MAX_BALLS = 30;
 
-export const settings = { count: 16, spread: 1.0, speed_factor: 1.86, max_count: MAX_BALLS };
+export const settings = { count: 16, spread: 1.0, speed_factor: 1.86, agitation: 1.0, max_count: MAX_BALLS };
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
     x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: rand(25, 45),
@@ -63,9 +63,9 @@ export function update_metaballs(effect, time) {
     for (let index = 0; index < settings.count; index++) {
         const ball = BALL_POOL[index];
         const animation = ANIMATIONS[index];
-        ball.x = 0.5 + (animation.base[0] - 0.5) * settings.spread + Math.sin(time * animation.speed[0] * settings.speed_factor + animation.phase[0]) * animation.amplitude;
-        ball.y = 0.5 + (animation.base[1] - 0.5) * settings.spread + Math.sin(time * animation.speed[1] * settings.speed_factor + animation.phase[1]) * animation.amplitude;
-        ball.z = 0.5 + (animation.base[2] - 0.5) * settings.spread + Math.sin(time * animation.speed[2] * settings.speed_factor + animation.phase[2]) * animation.amplitude;
+        ball.x = 0.5 + (animation.base[0] - 0.5) * settings.spread + Math.sin(time * animation.speed[0] * settings.speed_factor * settings.agitation + animation.phase[0]) * animation.amplitude;
+        ball.y = 0.5 + (animation.base[1] - 0.5) * settings.spread + Math.sin(time * animation.speed[1] * settings.speed_factor * settings.agitation + animation.phase[1]) * animation.amplitude;
+        ball.z = 0.5 + (animation.base[2] - 0.5) * settings.spread + Math.sin(time * animation.speed[2] * settings.speed_factor * settings.agitation + animation.phase[2]) * animation.amplitude;
     }
     rebuild_field(effect);
 }
