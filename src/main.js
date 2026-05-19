@@ -6,8 +6,13 @@ import { setup_gui } from './gui.js';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
 
+const ambientLight = new THREE.AmbientLight(0x550000, 0.9);
+const keyLight = new THREE.DirectionalLight(0xff7733, 1.3);
+keyLight.position.set(5, 8, 5);
+scene.add(ambientLight, keyLight);
+
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 2, 8);
+camera.position.set(0, 1.7, 7.5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -20,7 +25,22 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 
 const { effect, material } = create_metaballs(scene);
-setup_gui(effect, material, settings, rebuild_field);
+effect.position.y = -0.3;
+
+const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(30, 30),
+    new THREE.MeshStandardMaterial({
+        color: 0x220500,
+        emissive: 0x2b0800,
+        roughness: 0.88,
+        metalness: 0.05,
+    })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1.3;
+scene.add(ground);
+
+setup_gui(effect, material, settings, rebuild_field, ground);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;

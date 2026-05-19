@@ -9,6 +9,7 @@ const fragmentShader = noiseGlsl + fragGlsl;
 import { rand, rand3 } from './rand.js';
 
 const MAX_BALLS = 30;
+const GROUND_HEIGHT = 0.28;
 
 export const settings = { count: 16, spread: 1.0, speed_factor: 1.86, agitation: 1.0, max_count: MAX_BALLS };
 
@@ -70,7 +71,7 @@ export function update_metaballs(effect, time) {
         const ball = BALL_POOL[index];
         const animation = ANIMATIONS[index];
         ball.x = 0.5 + (animation.base[0] - 0.5) * settings.spread + Math.sin(time * animation.speed[0] * settings.speed_factor * settings.agitation + animation.phase[0]) * animation.amplitude;
-        ball.y = 0.5 + (animation.base[1] - 0.5) * settings.spread + Math.sin(time * animation.speed[1] * settings.speed_factor * settings.agitation + animation.phase[1]) * animation.amplitude;
+        ball.y = GROUND_HEIGHT + Math.sin(time * animation.speed[1] * settings.speed_factor * settings.agitation + animation.phase[1]) * (animation.amplitude * 0.4 + 0.02);
         ball.z = 0.5 + (animation.base[2] - 0.5) * settings.spread + Math.sin(time * animation.speed[2] * settings.speed_factor * settings.agitation + animation.phase[2]) * animation.amplitude;
     }
     rebuild_field(effect);

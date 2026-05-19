@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-export function setup_gui(effect, material, settings, rebuild) {
+export function setup_gui(effect, material, settings, rebuild, ground) {
     const gui = new GUI();
 
     const metaballs_folder = gui.addFolder('Metaballs');
@@ -57,6 +57,25 @@ export function setup_gui(effect, material, settings, rebuild) {
         .name('sekundäre Farbe')
         .onChange(value => material.uniforms.u_noise_color_2.value.set(value));
     noise_folder.open();
+
+    if (ground) {
+        const ground_params = {
+            sichtbar: ground.visible,
+            farbe: '#' + ground.material.color.getHexString(),
+        };
+
+        const ground_folder = gui.addFolder('Boden');
+        ground_folder.add(ground_params, 'sichtbar')
+            .name('sichtbar')
+            .onChange(value => { ground.visible = value; });
+        ground_folder.addColor(ground_params, 'farbe')
+            .name('Farbe')
+            .onChange(value => {
+                ground.material.color.set(value);
+                ground.material.emissive.set(value).multiplyScalar(0.25);
+            });
+        ground_folder.open();
+    }
 
     return gui;
 }
