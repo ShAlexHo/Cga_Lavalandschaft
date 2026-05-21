@@ -3,6 +3,8 @@ import { GUI } from 'dat.gui';
 export function setup_gui(effect, material, settings, rebuild, ground) {
     const gui = new GUI();
 
+    gui.add(settings, 'paused').name('⏸ Pausiert');
+
     const metaballs_folder = gui.addFolder('Metaballs');
     metaballs_folder.add(settings, 'count', 1, settings.max_count, 1)
         .name('Anzahl')

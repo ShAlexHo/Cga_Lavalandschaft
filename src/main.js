@@ -48,9 +48,11 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+let elapsed_time = 0;
 const animate = () => {
     requestAnimationFrame(animate);
-    const elapsed_time = clock.getElapsedTime();
+    const delta = clock.getDelta();
+    if (!settings.paused) elapsed_time += delta;
     controls.update();
     update_metaballs(effect, elapsed_time);
     update_light(material, camera, elapsed_time);

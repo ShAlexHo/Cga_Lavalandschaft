@@ -11,7 +11,7 @@ import { rand, rand3 } from './rand.js';
 const MAX_BALLS = 30;
 const GROUND_HEIGHT = 0.28;
 
-export const settings = { count: 16, spread: 1.0, speed_factor: 0.35, max_count: MAX_BALLS };
+export const settings = { count: 16, spread: 1.0, speed_factor: 0.35, paused: false, max_count: MAX_BALLS };
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
     x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: rand(25, 45),
