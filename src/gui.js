@@ -66,6 +66,7 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
         const ground_params = {
             sichtbar: ground.visible,
             farbe: '#' + ground.material.color.getHexString(),
+            hoehe: ground.position.y,
         };
 
         const ground_folder = gui.addFolder('Boden');
@@ -78,6 +79,9 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
                 ground.material.color.set(value);
                 ground.material.emissive.set(value).multiplyScalar(0.25);
             });
+        ground_folder.add(ground_params, 'hoehe', -2.5, -1.0, 0.01)
+            .name('Höhe')
+            .onChange(value => { ground.position.y = value; });
         ground_folder.open();
     }
 

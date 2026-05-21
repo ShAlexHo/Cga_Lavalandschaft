@@ -37,7 +37,7 @@ const ground = new THREE.Mesh(
     })
 );
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -1.3;
+ground.position.y = -1.141;
 scene.add(ground);
 
 setup_gui(effect, material, settings, rebuild_field, ground);
