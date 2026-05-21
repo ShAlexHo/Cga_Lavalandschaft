@@ -56,8 +56,15 @@ void main() {
         color = mix(color, u_noise_color_2, orange_mask * 0.75);
     }
 
+    float self_illumination = pow(heat, 2.0) * 0.55;
+    color += u_color_hot * self_illumination;
+
+    float molten_core = pow(heat, 5.0) * 0.45;
+    color += vec3(1.0, 0.75, 0.25) * molten_core;
+
     color += vec3(1.0, 0.5, 0.4) * specular;
-    color += glow_color * rim * (0.20 + 0.30 * slow_pulse) * u_glow_enabled;
+    float rim_wide = pow(1.0 - max(dot(view_dir, normal), 0.0), 4.5);
+    color += glow_color * rim_wide * (0.45 + 0.55 * slow_pulse) * u_glow_enabled;
 
     gl_FragColor = vec4(color, 1.0);
 }
