@@ -12,10 +12,8 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
         .onChange(() => rebuild(effect));
     metaballs_folder.add(settings, 'spread', 0.1, 2.0, 0.01)
         .name('Verteilung');
-    metaballs_folder.add(settings, 'speed_factor', 0.0, 4.0, 0.01)
+    metaballs_folder.add(settings, 'speed_factor', 0.0, 2.0, 0.01)
         .name('Geschwindigkeit');
-    metaballs_folder.add(settings, 'agitation', 0.0, 5.0, 0.01)
-        .name('Agitation');
     metaballs_folder.open();
 
     const color_params = {
