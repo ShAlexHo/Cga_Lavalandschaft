@@ -7,6 +7,7 @@ uniform vec3  u_glow_color;
 uniform float u_noise_enabled;
 uniform vec3  u_noise_color_1;
 uniform vec3  u_noise_color_2;
+uniform float u_bump_enabled;
 
 varying vec3 v_normal;
 varying vec3 v_view_position;
@@ -16,12 +17,22 @@ void main() {
     vec3 normal = normalize(v_normal);
     if (!gl_FrontFacing) normal = -normal;
 
+    if (u_bump_enabled > 0.5) {
+        vec3 bump_coord = v_world_position * 3.5;
+        vec3 bump = vec3(
+            simplex_noise(bump_coord + vec3(0.0, 0.0, 1.7)),
+            simplex_noise(bump_coord + vec3(1.3, 0.0, 0.0)),
+            simplex_noise(bump_coord + vec3(0.0, 2.1, 0.0))
+        );
+        normal = normalize(normal + bump * 0.18);
+    }
+
     vec3 light_dir = normalize(u_light_position - v_view_position);
     vec3 view_dir = normalize(-v_view_position);
     vec3 halfway_dir = normalize(light_dir + view_dir);
 
     float diffuse  = max(dot(normal, light_dir), 0.0);
-    float specular = pow(max(dot(normal, halfway_dir), 0.0), 64.0);
+    float specular = pow(max(dot(normal, halfway_dir), 0.0), 128.0);
     float rim = pow(1.0 - max(dot(view_dir, normal), 0.0), 7.0);
 
     float fast_pulse = 0.5 + 0.5 * sin(u_time * 2.0);
@@ -62,7 +73,7 @@ void main() {
     float molten_core = pow(heat, 5.0) * 0.45;
     color += vec3(1.0, 0.75, 0.25) * molten_core;
 
-    color += vec3(1.0, 0.5, 0.4) * specular;
+    color += vec3(0.4, 0.2, 0.15) * specular;
     float rim_wide = pow(1.0 - max(dot(view_dir, normal), 0.0), 4.5);
     color += glow_color * rim_wide * (0.45 + 0.55 * slow_pulse) * u_glow_enabled;
 

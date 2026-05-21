@@ -41,6 +41,7 @@ export function create_metaballs(scene) {
             u_noise_enabled: { value: 1.0 },
             u_noise_color_1: { value: new THREE.Color(0.0, 0.0, 0.0) },
             u_noise_color_2: { value: new THREE.Color(0.82, 0.14, 0.02) },
+            u_bump_enabled:  { value: 1.0 },
         },
         side: THREE.DoubleSide,
     });

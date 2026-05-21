@@ -29,6 +29,7 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
         noise: true,
         noise_farbe_1: '#' + material.uniforms.u_noise_color_1.value.getHexString(),
         noise_farbe_2: '#' + material.uniforms.u_noise_color_2.value.getHexString(),
+        bumping: true,
     };
 
     const colors_folder = gui.addFolder('Lavafarbe');
@@ -56,6 +57,9 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
     noise_folder.addColor(noise_params, 'noise_farbe_2')
         .name('sekundäre Farbe')
         .onChange(value => material.uniforms.u_noise_color_2.value.set(value));
+    noise_folder.add(noise_params, 'bumping')
+        .name('Bumping')
+        .onChange(value => { material.uniforms.u_bump_enabled.value = value ? 1.0 : 0.0; });
     noise_folder.open();
 
     if (ground) {
