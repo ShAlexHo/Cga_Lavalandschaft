@@ -1,6 +1,6 @@
 const SEED = 42;
 
-const make_seeded_rand = (seed) => {
+export const make_seeded_rand = (seed) => {
     let state = seed >>> 0;
     return () => {
         state = (Math.imul(1664525, state) + 1013904223) >>> 0;
