@@ -61,6 +61,7 @@ function make_material() {
             u_glow_enabled: { value: 1.0 },
             u_noise_enabled: { value: 1.0 },
             u_bump_enabled: { value: 1.0 },
+            u_displacement: { value: 0.002 },
         },
     };
 }

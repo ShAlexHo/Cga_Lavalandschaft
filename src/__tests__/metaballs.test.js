@@ -304,6 +304,7 @@ describe('create_metaballs', () => {
             'u_noise_color_1',
             'u_noise_color_2',
             'u_bump_enabled',
+            'u_displacement',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);

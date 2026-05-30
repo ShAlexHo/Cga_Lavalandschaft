@@ -60,6 +60,19 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
     noise_folder.add(noise_params, 'bumping')
         .name('Bumping')
         .onChange(value => { material.uniforms.u_bump_enabled.value = value ? 1.0 : 0.0; });
+    const disp_params = { displacement: true, _last: material.uniforms.u_displacement.value };
+    noise_folder.add(disp_params, 'displacement')
+        .name('Displacement')
+        .onChange(value => {
+            if (value) {
+                material.uniforms.u_displacement.value = disp_params._last;
+            } else {
+                disp_params._last = material.uniforms.u_displacement.value;
+                material.uniforms.u_displacement.value = 0.0;
+            }
+        });
+    noise_folder.add(material.uniforms.u_displacement, 'value', 0.0, 0.004, 0.0001)
+        .name('Displacement Stärke');
     noise_folder.open();
 
     if (ground) {

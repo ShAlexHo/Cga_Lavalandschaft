@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
-import vertexShader  from './shaders/metaball.vert?raw';
+import vertexGlsl    from './shaders/metaball.vert?raw';
 import noiseGlsl     from './shaders/noise.glsl?raw';
 import fragGlsl      from './shaders/metaball.frag?raw';
 
+const vertexShader   = noiseGlsl + vertexGlsl;
 const fragmentShader = noiseGlsl + fragGlsl;
 
 import { rand, rand3 } from './rand.js';
@@ -41,12 +42,13 @@ export function create_metaballs(scene) {
             u_noise_enabled: { value: 1.0 },
             u_noise_color_1: { value: new THREE.Color(0x7c3027) },
             u_noise_color_2: { value: new THREE.Color(0.82, 0.14, 0.02) },
-            u_bump_enabled:  { value: 1.0 },
+            u_bump_enabled:    { value: 1.0 },
+            u_displacement:    { value: 0.001 },
         },
         side: THREE.DoubleSide,
     });
 
-    const resolution = 60;
+    const resolution = 100;
     const max_polygon_count = 200_000;
     const effect = new MarchingCubes(resolution, material, false, false, max_polygon_count);
     effect.isolation = 50;
