@@ -56,7 +56,7 @@ function make_material() {
             u_color_hot: { value: color('e32117') },
             u_color_cool: { value: color('330808') },
             u_glow_color: { value: color('ff0d00') },
-            u_noise_color_1: { value: color('000000') },
+            u_noise_color_1: { value: color('7c3027') },
             u_noise_color_2: { value: color('d12405') },
             u_glow_enabled: { value: 1.0 },
             u_noise_enabled: { value: 1.0 },
