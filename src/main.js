@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
 import { setup_gui } from './gui.js';
+import { create_volcano } from './volcano.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
@@ -39,6 +40,8 @@ const ground = new THREE.Mesh(
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -6;
 scene.add(ground);
+
+const volcano = create_volcano(scene);
 
 setup_gui(effect, material, settings, rebuild_field, ground);
 
