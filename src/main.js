@@ -25,7 +25,7 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 
 const { effect, material } = create_metaballs(scene);
-effect.position.y = -0.3;
+effect.position.y = 0.36;
 
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(30, 30),
@@ -37,7 +37,7 @@ const ground = new THREE.Mesh(
     })
 );
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -1.141;
+ground.position.y = -6;
 scene.add(ground);
 
 setup_gui(effect, material, settings, rebuild_field, ground);

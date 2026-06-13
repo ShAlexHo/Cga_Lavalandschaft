@@ -30,7 +30,7 @@ void main() {
             simplex_noise(bump_coord2 + vec3(2.1, 0.0, 0.0)),
             simplex_noise(bump_coord2 + vec3(0.0, 3.7, 0.0))
         );
-        normal = normalize(normal + bump * 0.38 + bump2 * 0.18);
+        normal = normalize(normal + bump * 0.20 + bump2 * 0.10);
     }
 
     vec3 light_dir = normalize(u_light_position - v_view_position);
@@ -47,10 +47,10 @@ void main() {
 
     float heat;
     if (u_noise_enabled > 0.5) {
-        vec3 noise_coord = v_world_position * 1.1 + vec3(0.0, -u_time * 0.12, u_time * 0.05);
+        vec3 noise_coord = v_world_position * 0.7 + vec3(0.0, -u_time * 0.12, u_time * 0.05);
         float n = fractal_brownian_motion(noise_coord) * 0.5 + 0.5;
 
-        vec3 warped = noise_coord + 0.7 * vec3(
+        vec3 warped = noise_coord + 0.4 * vec3(
             simplex_noise(noise_coord + vec3(1.7, 9.2, 0.0)),
             simplex_noise(noise_coord + vec3(8.3, 2.8, 0.0)),
             simplex_noise(noise_coord + vec3(0.0, 5.1, 3.4))
@@ -67,10 +67,10 @@ void main() {
 
     if (u_noise_enabled > 0.5) {
         // second noise layer at different scale/speed for orange hot spots
-        vec3 orange_coord = v_world_position * 1.8 + vec3(u_time * 0.07, -u_time * 0.18, 0.0);
+        vec3 orange_coord = v_world_position * 1.2 + vec3(u_time * 0.07, -u_time * 0.18, 0.0);
         float orange_n = fractal_brownian_motion(orange_coord) * 0.5 + 0.5;
         float orange_mask = smoothstep(0.6, 0.85, orange_n);
-        color = mix(color, u_noise_color_2, orange_mask * 0.75);
+        color = mix(color, u_noise_color_2, orange_mask * 0.40);
     }
 
     float self_illumination = pow(heat, 1.5) * 0.90;

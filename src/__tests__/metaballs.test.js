@@ -38,7 +38,7 @@ vi.mock('three/addons/objects/MarchingCubes.js', () => {
     class MarchingCubes {
         constructor(_resolution, _material, _uvs, _colors, _max) {
             this.isolation = 80;
-            this.scale     = { setScalar: vi.fn() };
+            this.scale     = { set: vi.fn(), setScalar: vi.fn() };
             this.position  = { y: 0 };
         }
         reset() {}
@@ -78,7 +78,7 @@ function make_effect() {
 
 describe('settings (default values)', () => {
     test('count is 16', () => expect(settings.count).toBe(16));
-    test('spread is 1.0', () => expect(settings.spread).toBe(1.0));
+    test('spread is 0.25', () => expect(settings.spread).toBe(0.25));
     test('speed_factor is 0.35', () => expect(settings.speed_factor).toBe(0.35));
     test('paused is false', () => expect(settings.paused).toBe(false));
     test('max_count is 30', () => expect(settings.max_count).toBe(30));
@@ -155,12 +155,12 @@ describe('update_metaballs', () => {
 
     test('ball x position is within expected range', () => {
         // x = 0.5 + (base[0] − 0.5) * spread + sin(…) * amplitude
-        // base in [0.32, 0.68], spread = 1.0, amplitude in [0.05, 0.09]
-        // max deviation: (0.68 − 0.5) + 0.09 = 0.27  ->  x in [0.23, 0.77]
+        // base in [0.32, 0.68], spread = 0.25, amplitude in [0.05, 0.09]
+        // max deviation: 0.09 + 0.09 = 0.18  ->  x in [0.32, 0.68]
         update_metaballs(effect, 1.0);
         effect.addBall.mock.calls.forEach(([x]) => {
-            expect(x).toBeGreaterThanOrEqual(0.23 - 1e-9);
-            expect(x).toBeLessThanOrEqual(0.77 + 1e-9);
+            expect(x).toBeGreaterThanOrEqual(0.32 - 1e-9);
+            expect(x).toBeLessThanOrEqual(0.68 + 1e-9);
         });
     });
 
@@ -286,9 +286,9 @@ describe('create_metaballs', () => {
         expect(effect.isolation).toBe(50);
     });
 
-    test('calls effect.scale.setScalar(3.0)', () => {
+    test('calls effect.scale.set(30, 30, 30)', () => {
         const { effect } = create_metaballs(mock_scene);
-        expect(effect.scale.setScalar).toHaveBeenCalledWith(3.0);
+        expect(effect.scale.set).toHaveBeenCalledWith(30, 30, 30);
     });
 
     test('material contains all expected uniforms', () => {
