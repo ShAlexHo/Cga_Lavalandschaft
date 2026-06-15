@@ -98,5 +98,58 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
         ground_folder.open();
     }
 
+    // YouTube Hintergrund-Player (Video als Audioquelle)
+    try {
+        let ytPlayer = null;
+        let ytReady = false;
+        const videoId = 'kTpglKDyn4s';
+
+        function loadYouTubeAPI() {
+            return new Promise((resolve, reject) => {
+                if (window.YT && window.YT.Player) return resolve(window.YT);
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                tag.async = true;
+                document.head.appendChild(tag);
+                const prev = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = function() {
+                    if (prev) try { prev(); } catch (e) {}
+                    resolve(window.YT);
+                };
+                setTimeout(() => reject(new Error('YT API load timeout')), 10000);
+            });
+        }
+
+        function ensurePlayer() {
+            if (ytPlayer) return Promise.resolve(ytPlayer);
+            return loadYouTubeAPI().then(YT => {
+                const div = document.createElement('div');
+                div.id = 'yt-hidden-player';
+                div.style.width = '1px'; div.style.height = '1px'; div.style.position = 'fixed'; div.style.left = '0'; div.style.top = '0'; div.style.opacity = '0'; div.style.pointerEvents = 'none';
+                document.body.appendChild(div);
+                return new Promise((resolve) => {
+                    ytPlayer = new YT.Player(div.id, {
+                        height: '1', width: '1', videoId: videoId,
+                        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, loop: 1, playlist: videoId },
+                        events: { onReady: () => { ytReady = true; resolve(ytPlayer); } }
+                    });
+                });
+            });
+        }
+
+        function playYouTube() {
+            ensurePlayer().then(p => { try { p.playVideo(); } catch (e) {} });
+        }
+        function pauseYouTube() {
+            if (ytPlayer) try { ytPlayer.pauseVideo(); } catch (e) {}
+        }
+
+        const yt_folder = gui.addFolder('Hintergrund Sound');
+        const yt_ctrl = { play: () => playYouTube(), pause: () => pauseYouTube() };
+        yt_folder.add(yt_ctrl, 'play').name('▶ YouTube Play');
+        yt_folder.add(yt_ctrl, 'pause').name('⏸ YouTube Pause');
+        yt_folder.open();
+    } catch (e) {}
+
     return gui;
 }
