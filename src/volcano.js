@@ -14,7 +14,7 @@ const PROFILE = [
 export function create_volcano(scene) {
     const geometry = new THREE.LatheGeometry(PROFILE, 48);
     const material = new THREE.MeshStandardMaterial({
-        color: 0x1c0800,
+        color: 0x000000,
         roughness: 0.95,
         metalness: 0.0,
         side: THREE.DoubleSide,

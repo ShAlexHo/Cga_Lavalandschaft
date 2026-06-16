@@ -3,6 +3,18 @@ import { GUI } from 'dat.gui';
 export function setup_gui(effect, material, settings, rebuild, ground, volcano) {
     const gui = new GUI();
 
+    const effect_offset  = volcano ? effect.position.y - volcano.position.y : 0;
+    const pos_params     = { x: 0, y: 0, z: 0 };
+    let   metaball_y_off = 3.3;
+
+    function apply_y(ground_y) {
+        if (ground)  ground.position.y  = ground_y;
+        if (volcano) {
+            volcano.position.y = ground_y + pos_params.y;
+            effect.position.y  = ground_y + pos_params.y + effect_offset + metaball_y_off;
+        }
+    }
+
     gui.add(settings, 'paused').name('⏸ Pausiert');
 
     const metaballs_folder = gui.addFolder('Metaballs');
@@ -16,6 +28,9 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
         .name('Verteilung');
     metaballs_folder.add(settings, 'speed_factor', 0.0, 2.0, 0.01)
         .name('Geschwindigkeit');
+    metaballs_folder.add({ hoehe: 3.3 }, 'hoehe', 0, 5, 0.05)
+        .name('Höhe')
+        .onChange(v => { metaball_y_off = v; apply_y(ground ? ground.position.y : 0); });
     metaballs_folder.open();
 
     const color_params = {
@@ -75,17 +90,6 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
         .name('Displacement Stärke');
     noise_folder.open();
 
-    const effect_offset = volcano ? effect.position.y - volcano.position.y : 0;
-    const pos_params = { x: 0, y: 0, z: 0 };
-
-    function apply_y(ground_y) {
-        if (ground)  ground.position.y  = ground_y;
-        if (volcano) {
-            volcano.position.y = ground_y + pos_params.y;
-            effect.position.y  = ground_y + pos_params.y + effect_offset;
-        }
-    }
-
     if (ground) {
         const ground_params = {
             sichtbar: ground.visible,
@@ -110,6 +114,12 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
     }
 
     if (volcano) {
+        const volcano_folder = gui.addFolder('Vulkan');
+        volcano_folder.add({ sichtbar: true }, 'sichtbar')
+            .name('Sichtbar')
+            .onChange(value => { volcano.visible = value; });
+        volcano_folder.open();
+
         const pos_folder = gui.addFolder('Position (Vulkan + Lava)');
         pos_folder.add(pos_params, 'x', -10, 10, 0.1)
             .name('X')
@@ -128,6 +138,8 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
             });
         pos_folder.open();
     }
+
+    apply_y(ground ? ground.position.y : 0);
 
     return gui;
 }

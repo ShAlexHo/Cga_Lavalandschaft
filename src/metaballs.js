@@ -7,29 +7,44 @@ import fragGlsl      from './shaders/metaball.frag?raw';
 const vertexShader   = noiseGlsl + vertexGlsl;
 const fragmentShader = noiseGlsl + fragGlsl;
 
-import { rand, rand3 } from './rand.js';
+import { rand } from './rand.js';
 
-const MAX_BALLS = 30;
-const GROUND_HEIGHT = 0.28;
+const MAX_BALLS = 200;
 
 const LEGACY_EFFECT_SCALE = 6.0;
 const SCALE_XY = 30.0;
 const SCALE_Z  = 30.0;
-const Z_NORM   = SCALE_XY / SCALE_Z;
 const BALL_STRENGTH = ( LEGACY_EFFECT_SCALE / SCALE_XY ) ** 2;
 
-export const settings = { count: 16, spread: 0.25, speed_factor: 0.35, paused: false, max_count: MAX_BALLS };
+const CRATER_Y = 0.355;   // (-4 - 0.36) / 30 + 0.5
+const CRATER_X = 0.5;
+const CRATER_Z = 0.5;
+const CRATER_R = 0.032;   // Kraterradius 0.95 / SCALE_XY
+const GROUND_Y = 0.288;   // (-6 - 0.36) / 30 + 0.5
+
+const BALL_LIFETIME = 3.5;  // Sekunden von Krater bis Boden
+
+export const settings = { count: 100, spread: 1.0, speed_factor: 0.15, paused: false, max_count: MAX_BALLS };
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
-    x: 0.5, y: 0.5, z: 0.5, strength: BALL_STRENGTH, subtract: rand(25, 45),
+    x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
 }));
 
-const ANIMATIONS = Array.from({ length: MAX_BALLS }, () => ({
-    base: rand3(0.32, 0.68),
-    speed: rand3(0.5, 1.2),
-    amplitude: rand(0.05, 0.09),
-    phase: rand3(0, Math.PI * 2),
-}));
+function random_spawn() {
+    const angle = Math.random() * Math.PI * 2;
+    const r     = Math.random() * CRATER_R;
+    return {
+        spawn_x: CRATER_X + Math.cos(angle) * r,
+        spawn_z: CRATER_Z + Math.sin(angle) * r,
+        drift_x: (Math.random() - 0.5) * 0.4,
+        drift_z: (Math.random() - 0.5) * 0.4,
+    };
+}
+
+const BALL_STATE = Array.from({ length: MAX_BALLS }, (_, i) => {
+    const p = i / MAX_BALLS;
+    return { offset: p, prev_phase: p, ...random_spawn() };
+});
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(6, 8, 6);
 const _light_view_position = new THREE.Vector3();
@@ -76,12 +91,20 @@ export function rebuild_field(effect) {
 }
 
 export function update_metaballs(effect, time) {
-    for (let index = 0; index < settings.count; index++) {
-        const ball = BALL_POOL[index];
-        const animation = ANIMATIONS[index];
-        ball.x = 0.5 + (animation.base[0] - 0.5) * settings.spread + Math.sin(time * animation.speed[0] * settings.speed_factor + animation.phase[0]) * animation.amplitude;
-        ball.y = GROUND_HEIGHT;
-        ball.z = 0.5 + (animation.base[2] - 0.5) * settings.spread * Z_NORM + Math.sin(time * animation.speed[2] * settings.speed_factor + animation.phase[2]) * animation.amplitude * Z_NORM;
+    for (let i = 0; i < settings.count; i++) {
+        const ball  = BALL_POOL[i];
+        const state = BALL_STATE[i];
+
+        const phase = (time * settings.speed_factor / BALL_LIFETIME + state.offset) % 1.0;
+
+        if (phase < state.prev_phase) {
+            Object.assign(state, random_spawn());
+        }
+        state.prev_phase = phase;
+
+        ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
+        ball.x = state.spawn_x + state.drift_x * phase * settings.spread;
+        ball.z = state.spawn_z + state.drift_z * phase * settings.spread;
     }
     rebuild_field(effect);
 }
