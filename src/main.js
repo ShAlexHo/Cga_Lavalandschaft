@@ -42,8 +42,9 @@ ground.position.y = -6;
 scene.add(ground);
 
 const volcano = create_volcano(scene);
+volcano.position.y = ground.position.y;
 
-setup_gui(effect, material, settings, rebuild_field, ground);
+setup_gui(effect, material, settings, rebuild_field, ground, volcano);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;

@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-export function setup_gui(effect, material, settings, rebuild, ground) {
+export function setup_gui(effect, material, settings, rebuild, ground, volcano) {
     const gui = new GUI();
 
     gui.add(settings, 'paused').name('⏸ Pausiert');
@@ -75,6 +75,17 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
         .name('Displacement Stärke');
     noise_folder.open();
 
+    const effect_offset = volcano ? effect.position.y - volcano.position.y : 0;
+    const pos_params = { x: 0, y: 0, z: 0 };
+
+    function apply_y(ground_y) {
+        if (ground)  ground.position.y  = ground_y;
+        if (volcano) {
+            volcano.position.y = ground_y + pos_params.y;
+            effect.position.y  = ground_y + pos_params.y + effect_offset;
+        }
+    }
+
     if (ground) {
         const ground_params = {
             sichtbar: ground.visible,
@@ -92,10 +103,30 @@ export function setup_gui(effect, material, settings, rebuild, ground) {
                 ground.material.color.set(value);
                 ground.material.emissive.set(value).multiplyScalar(0.25);
             });
-        ground_folder.add(ground_params, 'hoehe', -2.5, -1.0, 0.01)
+        ground_folder.add(ground_params, 'hoehe', -10, 0, 0.01)
             .name('Höhe')
-            .onChange(value => { ground.position.y = value; });
+            .onChange(value => apply_y(value));
         ground_folder.open();
+    }
+
+    if (volcano) {
+        const pos_folder = gui.addFolder('Position (Vulkan + Lava)');
+        pos_folder.add(pos_params, 'x', -10, 10, 0.1)
+            .name('X')
+            .onChange(v => {
+                volcano.position.x = v;
+                effect.position.x  = v;
+            });
+        pos_folder.add(pos_params, 'y', -6, 6, 0.1)
+            .name('Y-Versatz')
+            .onChange(() => apply_y(ground ? ground.position.y : 0));
+        pos_folder.add(pos_params, 'z', -10, 10, 0.1)
+            .name('Z')
+            .onChange(v => {
+                volcano.position.z = v;
+                effect.position.z  = v;
+            });
+        pos_folder.open();
     }
 
     return gui;

@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-const GROUND_Y = -1.141;
-
 const PROFILE = [
     new THREE.Vector2(14.0, 0.0),
     new THREE.Vector2(11.0, 0.35),
@@ -23,7 +21,7 @@ export function create_volcano(scene) {
     });
 
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, GROUND_Y, 0);
+    mesh.position.set(0, 0, 0);
     scene.add(mesh);
 
     return mesh;
