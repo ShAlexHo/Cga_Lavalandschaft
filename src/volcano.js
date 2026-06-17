@@ -2,13 +2,13 @@ import * as THREE from 'three';
 
 const PROFILE = [
     new THREE.Vector2(14.0, 0.0),
-    new THREE.Vector2(11.0, 0.35),
-    new THREE.Vector2(8.0,  0.75),
-    new THREE.Vector2(5.0,  1.15),
-    new THREE.Vector2(2.5,  1.5),
-    new THREE.Vector2(1.1,  1.8),
-    new THREE.Vector2(0.8,  1.95),
-    new THREE.Vector2(0.95, 2.0),
+    new THREE.Vector2(11.0, 0.70),
+    new THREE.Vector2(8.0,  1.50),
+    new THREE.Vector2(5.0,  2.30),
+    new THREE.Vector2(2.5,  3.00),
+    new THREE.Vector2(1.1,  3.60),
+    new THREE.Vector2(0.8,  3.90),
+    new THREE.Vector2(0.95, 4.00),
 ];
 
 export function create_volcano(scene) {
