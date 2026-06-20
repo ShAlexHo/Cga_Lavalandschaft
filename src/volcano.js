@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 
 const PROFILE = [
-    new THREE.Vector2(14.0, 0.0),
-    new THREE.Vector2(11.0, 0.70),
-    new THREE.Vector2(8.0,  1.50),
-    new THREE.Vector2(5.0,  2.30),
-    new THREE.Vector2(2.5,  3.00),
-    new THREE.Vector2(1.1,  3.60),
-    new THREE.Vector2(0.8,  3.90),
-    new THREE.Vector2(0.95, 4.00),
+    new THREE.Vector2(14.0, 0.000),
+    new THREE.Vector2(11.0, 0.875),
+    new THREE.Vector2(8.0, 1.875),
+    new THREE.Vector2(5.0, 2.875),
+    new THREE.Vector2(2.5, 3.750),
+    new THREE.Vector2(1.1, 4.500),
+    new THREE.Vector2(0.8, 4.875),
+    new THREE.Vector2(0.95, 5.000),
 ];
 
 export function create_volcano(scene) {
