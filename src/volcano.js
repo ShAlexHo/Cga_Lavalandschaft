@@ -6,9 +6,9 @@ const PROFILE = [
     new THREE.Vector2(8.0, 1.875),
     new THREE.Vector2(5.0, 2.875),
     new THREE.Vector2(2.5, 3.750),
-    new THREE.Vector2(1.1, 4.500),
-    new THREE.Vector2(0.8, 4.875),
-    new THREE.Vector2(0.95, 5.000),
+    new THREE.Vector2(2.2, 4.300),
+    new THREE.Vector2(1.8, 4.700),
+    new THREE.Vector2(2.1, 5.000),
 ];
 
 export function create_volcano(scene) {

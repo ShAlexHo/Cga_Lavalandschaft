@@ -9,14 +9,14 @@ const fragmentShader = noiseGlsl + fragGlsl;
 
 import { rand } from './rand.js';
 
-const MAX_BALLS = 200;
+const MAX_BALLS = 500;
 
 const LEGACY_EFFECT_SCALE = 6.0;
 const SCALE_XY = 30.0;
 const SCALE_Z  = 30.0;
 const BALL_STRENGTH = ( LEGACY_EFFECT_SCALE / SCALE_XY ) ** 2;
 
-const CRATER_Y = 0.355;   // (-4 - 0.36) / 30 + 0.5
+const CRATER_Y = 0.45;   // (-1 - 0.36) / 30 + 0.5  (Vulkanspitze: ground -6 + height 5 = -1)
 const CRATER_X = 0.5;
 const CRATER_Z = 0.5;
 const CRATER_R = 0.032;   // Kraterradius 0.95 / SCALE_XY
@@ -81,30 +81,23 @@ export function create_metaballs(scene) {
     return { effect, material };
 }
 
+let active_count = 0;
+let last_spawn_time = -1.0;
+
 export function rebuild_field(effect) {
+    active_count = Math.min(active_count, settings.count);
     effect.reset();
-    for (let index = 0; index < settings.count; index++) {
-        const ball = BALL_POOL[index];
+    for (let i = 0; i < active_count; i++) {
+        const ball = BALL_POOL[i];
         effect.addBall(ball.x, ball.y, ball.z, ball.strength, ball.subtract);
     }
     effect.update();
 }
 
 export function update_metaballs(effect, time) {
-    for (let i = 0; i < settings.count; i++) {
-        const ball  = BALL_POOL[i];
-        const state = BALL_STATE[i];
-
-        const phase = (time * settings.speed_factor / BALL_LIFETIME + state.offset) % 1.0;
-
-        if (phase < state.prev_phase) {
-            Object.assign(state, random_spawn());
-        }
-        state.prev_phase = phase;
-
-        ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
-        ball.x = state.spawn_x + state.drift_x * phase * settings.spread;
-        ball.z = state.spawn_z + state.drift_z * phase * settings.spread;
+    if (active_count < settings.count && time - last_spawn_time >= 1.0) {
+        active_count++;
+        last_spawn_time = time;
     }
     rebuild_field(effect);
 }
