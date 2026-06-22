@@ -32,7 +32,7 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
         .name('Höhe')
         .onChange(v => { metaball_y_off = v; apply_y(ground ? ground.position.y : 0); });
     metaballs_folder.add(settings, 'flow_z_radius', 0, 20, 0.1)
-        .name('Steigung (z)');
+        .name('Steigung');
     metaballs_folder.open();
 
     const color_params = {
