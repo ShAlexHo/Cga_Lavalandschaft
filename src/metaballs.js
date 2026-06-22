@@ -27,6 +27,7 @@ export const settings = { count: 100, spread: 1.0, speed_factor: 0.05, paused: f
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
     x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
+    speed_mult: rand(0.6, 1.4),
 }));
 
 const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
@@ -87,9 +88,9 @@ export function update_metaballs(effect, time) {
     }
 
     for (let i = 0; i < active_count; i++) {
-        const t = Math.min((time - spawn_times[i]) * settings.speed_factor / BALL_LIFETIME, 1.0);
-        const phase = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);
         const ball = BALL_POOL[i];
+        const t = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / BALL_LIFETIME, 1.0);
+        const phase = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);
         ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
         ball.z = CRATER_Z + (settings.flow_z_radius / SCALE_Z) * phase;
     }
