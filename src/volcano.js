@@ -1,14 +1,9 @@
 import * as THREE from 'three';
 
 const PROFILE = [
-    new THREE.Vector2(14.0, 0.000),
-    new THREE.Vector2(11.0, 0.875),
-    new THREE.Vector2(8.0, 1.875),
-    new THREE.Vector2(5.0, 2.875),
-    new THREE.Vector2(2.5, 3.750),
-    new THREE.Vector2(2.2, 4.300),
-    new THREE.Vector2(1.8, 4.700),
-    new THREE.Vector2(2.1, 5.000),
+    new THREE.Vector2(14.0, 0.0),
+    new THREE.Vector2(2.5,  5.0),
+    new THREE.Vector2(1.0,  4.2),
 ];
 
 export function create_volcano(scene) {
