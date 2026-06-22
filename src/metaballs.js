@@ -21,30 +21,15 @@ const CRATER_X = 0.5;
 const CRATER_Z = 0.5;
 const CRATER_R = 0.032;   // Kraterradius 0.95 / SCALE_XY
 const GROUND_Y = 0.288;   // (-6 - 0.36) / 30 + 0.5
-
 const BALL_LIFETIME = 3.5;  // Sekunden von Krater bis Boden
 
-export const settings = { count: 100, spread: 1.0, speed_factor: 0.15, paused: false, max_count: MAX_BALLS };
+export const settings = { count: 100, spread: 1.0, speed_factor: 0.05, paused: false, max_count: MAX_BALLS, flow_z_radius: 10 };
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
     x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
 }));
 
-function random_spawn() {
-    const angle = Math.random() * Math.PI * 2;
-    const r     = Math.random() * CRATER_R;
-    return {
-        spawn_x: CRATER_X + Math.cos(angle) * r,
-        spawn_z: CRATER_Z + Math.sin(angle) * r,
-        drift_x: (Math.random() - 0.5) * 0.4,
-        drift_z: (Math.random() - 0.5) * 0.4,
-    };
-}
-
-const BALL_STATE = Array.from({ length: MAX_BALLS }, (_, i) => {
-    const p = i / MAX_BALLS;
-    return { offset: p, prev_phase: p, ...random_spawn() };
-});
+const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(6, 8, 6);
 const _light_view_position = new THREE.Vector3();
@@ -96,9 +81,19 @@ export function rebuild_field(effect) {
 
 export function update_metaballs(effect, time) {
     if (active_count < settings.count && time - last_spawn_time >= 1.0) {
+        spawn_times[active_count] = time;
         active_count++;
         last_spawn_time = time;
     }
+
+    for (let i = 0; i < active_count; i++) {
+        const t = Math.min((time - spawn_times[i]) * settings.speed_factor / BALL_LIFETIME, 1.0);
+        const phase = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);
+        const ball = BALL_POOL[i];
+        ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
+        ball.z = CRATER_Z + (settings.flow_z_radius / SCALE_Z) * phase;
+    }
+
     rebuild_field(effect);
 }
 

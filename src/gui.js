@@ -5,7 +5,7 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
 
     const effect_offset  = volcano ? effect.position.y - volcano.position.y : 0;
     const pos_params     = { x: 0, y: 0, z: 0 };
-    let   metaball_y_off = 0;
+    let   metaball_y_off = 2;
 
     function apply_y(ground_y) {
         if (ground)  ground.position.y  = ground_y;
@@ -28,9 +28,11 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
         .name('Verteilung');
     metaballs_folder.add(settings, 'speed_factor', 0.0, 2.0, 0.01)
         .name('Geschwindigkeit');
-    metaballs_folder.add({ hoehe: 0 }, 'hoehe', 0, 5, 0.05)
+    metaballs_folder.add({ hoehe: 2 }, 'hoehe', 0, 5, 0.05)
         .name('Höhe')
         .onChange(v => { metaball_y_off = v; apply_y(ground ? ground.position.y : 0); });
+    metaballs_folder.add(settings, 'flow_z_radius', 0, 20, 0.1)
+        .name('Steigung (z)');
     metaballs_folder.open();
 
     const color_params = {
