@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
 import { setup_gui } from './gui.js';
 import { create_volcano } from './volcano.js';
@@ -18,7 +21,23 @@ camera.position.set(0, 1.7, 7.5);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.toneMapping = THREE.ReinhardToneMapping;
 document.body.appendChild(renderer.domElement);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const strength = 0.8;
+const radius = 0.5;
+const threshold = 0.3;
+const bloom_pass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    strength,
+    radius,
+    threshold
+);
+const orange = new THREE.Vector3(1.0, 0.45, 0.05);
+bloom_pass.bloomTintColors.fill(orange);
+composer.addPass(bloom_pass);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -44,12 +63,13 @@ scene.add(ground);
 const volcano = create_volcano(scene);
 volcano.position.y = ground.position.y;
 
-setup_gui(effect, material, settings, rebuild_field, ground, volcano);
+setup_gui(effect, material, settings, rebuild_field, ground, volcano, bloom_pass);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
 });
 
 let elapsed_time = 0;
@@ -60,7 +80,7 @@ const animate = () => {
     controls.update();
     update_metaballs(effect, elapsed_time);
     update_light(material, camera, elapsed_time);
-    renderer.render(scene, camera);
+    composer.render();
 };
 
 animate();

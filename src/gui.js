@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-export function setup_gui(effect, material, settings, rebuild, ground, volcano) {
+export function setup_gui(effect, material, settings, rebuild, ground, volcano, bloom_pass) {
     const gui = new GUI();
 
     const effect_offset  = volcano ? effect.position.y - volcano.position.y : 0;
@@ -26,7 +26,7 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
         .onChange(() => rebuild(effect));
     metaballs_folder.add(settings, 'spread', 0.1, 2.0, 0.01)
         .name('Verteilung');
-    metaballs_folder.add(settings, 'speed_factor', 0.0, 2.0, 0.01)
+    metaballs_folder.add(settings, 'speed_factor', 0.0, 0.01, 0.0001)
         .name('Geschwindigkeit');
     metaballs_folder.add({ hoehe: 1.6 }, 'hoehe', 0, 5, 0.05)
         .name('Höhe')
@@ -142,6 +142,15 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano) 
     }
 
     apply_y(ground ? ground.position.y : 0);
+
+    if (bloom_pass) {
+        const bloom_folder = gui.addFolder('Bloom');
+        bloom_folder.add(bloom_pass, 'enabled').name('Aktiviert');
+        bloom_folder.add(bloom_pass, 'strength', 0.0, 4.0, 0.05).name('Stärke');
+        bloom_folder.add(bloom_pass, 'radius', 0.0, 1.5, 0.01).name('Radius');
+        bloom_folder.add(bloom_pass, 'threshold', 0.0, 1.0, 0.01).name('Schwellenwert');
+        bloom_folder.open();
+    }
 
     return gui;
 }

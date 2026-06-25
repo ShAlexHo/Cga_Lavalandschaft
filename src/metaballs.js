@@ -7,7 +7,7 @@ import fragGlsl      from './shaders/metaball.frag?raw';
 const vertexShader   = noiseGlsl + vertexGlsl;
 const fragmentShader = noiseGlsl + fragGlsl;
 
-import { rand } from './rand.js';
+import { rand, rand_gauss } from './rand.js';
 
 const MAX_BALLS = 500;
 
@@ -23,12 +23,15 @@ const CRATER_R = 0.032;   // Kraterradius 0.95 / SCALE_XY
 const GROUND_Y = 0.288;   // (-6 - 0.36) / 30 + 0.5
 const BALL_LIFETIME = 3.5;  // Sekunden von Krater bis Boden
 
-export const settings = { count: 100, spread: 1.0, speed_factor: 0.01, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
+export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
 
-const BALL_POOL = Array.from({ length: MAX_BALLS }, () => ({
+const SECTORS = 8;
+const SECTOR_WIDTH = (Math.PI * 2) / SECTORS;
+
+const BALL_POOL = Array.from({ length: MAX_BALLS }, (_, i) => ({
     x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
     speed_mult: rand(0.6, 1.4),
-    angle: rand(0, Math.PI * 2),
+    angle: rand_gauss((i % SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
 }));
 
 const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
@@ -91,7 +94,8 @@ export function update_metaballs(effect, time) {
     for (let i = 0; i < active_count; i++) {
         const ball = BALL_POOL[i];
         const t = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / BALL_LIFETIME, 1.0);
-        const phase = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);
+        const u = 1.0 - t;
+        const phase = (1.0 - u * u * u * u * u * u * u * u * u * u * u * u * u * u * u * u) * 0.95;
         const radius = settings.flow_z_radius / SCALE_XY * phase;
         ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
         ball.x = CRATER_X + radius * Math.cos(ball.angle);
