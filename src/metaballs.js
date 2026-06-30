@@ -29,7 +29,7 @@ const SECTORS = 6;
 const SECTOR_WIDTH = (Math.PI * 2) / SECTORS;
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, (_, i) => ({
-    x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
+    x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH * rand(0.70, 1.25), subtract: rand(25, 45),
     speed_mult: rand(0.6, 1.4),
     angle: rand_gauss((i % SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
     active: false,
