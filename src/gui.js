@@ -19,7 +19,7 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano, 
 
     const metaballs_folder = gui.addFolder('Metaballs');
     metaballs_folder.add(settings, 'count', 1, settings.max_count, 1)
-        .name('Anzahl')
+        .name('Limit')
         .onChange(() => rebuild(effect));
     metaballs_folder.add(effect, 'isolation', 1, 100, 1)
         .name('Threshold')

@@ -25,13 +25,14 @@ const BALL_LIFETIME = 3.5;  // Sekunden von Krater bis Boden
 
 export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
 
-const SECTORS = 8;
+const SECTORS = 6;
 const SECTOR_WIDTH = (Math.PI * 2) / SECTORS;
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, (_, i) => ({
     x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH, subtract: rand(25, 45),
     speed_mult: rand(0.6, 1.4),
     angle: rand_gauss((i % SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
+    active: false,
 }));
 
 const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
@@ -71,13 +72,18 @@ export function create_metaballs(scene) {
     return { effect, material };
 }
 
-let active_count = 0;
+let iter_count = 0;
+let pool_head = 0;
+let cur_wave_count = 0;
 let last_spawn_time = -1.0;
-
+let pausing = false;
+let pause_end = -Infinity;
+const wave_starts = [0];
+const wave_sizes  = [];
 export function rebuild_field(effect) {
-    active_count = Math.min(active_count, settings.count);
     effect.reset();
-    for (let i = 0; i < active_count; i++) {
+    for (let i = 0; i < MAX_BALLS; i++) {
+        if (!BALL_POOL[i].active) continue;
         const ball = BALL_POOL[i];
         effect.addBall(ball.x, ball.y, ball.z, ball.strength, ball.subtract);
     }
@@ -85,13 +91,43 @@ export function rebuild_field(effect) {
 }
 
 export function update_metaballs(effect, time) {
-    if (active_count < settings.count && time - last_spawn_time >= 1.0) {
-        spawn_times[active_count] = time;
-        active_count++;
-        last_spawn_time = time;
+    if (settings.paused) return;
+
+    if (pausing) {
+        if (time >= pause_end) {
+            pausing = false;
+            iter_count++;
+            wave_starts.push(pool_head);
+            cur_wave_count = 0;
+            last_spawn_time = -1.0;
+
+            // Delete balls from 2 iterations ago ("vor-vorherige Iteration")
+            if (iter_count >= 2) {
+                const del_iter  = iter_count - 2;
+                const del_start = wave_starts[del_iter];
+                const del_count = wave_sizes[del_iter];
+                for (let j = 0; j < del_count; j++) {
+                    BALL_POOL[(del_start + j) % MAX_BALLS].active = false;
+                }
+            }
+        }
+    } else {
+        if (cur_wave_count < settings.count && time - last_spawn_time >= 1.0) {
+            const idx = pool_head;
+            spawn_times[idx] = time;
+            BALL_POOL[idx].active = true;
+            cur_wave_count++;
+            pool_head = (pool_head + 1) % MAX_BALLS;
+            last_spawn_time = time;
+        } else if (cur_wave_count >= settings.count) {
+            wave_sizes.push(cur_wave_count);
+            pausing = true;
+            pause_end = time + rand(20, 30);
+        }
     }
 
-    for (let i = 0; i < active_count; i++) {
+    for (let i = 0; i < MAX_BALLS; i++) {
+        if (!BALL_POOL[i].active) continue;
         const ball = BALL_POOL[i];
         const t = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / BALL_LIFETIME, 1.0);
         const u = 1.0 - t;
