@@ -1,6 +1,8 @@
 uniform vec3  u_light_position;
 uniform float u_bump_scale;
 uniform float u_bump_freq;
+uniform vec3  u_rock_color;
+uniform vec3  u_crack_color;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -30,10 +32,10 @@ void main() {
     float diffuse = max(dot(N, normalize(u_light_position - v_view_position)), 0.0);
 
     float ash_var  = fractal_brownian_motion(v_world_position * 2.5) * 0.5 + 0.5;
-    vec3 ash_color = mix(vec3(0.0), vec3(0.008, 0.008, 0.008), ash_var * 0.15);
+    vec3 ash_color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
 
     float crack_mask = smoothstep(0.0, 0.18, n0);
-    vec3 color = mix(vec3(0.003), ash_color, crack_mask);
+    vec3 color = mix(u_crack_color, ash_color, crack_mask);
 
     vec3 view_dir    = normalize(-v_view_position);
     vec3 halfway_dir = normalize(normalize(u_light_position - v_view_position) + view_dir);

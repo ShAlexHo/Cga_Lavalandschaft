@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 
-export function setup_gui(effect, material, settings, rebuild, ground, volcano, bloom_pass) {
+export function setup_gui(effect, material, settings, rebuild, ground, volcano, bloom_pass, volcano_material) {
     const gui = new GUI();
 
     const effect_offset  = volcano ? effect.position.y - volcano.position.y : 0;
@@ -116,10 +116,24 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano, 
     }
 
     if (volcano) {
+        const volcano_params = {
+            sichtbar:    true,
+            fels_farbe:  volcano_material ? '#' + volcano_material.uniforms.u_rock_color.value.getHexString()  : '#020202',
+            riss_farbe:  volcano_material ? '#' + volcano_material.uniforms.u_crack_color.value.getHexString() : '#010101',
+        };
+
         const volcano_folder = gui.addFolder('Vulkan');
-        volcano_folder.add({ sichtbar: true }, 'sichtbar')
+        volcano_folder.add(volcano_params, 'sichtbar')
             .name('Sichtbar')
             .onChange(value => { volcano.visible = value; });
+        if (volcano_material) {
+            volcano_folder.addColor(volcano_params, 'fels_farbe')
+                .name('Felsfarbe')
+                .onChange(value => volcano_material.uniforms.u_rock_color.value.set(value));
+            volcano_folder.addColor(volcano_params, 'riss_farbe')
+                .name('Rissfarbe')
+                .onChange(value => volcano_material.uniforms.u_crack_color.value.set(value));
+        }
         volcano_folder.open();
 
         const pos_folder = gui.addFolder('Position (Vulkan + Lava)');

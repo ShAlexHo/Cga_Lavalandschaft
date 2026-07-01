@@ -41,6 +41,8 @@ export function create_volcano(scene) {
             u_disp_freq:      { value: 0.5  },  // Rissabstand (niedriger = groessere Risse)
             u_bump_scale:     { value: 0.90 },  // Schaerfe der Rissraender
             u_bump_freq:      { value: 1.0  },  // Bump-Frequenz (feiner als Displacement)
+            u_rock_color:     { value: new THREE.Color(0.008, 0.008, 0.008) },
+            u_crack_color:    { value: new THREE.Color(0.003, 0.003, 0.003) },
         },
         side: THREE.DoubleSide,
     });
