@@ -49,7 +49,7 @@ export function create_metaballs(scene) {
             u_time: { value: 0.0 },
             u_glow_enabled: { value: 1.0 },
             u_glow_color: { value: new THREE.Color(1.0, 0.05, 0.0) },
-            u_color_hot: { value: new THREE.Color(0.62, 0.09, 0.06) },
+            u_color_hot: { value: new THREE.Color(0xa01500) },
             u_color_cool: { value: new THREE.Color(0.20, 0.03, 0.02) },
             u_noise_enabled: { value: 1.0 },
             u_noise_color_1: { value: new THREE.Color(0x7c3027) },

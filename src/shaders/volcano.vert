@@ -29,7 +29,7 @@ float crack_noise(vec3 pos, float freq) {
 void main() {
     vec3 world_pos = (modelMatrix * vec4(position, 1.0)).xyz;
 
-    float disp = crack_noise(world_pos, u_disp_freq) - 0.847;
+    float disp = -max(0.0, 0.85 - crack_noise(world_pos, u_disp_freq));
     vec3 displaced = position + normal * disp * u_disp_scale;
 
     v_world_position = (modelMatrix * vec4(displaced, 1.0)).xyz;
