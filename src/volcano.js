@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import noiseGlsl  from './shaders/noise.glsl?raw';
+import vertexGlsl from './shaders/volcano.vert?raw';
+import fragGlsl   from './shaders/volcano.frag?raw';
 
 const PROFILE = [
     new THREE.Vector2(14.0, 0.0),
@@ -6,12 +9,39 @@ const PROFILE = [
     new THREE.Vector2(1.0,  4.2),
 ];
 
+function subdivide_profile(profile, steps) {
+    const out = [];
+    for (let i = 0; i < profile.length - 1; i++) {
+        const a = profile[i], b = profile[i + 1];
+        for (let s = 0; s < steps; s++) {
+            const t = s / steps;
+            out.push(new THREE.Vector2(
+                a.x + (b.x - a.x) * t,
+                a.y + (b.y - a.y) * t,
+            ));
+        }
+    }
+    out.push(profile[profile.length - 1]);
+    return out;
+}
+
+const LIGHT_WORLD_POS  = new THREE.Vector3(5, 8, 5);
+const _light_view_pos  = new THREE.Vector3();
+
 export function create_volcano(scene) {
-    const geometry = new THREE.LatheGeometry(PROFILE, 48);
-    const material = new THREE.MeshStandardMaterial({
-        color: 0x000000,
-        roughness: 0.95,
-        metalness: 0.0,
+    const fine_profile = subdivide_profile(PROFILE, 24);
+    const geometry = new THREE.LatheGeometry(fine_profile, 96);
+
+    const material = new THREE.ShaderMaterial({
+        vertexShader:   noiseGlsl + vertexGlsl,
+        fragmentShader: noiseGlsl + fragGlsl,
+        uniforms: {
+            u_light_position: { value: new THREE.Vector3() },
+            u_disp_scale:     { value: 0.80 },  // Risstiefe in Welteinheiten
+            u_disp_freq:      { value: 0.5  },  // Rissabstand (niedriger = groessere Risse)
+            u_bump_scale:     { value: 0.90 },  // Schaerfe der Rissraender
+            u_bump_freq:      { value: 1.0  },  // Bump-Frequenz (feiner als Displacement)
+        },
         side: THREE.DoubleSide,
     });
 
@@ -19,5 +49,10 @@ export function create_volcano(scene) {
     mesh.position.set(0, 0, 0);
     scene.add(mesh);
 
-    return mesh;
+    return { mesh, material };
+}
+
+export function update_volcano_light(material, camera) {
+    _light_view_pos.copy(LIGHT_WORLD_POS).applyMatrix4(camera.matrixWorldInverse);
+    material.uniforms.u_light_position.value.copy(_light_view_pos);
 }

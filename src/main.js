@@ -5,7 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
 import { setup_gui } from './gui.js';
-import { create_volcano } from './volcano.js';
+import { create_volcano, update_volcano_light } from './volcano.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
@@ -60,7 +60,7 @@ ground.rotation.x = -Math.PI / 2;
 ground.position.y = -6;
 scene.add(ground);
 
-const volcano = create_volcano(scene);
+const { mesh: volcano, material: volcano_material } = create_volcano(scene);
 volcano.position.y = ground.position.y;
 
 setup_gui(effect, material, settings, rebuild_field, ground, volcano, bloom_pass);
@@ -80,6 +80,7 @@ const animate = () => {
     controls.update();
     update_metaballs(effect, elapsed_time);
     update_light(material, camera, elapsed_time);
+    update_volcano_light(volcano_material, camera);
     composer.render();
 };
 
