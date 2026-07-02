@@ -118,7 +118,7 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano, 
     if (volcano) {
         const volcano_params = {
             sichtbar:    true,
-            fels_farbe:  volcano_material ? '#' + volcano_material.uniforms.u_rock_color.value.getHexString()  : '#afafaf',
+            fels_farbe:  volcano_material ? '#' + volcano_material.uniforms.u_rock_color.value.getHexString()  : '#666666',
             riss_farbe:  volcano_material ? '#' + volcano_material.uniforms.u_crack_color.value.getHexString() : '#010101',
         };
 
@@ -131,6 +131,10 @@ export function setup_gui(effect, material, settings, rebuild, ground, volcano, 
                 .name('Risstiefe');
             volcano_folder.add(volcano_material.uniforms.u_disp_freq, 'value', 0.1, 2.0, 0.05)
                 .name('Rissfrequenz');
+            volcano_folder.add(volcano_material.uniforms.u_macro_scale, 'value', 0.0, 6.0, 0.05)
+                .name('Struktur-Stärke');
+            volcano_folder.add(volcano_material.uniforms.u_macro_freq, 'value', 0.02, 0.5, 0.01)
+                .name('Struktur-Frequenz');
             volcano_folder.addColor(volcano_params, 'fels_farbe')
                 .name('Felsfarbe')
                 .onChange(value => volcano_material.uniforms.u_rock_color.value.set(value));

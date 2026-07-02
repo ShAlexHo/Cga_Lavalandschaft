@@ -39,8 +39,10 @@ export function create_volcano(scene) {
             u_light_position: { value: new THREE.Vector3() },
             u_disp_scale:     { value: 2.5  },  // Risstiefe in Welteinheiten
             u_disp_freq:      { value: 0.5  },  // Rissabstand (niedriger = groessere Risse)
+            u_macro_scale:    { value: 2.0  },  // Staerke der grossflaechigen Struktur-Verformung
+            u_macro_freq:     { value: 0.12 },  // Abstand der grossen Rippen/Beulen (niedriger = groesser)
             u_crack_freq:     { value: 1.0  },  // Rissfarb-Frequenz (Faerbungsmaske)
-            u_rock_color:     { value: new THREE.Color(0xafafaf) },
+            u_rock_color:     { value: new THREE.Color(0x666666) },
             u_crack_color:    { value: new THREE.Color(0.003, 0.003, 0.003) },
         },
         side: THREE.DoubleSide,
