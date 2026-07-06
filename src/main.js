@@ -3,9 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
-import { setup_gui } from './gui.js';
-import { create_volcano, update_volcano_light } from './volcano.js';
+import { createSceneController } from './core/scene_controller.js';
+import { setup_gui } from './ui/gui.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
@@ -44,26 +43,9 @@ controls.enableDamping = true;
 
 const clock = new THREE.Clock();
 
-const { effect, material } = create_metaballs(scene);
-effect.position.y = 0.36;
+const controller = createSceneController({ scene, camera, bloomPass: bloom_pass });
 
-const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({
-        color: 0x220500,
-        emissive: 0x2b0800,
-        roughness: 0.88,
-        metalness: 0.05,
-    })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -6;
-scene.add(ground);
-
-const { mesh: volcano, material: volcano_material } = create_volcano(scene);
-volcano.position.y = ground.position.y;
-
-setup_gui(effect, material, settings, rebuild_field, ground, volcano, bloom_pass, volcano_material);
+setup_gui(controller);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -76,11 +58,9 @@ let elapsed_time = 0;
 const animate = () => {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    if (!settings.paused) elapsed_time += delta;
+    if (!controller.isPaused()) elapsed_time += delta;
     controls.update();
-    update_metaballs(effect, elapsed_time);
-    update_light(material, camera, elapsed_time);
-    update_volcano_light(volcano_material, camera);
+    controller.update(elapsed_time);
     composer.render();
 };
 

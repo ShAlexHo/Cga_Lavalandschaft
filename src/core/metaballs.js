@@ -16,12 +16,12 @@ const SCALE_XY = 30.0;
 const SCALE_Z  = 30.0;
 const BALL_STRENGTH = ( LEGACY_EFFECT_SCALE / SCALE_XY ) ** 2;
 
-const CRATER_Y = 0.45;   // (-1 - 0.36) / 30 + 0.5  (Vulkanspitze: ground -6 + height 5 = -1)
+const CRATER_Y = 0.45;
 const CRATER_X = 0.5;
 const CRATER_Z = 0.5;
-const CRATER_R = 0.032;   // Kraterradius 0.95 / SCALE_XY
-const GROUND_Y = 0.288;   // (-6 - 0.36) / 30 + 0.5
-const BALL_LIFETIME = 3.5;  // Sekunden von Krater bis Boden
+const CRATER_R = 0.032;
+const GROUND_Y = 0.288;
+const BALL_LIFETIME = 3.5;
 
 export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
 
@@ -101,7 +101,7 @@ export function update_metaballs(effect, time) {
             cur_wave_count = 0;
             last_spawn_time = -1.0;
 
-            // Delete balls from 2 iterations ago ("vor-vorherige Iteration")
+            // Delete balls from 2 iterations ago
             if (iter_count >= 2) {
                 const del_iter  = iter_count - 2;
                 const del_start = wave_starts[del_iter];
