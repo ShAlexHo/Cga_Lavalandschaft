@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { create_metaballs, rebuild_field, update_metaballs, update_light, settings } from './metaballs.js';
-import { create_volcano, update_volcano_light } from './volcano.js';
+import { createMetaballs, rebuildField, updateMetaballs, updateLight, settings } from './metaballs.js';
+import { createVolcano, updateVolcanoLight } from './volcano.js';
 import default_settings from './default_settings.json';
 
-const hex = color => '#' + color.getHexString();
+const toHexColor = color => '#' + color.getHexString();
 
 export function createSceneController({ scene, camera, bloomPass }) {
-    const { effect, material } = create_metaballs(scene);
+    const { effect, material } = createMetaballs(scene);
     effect.position.y = 0.36;
 
     const ground = new THREE.Mesh(
@@ -22,66 +22,66 @@ export function createSceneController({ scene, camera, bloomPass }) {
     ground.position.y = -6;
     scene.add(ground);
 
-    const { mesh: volcano, material: volcano_material } = create_volcano(scene);
+    const { mesh: volcano, material: volcano_material } = createVolcano(scene);
     volcano.position.y = ground.position.y;
 
     const effect_offset = effect.position.y - volcano.position.y;
-    const pos = { x: 0, y: 0, z: 0 };
-    let metaball_y_off = 1.6;
+    const position = { x: 0, y: 0, z: 0 };
+    let metaball_y_offset = 1.6;
     let displacement_enabled = true;
     let displacement_last = material.uniforms.u_displacement.value;
 
-    function apply_y(ground_y) {
+    function applyY(ground_y) {
         ground.position.y = ground_y;
-        volcano.position.y = ground_y + pos.y;
-        effect.position.y = ground_y + pos.y + effect_offset + metaball_y_off;
+        volcano.position.y = ground_y + position.y;
+        effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
     }
 
     const controller = {
         update(time) {
-            update_metaballs(effect, time);
-            update_light(material, camera, time);
-            update_volcano_light(volcano_material, camera);
+            updateMetaballs(effect, time);
+            updateLight(material, camera, time);
+            updateVolcanoLight(volcano_material, camera);
         },
 
         isPaused: () => settings.paused,
-        setPaused: v => { settings.paused = v; },
+        setPaused: value => { settings.paused = value; },
 
         getMetaballCount: () => settings.count,
-        setMetaballCount: v => { settings.count = v; rebuild_field(effect); },
+        setMetaballCount: value => { settings.count = value; rebuildField(effect); },
         getMaxMetaballCount: () => settings.max_count,
         getMetaballIsolation: () => effect.isolation,
-        setMetaballIsolation: v => { effect.isolation = v; rebuild_field(effect); },
+        setMetaballIsolation: value => { effect.isolation = value; rebuildField(effect); },
         getMetaballSpread: () => settings.spread,
-        setMetaballSpread: v => { settings.spread = v; },
+        setMetaballSpread: value => { settings.spread = value; },
         getMetaballSpeed: () => settings.speed_factor,
-        setMetaballSpeed: v => { settings.speed_factor = v; },
-        getMetaballHeight: () => metaball_y_off,
-        setMetaballHeight: v => { metaball_y_off = v; apply_y(ground.position.y); },
+        setMetaballSpeed: value => { settings.speed_factor = value; },
+        getMetaballHeight: () => metaball_y_offset,
+        setMetaballHeight: value => { metaball_y_offset = value; applyY(ground.position.y); },
         getFlowRadius: () => settings.flow_z_radius,
-        setFlowRadius: v => { settings.flow_z_radius = v; },
+        setFlowRadius: value => { settings.flow_z_radius = value; },
 
-        getColorHot: () => hex(material.uniforms.u_color_hot.value),
-        setColorHot: v => material.uniforms.u_color_hot.value.set(v),
-        getColorCool: () => hex(material.uniforms.u_color_cool.value),
-        setColorCool: v => material.uniforms.u_color_cool.value.set(v),
+        getColorHot: () => toHexColor(material.uniforms.u_color_hot.value),
+        setColorHot: value => material.uniforms.u_color_hot.value.set(value),
+        getColorCool: () => toHexColor(material.uniforms.u_color_cool.value),
+        setColorCool: value => material.uniforms.u_color_cool.value.set(value),
         getGlowEnabled: () => material.uniforms.u_glow_enabled.value === 1.0,
-        setGlowEnabled: v => { material.uniforms.u_glow_enabled.value = v ? 1.0 : 0.0; },
-        getGlowColor: () => hex(material.uniforms.u_glow_color.value),
-        setGlowColor: v => material.uniforms.u_glow_color.value.set(v),
+        setGlowEnabled: value => { material.uniforms.u_glow_enabled.value = value ? 1.0 : 0.0; },
+        getGlowColor: () => toHexColor(material.uniforms.u_glow_color.value),
+        setGlowColor: value => material.uniforms.u_glow_color.value.set(value),
 
         getNoiseEnabled: () => material.uniforms.u_noise_enabled.value === 1.0,
-        setNoiseEnabled: v => { material.uniforms.u_noise_enabled.value = v ? 1.0 : 0.0; },
-        getNoiseColor1: () => hex(material.uniforms.u_noise_color_1.value),
-        setNoiseColor1: v => material.uniforms.u_noise_color_1.value.set(v),
-        getNoiseColor2: () => hex(material.uniforms.u_noise_color_2.value),
-        setNoiseColor2: v => material.uniforms.u_noise_color_2.value.set(v),
+        setNoiseEnabled: value => { material.uniforms.u_noise_enabled.value = value ? 1.0 : 0.0; },
+        getNoiseColor1: () => toHexColor(material.uniforms.u_noise_color_1.value),
+        setNoiseColor1: value => material.uniforms.u_noise_color_1.value.set(value),
+        getNoiseColor2: () => toHexColor(material.uniforms.u_noise_color_2.value),
+        setNoiseColor2: value => material.uniforms.u_noise_color_2.value.set(value),
         getBumpEnabled: () => material.uniforms.u_bump_enabled.value === 1.0,
-        setBumpEnabled: v => { material.uniforms.u_bump_enabled.value = v ? 1.0 : 0.0; },
+        setBumpEnabled: value => { material.uniforms.u_bump_enabled.value = value ? 1.0 : 0.0; },
         getDisplacementEnabled: () => displacement_enabled,
-        setDisplacementEnabled: v => {
-            displacement_enabled = v;
-            if (v) {
+        setDisplacementEnabled: value => {
+            displacement_enabled = value;
+            if (value) {
                 material.uniforms.u_displacement.value = displacement_last;
             } else {
                 displacement_last = material.uniforms.u_displacement.value;
@@ -89,35 +89,35 @@ export function createSceneController({ scene, camera, bloomPass }) {
             }
         },
         getDisplacementStrength: () => material.uniforms.u_displacement.value,
-        setDisplacementStrength: v => { material.uniforms.u_displacement.value = v; },
+        setDisplacementStrength: value => { material.uniforms.u_displacement.value = value; },
 
         getGroundVisible: () => ground.visible,
-        setGroundVisible: v => { ground.visible = v; },
-        getGroundColor: () => hex(ground.material.color),
-        setGroundColor: v => {
-            ground.material.color.set(v);
-            ground.material.emissive.set(v).multiplyScalar(0.25);
+        setGroundVisible: value => { ground.visible = value; },
+        getGroundColor: () => toHexColor(ground.material.color),
+        setGroundColor: value => {
+            ground.material.color.set(value);
+            ground.material.emissive.set(value).multiplyScalar(0.25);
         },
         getGroundHeight: () => ground.position.y,
-        setGroundHeight: v => apply_y(v),
+        setGroundHeight: value => applyY(value),
 
         getVolcanoVisible: () => volcano.visible,
-        setVolcanoVisible: v => { volcano.visible = v; },
-        getVolcanoRockColor: () => hex(volcano_material.uniforms.u_rock_color.value),
-        setVolcanoRockColor: v => volcano_material.uniforms.u_rock_color.value.set(v),
-        getVolcanoCrackColor: () => hex(volcano_material.uniforms.u_crack_color.value),
-        setVolcanoCrackColor: v => volcano_material.uniforms.u_crack_color.value.set(v),
-        getVolcanoDispScale: () => volcano_material.uniforms.u_disp_scale.value,
-        setVolcanoDispScale: v => { volcano_material.uniforms.u_disp_scale.value = v; },
-        getVolcanoDispFreq: () => volcano_material.uniforms.u_disp_freq.value,
-        setVolcanoDispFreq: v => { volcano_material.uniforms.u_disp_freq.value = v; },
+        setVolcanoVisible: value => { volcano.visible = value; },
+        getVolcanoRockColor: () => toHexColor(volcano_material.uniforms.u_rock_color.value),
+        setVolcanoRockColor: value => volcano_material.uniforms.u_rock_color.value.set(value),
+        getVolcanoCrackColor: () => toHexColor(volcano_material.uniforms.u_crack_color.value),
+        setVolcanoCrackColor: value => volcano_material.uniforms.u_crack_color.value.set(value),
+        getVolcanoDisplacementScale: () => volcano_material.uniforms.u_disp_scale.value,
+        setVolcanoDisplacementScale: value => { volcano_material.uniforms.u_disp_scale.value = value; },
+        getVolcanoDisplacementFrequency: () => volcano_material.uniforms.u_disp_freq.value,
+        setVolcanoDisplacementFrequency: value => { volcano_material.uniforms.u_disp_freq.value = value; },
 
-        getOffsetX: () => pos.x,
-        setOffsetX: v => { pos.x = v; volcano.position.x = v; effect.position.x = v; },
-        getOffsetY: () => pos.y,
-        setOffsetY: v => { pos.y = v; apply_y(ground.position.y); },
-        getOffsetZ: () => pos.z,
-        setOffsetZ: v => { pos.z = v; volcano.position.z = v; effect.position.z = v; },
+        getOffsetX: () => position.x,
+        setOffsetX: value => { position.x = value; volcano.position.x = value; effect.position.x = value; },
+        getOffsetY: () => position.y,
+        setOffsetY: value => { position.y = value; applyY(ground.position.y); },
+        getOffsetZ: () => position.z,
+        setOffsetZ: value => { position.z = value; volcano.position.z = value; effect.position.z = value; },
 
         getBloom: () => ({
             enabled: bloomPass.enabled,
@@ -156,8 +156,8 @@ export function createSceneController({ scene, camera, bloomPass }) {
             groundColor: controller.getGroundColor(),
             groundHeight: controller.getGroundHeight(),
             volcanoVisible: controller.getVolcanoVisible(),
-            volcanoDispScale: controller.getVolcanoDispScale(),
-            volcanoDispFreq: controller.getVolcanoDispFreq(),
+            volcanoDisplacementScale: controller.getVolcanoDisplacementScale(),
+            volcanoDisplacementFrequency: controller.getVolcanoDisplacementFrequency(),
             volcanoRockColor: controller.getVolcanoRockColor(),
             volcanoCrackColor: controller.getVolcanoCrackColor(),
             offsetX: controller.getOffsetX(),
@@ -192,17 +192,17 @@ export function createSceneController({ scene, camera, bloomPass }) {
         groundColor: controller.setGroundColor,
         groundHeight: controller.setGroundHeight,
         volcanoVisible: controller.setVolcanoVisible,
-        volcanoDispScale: controller.setVolcanoDispScale,
-        volcanoDispFreq: controller.setVolcanoDispFreq,
+        volcanoDisplacementScale: controller.setVolcanoDisplacementScale,
+        volcanoDisplacementFrequency: controller.setVolcanoDisplacementFrequency,
         volcanoRockColor: controller.setVolcanoRockColor,
         volcanoCrackColor: controller.setVolcanoCrackColor,
         offsetX: controller.setOffsetX,
         offsetY: controller.setOffsetY,
         offsetZ: controller.setOffsetZ,
-        bloomEnabled: v => controller.setBloom({ enabled: v }),
-        bloomStrength: v => controller.setBloom({ strength: v }),
-        bloomRadius: v => controller.setBloom({ radius: v }),
-        bloomThreshold: v => controller.setBloom({ threshold: v }),
+        bloomEnabled: value => controller.setBloom({ enabled: value }),
+        bloomStrength: value => controller.setBloom({ strength: value }),
+        bloomRadius: value => controller.setBloom({ radius: value }),
+        bloomThreshold: value => controller.setBloom({ threshold: value }),
     };
 
     function applySnapshot(data) {
@@ -211,7 +211,7 @@ export function createSceneController({ scene, camera, bloomPass }) {
         }
     }
 
-    apply_y(ground.position.y);
+    applyY(ground.position.y);
 
     return controller;
 }

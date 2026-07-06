@@ -5,10 +5,10 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 //     comes from the (also mocked) metaballs.js/volcano.js) ────────────────────
 
 vi.mock('three', () => {
-    function make_color(hex = '000000') {
+    function makeColor(hex = '000000') {
         return {
             _hex: hex,
-            set(v) { this._hex = String(v).replace('#', ''); return this; },
+            set(value) { this._hex = String(value).replace('#', ''); return this; },
             getHexString() { return this._hex; },
             multiplyScalar() { return this; },
         };
@@ -22,11 +22,11 @@ vi.mock('three', () => {
             this.visible = true;
         }
     }
-    class PlaneGeometry { constructor(w, h) { this.w = w; this.h = h; } }
+    class PlaneGeometry { constructor(width, height) { this.width = width; this.height = height; } }
     class MeshStandardMaterial {
         constructor() {
-            this.color = make_color('220500');
-            this.emissive = make_color('2b0800');
+            this.color = makeColor('220500');
+            this.emissive = makeColor('2b0800');
         }
     }
     return { Mesh, PlaneGeometry, MeshStandardMaterial };
@@ -39,21 +39,21 @@ vi.mock('three', () => {
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
 
 vi.mock('../metaballs.js', () => {
-    function make_color(hex) {
-        return { _hex: hex, set(v) { this._hex = String(v).replace('#', ''); return this; }, getHexString() { return this._hex; } };
+    function makeColor(hex) {
+        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
     }
     const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
     return {
         settings,
-        create_metaballs: vi.fn((scene) => {
+        createMetaballs: vi.fn((scene) => {
             const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
             const material = {
                 uniforms: {
-                    u_color_hot: { value: make_color('a01500') },
-                    u_color_cool: { value: make_color('7c3027') },
-                    u_glow_color: { value: make_color('ff3f00') },
-                    u_noise_color_1: { value: make_color('7c3027') },
-                    u_noise_color_2: { value: make_color('ea6927') },
+                    u_color_hot: { value: makeColor('a01500') },
+                    u_color_cool: { value: makeColor('7c3027') },
+                    u_glow_color: { value: makeColor('ff3f00') },
+                    u_noise_color_1: { value: makeColor('7c3027') },
+                    u_noise_color_2: { value: makeColor('ea6927') },
                     u_glow_enabled: { value: 1.0 },
                     u_noise_enabled: { value: 1.0 },
                     u_bump_enabled: { value: 1.0 },
@@ -63,31 +63,31 @@ vi.mock('../metaballs.js', () => {
             scene.add(effect);
             return { effect, material };
         }),
-        rebuild_field: vi.fn(),
-        update_metaballs: vi.fn(),
-        update_light: vi.fn(),
+        rebuildField: vi.fn(),
+        updateMetaballs: vi.fn(),
+        updateLight: vi.fn(),
     };
 });
 
 vi.mock('../volcano.js', () => {
-    function make_color(hex) {
-        return { _hex: hex, set(v) { this._hex = String(v).replace('#', ''); return this; }, getHexString() { return this._hex; } };
+    function makeColor(hex) {
+        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
     }
     return {
-        create_volcano: vi.fn((scene) => {
+        createVolcano: vi.fn((scene) => {
             const mesh = { position: { x: 0, y: 0, z: 0 }, visible: true };
             const material = {
                 uniforms: {
                     u_disp_scale: { value: 2.5 },
                     u_disp_freq: { value: 0.5 },
-                    u_rock_color: { value: make_color('afafaf') },
-                    u_crack_color: { value: make_color('0a0a0a') },
+                    u_rock_color: { value: makeColor('afafaf') },
+                    u_crack_color: { value: makeColor('0a0a0a') },
                 },
             };
             scene.add(mesh);
             return { mesh, material };
         }),
-        update_volcano_light: vi.fn(),
+        updateVolcanoLight: vi.fn(),
     };
 });
 
@@ -99,7 +99,7 @@ vi.mock('../default_settings.json', () => ({
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
         displacementEnabled: false, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
-        volcanoVisible: false, volcanoDispScale: 1.0, volcanoDispFreq: 0.2,
+        volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777', volcanoCrackColor: '#888888',
         offsetX: 1, offsetY: 2, offsetZ: 3,
         bloomEnabled: false, bloomStrength: 0.1, bloomRadius: 0.2, bloomThreshold: 0.9,
@@ -107,17 +107,17 @@ vi.mock('../default_settings.json', () => ({
 }));
 
 import { createSceneController } from '../scene_controller.js';
-import { settings as mock_settings, rebuild_field, update_metaballs, update_light } from '../metaballs.js';
-import { update_volcano_light } from '../volcano.js';
+import { settings as mock_settings, rebuildField, updateMetaballs, updateLight } from '../metaballs.js';
+import { updateVolcanoLight } from '../volcano.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function make_scene() { return { add: vi.fn() }; }
-function make_camera() { return { matrixWorldInverse: {} }; }
-function make_bloom_pass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
+function makeScene() { return { add: vi.fn() }; }
+function makeCamera() { return { matrixWorldInverse: {} }; }
+function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
-function make_controller() {
-    return createSceneController({ scene: make_scene(), camera: make_camera(), bloomPass: make_bloom_pass() });
+function makeController() {
+    return createSceneController({ scene: makeScene(), camera: makeCamera(), bloomPass: makeBloomPass() });
 }
 
 beforeEach(() => {
@@ -129,8 +129,8 @@ beforeEach(() => {
 
 describe('createSceneController – initial positioning', () => {
     test('places ground, volcano and effect exactly like the previous hand-wired setup', () => {
-        const controller = make_controller();
-        // ground_y=-6, pos.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_off=1.6
+        const controller = makeController();
+        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=1.6
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
         expect(controller.getMetaballHeight()).toBeCloseTo(1.6, 9);
@@ -139,23 +139,23 @@ describe('createSceneController – initial positioning', () => {
 
 describe('createSceneController – setGroundHeight / setOffsetY', () => {
     test('setGroundHeight recomputes ground/volcano/effect y-positions via the effect_offset formula', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setGroundHeight(-3);
         expect(controller.getGroundHeight()).toBe(-3);
-        // volcano.y = ground_y + pos.y = -3 + 0 = -3
-        // effect.y  = ground_y + pos.y + effect_offset(6.36) + metaball_y_off(1.6) = 4.96
+        // volcano.y = ground_y + position.y = -3 + 0 = -3
+        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(1.6) = 4.96
         expect(controller.getGroundHeight()).toBeCloseTo(-3, 9);
     });
 
     test('setOffsetY shifts volcano/effect but leaves ground height untouched', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setOffsetY(2);
         expect(controller.getOffsetY()).toBe(2);
         expect(controller.getGroundHeight()).toBe(-6);
     });
 
     test('setOffsetX/Z move both volcano and metaball effect together', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setOffsetX(3);
         controller.setOffsetZ(-4);
         expect(controller.getOffsetX()).toBe(3);
@@ -167,21 +167,21 @@ describe('createSceneController – setGroundHeight / setOffsetY', () => {
 
 describe('createSceneController – metaballs', () => {
     test('setMetaballCount updates settings.count and rebuilds the field', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setMetaballCount(250);
         expect(controller.getMetaballCount()).toBe(250);
-        expect(rebuild_field).toHaveBeenCalled();
+        expect(rebuildField).toHaveBeenCalled();
     });
 
     test('setMetaballIsolation updates effect.isolation and rebuilds the field', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setMetaballIsolation(77);
         expect(controller.getMetaballIsolation()).toBe(77);
-        expect(rebuild_field).toHaveBeenCalled();
+        expect(rebuildField).toHaveBeenCalled();
     });
 
     test('getMaxMetaballCount reflects settings.max_count', () => {
-        const controller = make_controller();
+        const controller = makeController();
         expect(controller.getMaxMetaballCount()).toBe(500);
     });
 });
@@ -190,7 +190,7 @@ describe('createSceneController – metaballs', () => {
 
 describe('createSceneController – displacement toggle', () => {
     test('disabling remembers the strength, re-enabling restores it', () => {
-        const controller = make_controller();
+        const controller = makeController();
         expect(controller.getDisplacementEnabled()).toBe(true);
         expect(controller.getDisplacementStrength()).toBeCloseTo(0.00005, 9);
 
@@ -208,7 +208,7 @@ describe('createSceneController – displacement toggle', () => {
 
 describe('createSceneController – bloom', () => {
     test('setBloom only touches the given fields', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.setBloom({ strength: 1.5 });
         expect(controller.getBloom()).toEqual({ enabled: true, strength: 1.5, radius: 0.5, threshold: 0.3 });
     });
@@ -218,7 +218,7 @@ describe('createSceneController – bloom', () => {
 
 describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
-        const controller = make_controller();
+        const controller = makeController();
         const snapshot = {
             paused: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021,
             metaballHeight: 3.3, flowRadius: 7,
@@ -226,7 +226,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
-            volcanoVisible: false, volcanoDispScale: 4.4, volcanoDispFreq: 0.7,
+            volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101',
             offsetX: 5, offsetY: -1, offsetZ: 2,
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
@@ -237,14 +237,14 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     });
 
     test('applySnapshot ignores unknown keys and leaves other fields unchanged', () => {
-        const controller = make_controller();
+        const controller = makeController();
         const before = controller.getSnapshot();
         controller.applySnapshot({ unknown_field: 123 });
         expect(controller.getSnapshot()).toEqual(before);
     });
 
     test('resetToDefaults applies the imported default_settings.json', () => {
-        const controller = make_controller();
+        const controller = makeController();
         controller.resetToDefaults();
         expect(controller.getMetaballCount()).toBe(10);
         expect(controller.isPaused()).toBe(true);
@@ -255,20 +255,20 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
 // ─── update() lifecycle ───────────────────────────────────────────────────────
 
 describe('createSceneController – update()', () => {
-    test('delegates to update_metaballs, update_light and update_volcano_light with the right arguments', () => {
-        const scene = make_scene();
-        const camera = make_camera();
-        const bloomPass = make_bloom_pass();
+    test('delegates to updateMetaballs, updateLight and updateVolcanoLight with the right arguments', () => {
+        const scene = makeScene();
+        const camera = makeCamera();
+        const bloomPass = makeBloomPass();
         const controller = createSceneController({ scene, camera, bloomPass });
 
         controller.update(12.5);
 
-        expect(update_metaballs).toHaveBeenCalledTimes(1);
-        expect(update_metaballs.mock.calls[0][1]).toBe(12.5);
-        expect(update_light).toHaveBeenCalledTimes(1);
-        expect(update_light.mock.calls[0][1]).toBe(camera);
-        expect(update_light.mock.calls[0][2]).toBe(12.5);
-        expect(update_volcano_light).toHaveBeenCalledTimes(1);
-        expect(update_volcano_light.mock.calls[0][1]).toBe(camera);
+        expect(updateMetaballs).toHaveBeenCalledTimes(1);
+        expect(updateMetaballs.mock.calls[0][1]).toBe(12.5);
+        expect(updateLight).toHaveBeenCalledTimes(1);
+        expect(updateLight.mock.calls[0][1]).toBe(camera);
+        expect(updateLight.mock.calls[0][2]).toBe(12.5);
+        expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
+        expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
     });
 });

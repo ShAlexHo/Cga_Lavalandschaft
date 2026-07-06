@@ -1,21 +1,21 @@
 const STORAGE_KEY = 'lavalandschaft_settings';
 
-export function save_to_local_storage(data) {
+export function saveToLocalStorage(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-export function load_from_local_storage() {
+export function loadFromLocalStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
         return JSON.parse(raw);
-    } catch (e) {
-        console.error('Saved settings are corrupted:', e);
+    } catch (error) {
+        console.error('Saved settings are corrupted:', error);
         return null;
     }
 }
 
-export function download_json(data, filename = 'lavalandschaft-settings.json') {
+export function downloadJson(data, filename = 'lavalandschaft-settings.json') {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -27,7 +27,7 @@ export function download_json(data, filename = 'lavalandschaft-settings.json') {
     URL.revokeObjectURL(url);
 }
 
-export function upload_json(on_loaded) {
+export function uploadJson(on_loaded) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
@@ -38,8 +38,8 @@ export function upload_json(on_loaded) {
         reader.onload = () => {
             try {
                 on_loaded(JSON.parse(reader.result));
-            } catch (e) {
-                console.error('Invalid JSON file:', e);
+            } catch (error) {
+                console.error('Invalid JSON file:', error);
             }
         };
         reader.readAsText(file);

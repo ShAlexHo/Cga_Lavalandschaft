@@ -9,20 +9,20 @@ vi.mock('dat.gui', () => {
 // ─── Mock persistence.js ─────────────────────────────────────────────────────
 
 vi.mock('../persistence.js', () => ({
-    save_to_local_storage: vi.fn(),
-    load_from_local_storage: vi.fn(() => null),
-    download_json: vi.fn(),
-    upload_json: vi.fn(),
+    saveToLocalStorage: vi.fn(),
+    loadFromLocalStorage: vi.fn(() => null),
+    downloadJson: vi.fn(),
+    uploadJson: vi.fn(),
 }));
 
 import { GUI } from 'dat.gui';
-import { save_to_local_storage, load_from_local_storage, download_json, upload_json } from '../persistence.js';
-import { setup_gui } from '../gui.js';
+import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence.js';
+import { setupGui } from '../gui.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** A minimal fake of the scene_controller facade, with sensible getter defaults. */
-function make_facade(overrides = {}) {
+function makeFacade(overrides = {}) {
     return {
         isPaused: vi.fn(() => false),
         setPaused: vi.fn(),
@@ -76,10 +76,10 @@ function make_facade(overrides = {}) {
         setVolcanoRockColor: vi.fn(),
         getVolcanoCrackColor: vi.fn(() => '#0a0a0a'),
         setVolcanoCrackColor: vi.fn(),
-        getVolcanoDispScale: vi.fn(() => 2.5),
-        setVolcanoDispScale: vi.fn(),
-        getVolcanoDispFreq: vi.fn(() => 0.5),
-        setVolcanoDispFreq: vi.fn(),
+        getVolcanoDisplacementScale: vi.fn(() => 2.5),
+        setVolcanoDisplacementScale: vi.fn(),
+        getVolcanoDisplacementFrequency: vi.fn(() => 0.5),
+        setVolcanoDisplacementFrequency: vi.fn(),
 
         getOffsetX: vi.fn(() => 0),
         setOffsetX: vi.fn(),
@@ -99,15 +99,15 @@ function make_facade(overrides = {}) {
     };
 }
 
-/** A controller stub supporting the chaining setup_gui relies on: .name().onChange(). */
-function make_controller() {
-    const ctrl = {
-        _onChange_cb: null,
+/** A controller stub supporting the chaining setupGui relies on: .name().onChange(). */
+function makeController() {
+    const controller = {
+        _on_change_callback: null,
         name: vi.fn().mockReturnThis(),
-        onChange: vi.fn(function (cb) { ctrl._onChange_cb = cb; return ctrl; }),
+        onChange: vi.fn(function (callback) { controller._on_change_callback = callback; return controller; }),
         updateDisplay: vi.fn(),
     };
-    return ctrl;
+    return controller;
 }
 
 /**
@@ -116,61 +116,61 @@ function make_controller() {
  * can look up "the controller bound to Boden/hoehe" without caring about call
  * order.
  */
-function make_mock_gui() {
+function makeMockGui() {
     const registry = [];
 
     function record(folder_name) {
-        return vi.fn((obj, key) => {
-            const controller = make_controller();
-            registry.push({ folder: folder_name, obj, key, controller });
+        return vi.fn((bound_object, key) => {
+            const controller = makeController();
+            registry.push({ folder: folder_name, obj: bound_object, key, controller });
             return controller;
         });
     }
 
-    function make_folder(name) {
+    function makeFolder(name) {
         return { add: record(name), addColor: record(name), open: vi.fn() };
     }
 
     const gui = {
         add: record('root'),
         addColor: record('root'),
-        addFolder: vi.fn((name) => make_folder(name)),
+        addFolder: vi.fn((name) => makeFolder(name)),
     };
     GUI.mockImplementation(() => gui);
     return { gui, registry };
 }
 
 function find(registry, folder, key) {
-    const entry = registry.find(e => e.folder === folder && e.key === key);
+    const entry = registry.find(entry => entry.folder === folder && entry.key === key);
     if (!entry) throw new Error(`no controller registered for ${folder}/${key}`);
     return entry;
 }
 
 function fire(registry, folder, key, value) {
     const entry = find(registry, folder, key);
-    expect(entry.controller._onChange_cb).toBeTypeOf('function');
-    entry.controller._onChange_cb(value);
+    expect(entry.controller._on_change_callback).toBeTypeOf('function');
+    entry.controller._on_change_callback(value);
 }
 
 // ─── structure ───────────────────────────────────────────────────────────────
 
-describe('setup_gui – structure', () => {
+describe('setupGui – structure', () => {
     test('creates a GUI instance', () => {
-        const { } = make_mock_gui();
-        setup_gui(make_facade());
+        makeMockGui();
+        setupGui(makeFacade());
         expect(GUI).toHaveBeenCalledOnce();
     });
 
     test('returns the GUI instance', () => {
-        const { gui } = make_mock_gui();
-        const result = setup_gui(make_facade());
+        const { gui } = makeMockGui();
+        const result = setupGui(makeFacade());
         expect(result).toBe(gui);
     });
 
     test('creates all expected folders, including Boden and Vulkan unconditionally', () => {
-        const { gui } = make_mock_gui();
-        setup_gui(make_facade());
-        const folders = gui.addFolder.mock.calls.map(c => c[0]);
+        const { gui } = makeMockGui();
+        setupGui(makeFacade());
+        const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
             'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan',
             'Position (Vulkan + Lava)', 'Bloom', 'Speichern / Laden',
@@ -178,9 +178,9 @@ describe('setup_gui – structure', () => {
     });
 
     test('root paused control is seeded from facade.isPaused() and writes back via setPaused', () => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade({ isPaused: vi.fn(() => true) });
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ isPaused: vi.fn(() => true) });
+        setupGui(facade);
         const entry = find(registry, 'root', 'paused');
         expect(entry.obj.paused).toBe(true);
         fire(registry, 'root', 'paused', false);
@@ -190,11 +190,11 @@ describe('setup_gui – structure', () => {
 
 // ─── Metaballs folder ────────────────────────────────────────────────────────
 
-describe('setup_gui – Metaballs folder', () => {
+describe('setupGui – Metaballs folder', () => {
     test('count control is seeded from getMetaballCount/getMaxMetaballCount and rebuilds via setMetaballCount', () => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade({ getMetaballCount: vi.fn(() => 42), getMaxMetaballCount: vi.fn(() => 200) });
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getMetaballCount: vi.fn(() => 42), getMaxMetaballCount: vi.fn(() => 200) });
+        setupGui(facade);
         const entry = find(registry, 'Metaballs', 'count');
         expect(entry.obj.count).toBe(42);
         fire(registry, 'Metaballs', 'count', 77);
@@ -208,9 +208,9 @@ describe('setup_gui – Metaballs folder', () => {
         ['hoehe', 'setMetaballHeight'],
         ['flow_z_radius', 'setFlowRadius'],
     ])('%s onChange calls facade.%s', (key, setter) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Metaballs', key, 123);
         expect(facade[setter]).toHaveBeenCalledWith(123);
     });
@@ -218,16 +218,16 @@ describe('setup_gui – Metaballs folder', () => {
 
 // ─── Lavafarbe folder ────────────────────────────────────────────────────────
 
-describe('setup_gui – Lavafarbe folder', () => {
+describe('setupGui – Lavafarbe folder', () => {
     test.each([
         ['farbe_hell', 'setColorHot', '#ff0000'],
         ['farbe_dunkel', 'setColorCool', '#220000'],
         ['gluehen', 'setGlowEnabled', false],
         ['glueh_farbe', 'setGlowColor', '#ffaa00'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Lavafarbe', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
@@ -235,7 +235,7 @@ describe('setup_gui – Lavafarbe folder', () => {
 
 // ─── Noise folder ────────────────────────────────────────────────────────────
 
-describe('setup_gui – Noise folder', () => {
+describe('setupGui – Noise folder', () => {
     test.each([
         ['noise', 'setNoiseEnabled', false],
         ['noise_farbe_1', 'setNoiseColor1', '#111111'],
@@ -244,9 +244,9 @@ describe('setup_gui – Noise folder', () => {
         ['displacement', 'setDisplacementEnabled', false],
         ['staerke', 'setDisplacementStrength', 0.0012],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Noise', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
@@ -254,15 +254,15 @@ describe('setup_gui – Noise folder', () => {
 
 // ─── Boden folder ────────────────────────────────────────────────────────────
 
-describe('setup_gui – Boden folder', () => {
+describe('setupGui – Boden folder', () => {
     test.each([
         ['sichtbar', 'setGroundVisible', false],
         ['farbe', 'setGroundColor', '#550000'],
         ['hoehe', 'setGroundHeight', -1.5],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Boden', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
@@ -270,17 +270,17 @@ describe('setup_gui – Boden folder', () => {
 
 // ─── Vulkan folder ───────────────────────────────────────────────────────────
 
-describe('setup_gui – Vulkan folder', () => {
+describe('setupGui – Vulkan folder', () => {
     test.each([
         ['sichtbar', 'setVolcanoVisible', false],
-        ['disp_scale', 'setVolcanoDispScale', 3.2],
-        ['disp_freq', 'setVolcanoDispFreq', 0.9],
+        ['displacement_scale', 'setVolcanoDisplacementScale', 3.2],
+        ['displacement_frequency', 'setVolcanoDisplacementFrequency', 0.9],
         ['fels_farbe', 'setVolcanoRockColor', '#999999'],
         ['riss_farbe', 'setVolcanoCrackColor', '#000001'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Vulkan', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
@@ -288,15 +288,15 @@ describe('setup_gui – Vulkan folder', () => {
 
 // ─── Position folder ─────────────────────────────────────────────────────────
 
-describe('setup_gui – Position folder', () => {
+describe('setupGui – Position folder', () => {
     test.each([
         ['x', 'setOffsetX', 4.5],
         ['y', 'setOffsetY', -2.0],
         ['z', 'setOffsetZ', 1.1],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         fire(registry, 'Position (Vulkan + Lava)', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
@@ -304,16 +304,16 @@ describe('setup_gui – Position folder', () => {
 
 // ─── Bloom folder ────────────────────────────────────────────────────────────
 
-describe('setup_gui – Bloom folder', () => {
+describe('setupGui – Bloom folder', () => {
     test.each([
         ['enabled', { enabled: false }],
         ['strength', { strength: 1.2 }],
         ['radius', { radius: 0.9 }],
         ['threshold', { threshold: 0.6 }],
     ])('%s onChange calls facade.setBloom with a partial patch', (key, patch) => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
         const value = Object.values(patch)[0];
         fire(registry, 'Bloom', key, value);
         expect(facade.setBloom).toHaveBeenCalledWith(patch);
@@ -322,91 +322,91 @@ describe('setup_gui – Bloom folder', () => {
 
 // ─── Persistenz ──────────────────────────────────────────────────────────────
 
-describe('setup_gui – Speichern / Laden', () => {
+describe('setupGui – Speichern / Laden', () => {
     beforeEach(() => {
-        save_to_local_storage.mockClear();
-        load_from_local_storage.mockClear().mockReturnValue(null);
-        download_json.mockClear();
-        upload_json.mockClear();
+        saveToLocalStorage.mockClear();
+        loadFromLocalStorage.mockClear().mockReturnValue(null);
+        downloadJson.mockClear();
+        uploadJson.mockClear();
     });
 
     test('speichern saves the facade snapshot to localStorage and as a download', () => {
-        const { registry } = make_mock_gui();
+        const { registry } = makeMockGui();
         const snapshot = { paused: true, count: 7 };
-        const facade = make_facade({ getSnapshot: vi.fn(() => snapshot) });
-        setup_gui(facade);
+        const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
+        setupGui(facade);
 
         const entry = find(registry, 'Speichern / Laden', 'speichern');
         entry.obj.speichern();
 
-        expect(save_to_local_storage).toHaveBeenCalledWith(snapshot);
-        expect(download_json).toHaveBeenCalledWith(snapshot);
+        expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
+        expect(downloadJson).toHaveBeenCalledWith(snapshot);
     });
 
     test('laden applies the uploaded data via the facade and refreshes every controller display', () => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
 
         const uploaded = { count: 55 };
-        upload_json.mockImplementation(on_loaded => on_loaded(uploaded));
+        uploadJson.mockImplementation(on_loaded => on_loaded(uploaded));
 
         const entry = find(registry, 'Speichern / Laden', 'laden');
         entry.obj.laden();
 
         expect(facade.applySnapshot).toHaveBeenCalledWith(uploaded);
         registry
-            .filter(e => e.folder !== 'Speichern / Laden')
-            .forEach(e => expect(e.controller.updateDisplay).toHaveBeenCalled());
+            .filter(entry => entry.folder !== 'Speichern / Laden')
+            .forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
     });
 
     test('standard resets the facade to defaults and refreshes every controller display', () => {
-        const { registry } = make_mock_gui();
-        const facade = make_facade();
-        setup_gui(facade);
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
 
         const entry = find(registry, 'Speichern / Laden', 'standard');
         entry.obj.standard();
 
         expect(facade.resetToDefaults).toHaveBeenCalledOnce();
         registry
-            .filter(e => e.folder !== 'Speichern / Laden')
-            .forEach(e => expect(e.controller.updateDisplay).toHaveBeenCalled());
+            .filter(entry => entry.folder !== 'Speichern / Laden')
+            .forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
     });
 
     test('applies a saved snapshot from localStorage on boot and refreshes the display', () => {
-        make_mock_gui();
+        makeMockGui();
         const saved = { count: 9 };
-        load_from_local_storage.mockReturnValue(saved);
-        const facade = make_facade();
+        loadFromLocalStorage.mockReturnValue(saved);
+        const facade = makeFacade();
 
-        setup_gui(facade);
+        setupGui(facade);
 
         expect(facade.applySnapshot).toHaveBeenCalledWith(saved);
     });
 
     test('does not touch the facade on boot when there is no saved snapshot', () => {
-        make_mock_gui();
-        load_from_local_storage.mockReturnValue(null);
-        const facade = make_facade();
+        makeMockGui();
+        loadFromLocalStorage.mockReturnValue(null);
+        const facade = makeFacade();
 
-        setup_gui(facade);
+        setupGui(facade);
 
         expect(facade.applySnapshot).not.toHaveBeenCalled();
     });
 
     test('registers a beforeunload handler that saves the current snapshot', () => {
-        make_mock_gui();
+        makeMockGui();
         const snapshot = { paused: false };
-        const facade = make_facade({ getSnapshot: vi.fn(() => snapshot) });
-        const add_spy = vi.spyOn(window, 'addEventListener');
+        const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
+        const add_event_listener_spy = vi.spyOn(window, 'addEventListener');
 
-        setup_gui(facade);
-        const handler = add_spy.mock.calls.find(c => c[0] === 'beforeunload')[1];
-        save_to_local_storage.mockClear();
+        setupGui(facade);
+        const handler = add_event_listener_spy.mock.calls.find(call => call[0] === 'beforeunload')[1];
+        saveToLocalStorage.mockClear();
         handler();
 
-        expect(save_to_local_storage).toHaveBeenCalledWith(snapshot);
-        add_spy.mockRestore();
+        expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
+        add_event_listener_spy.mockRestore();
     });
 });

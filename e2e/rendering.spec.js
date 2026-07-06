@@ -10,10 +10,10 @@ import { PNG } from 'pngjs';
 
 test('scene renders a non-blank image', async ({ page }) => {
     const console_errors = [];
-    page.on('console', msg => {
-        if (msg.type() === 'error') console_errors.push(msg.text());
+    page.on('console', message => {
+        if (message.type() === 'error') console_errors.push(message.text());
     });
-    page.on('pageerror', err => console_errors.push(err.message));
+    page.on('pageerror', error => console_errors.push(error.message));
 
     await page.goto('/');
 

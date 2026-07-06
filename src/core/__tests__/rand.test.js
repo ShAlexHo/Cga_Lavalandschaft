@@ -1,31 +1,31 @@
 import { describe, test, expect } from 'vitest';
-import { make_seeded_rand, rand, rand3 } from '../rand.js';
+import { makeSeededRand, random, random3 } from '../rand.js';
 
-// ─── make_seeded_rand ────────────────────────────────────────────────────────
+// ─── makeSeededRand ──────────────────────────────────────────────────────────
 
-describe('make_seeded_rand', () => {
+describe('makeSeededRand', () => {
     test('same seed produces identical sequence', () => {
-        const rng1 = make_seeded_rand(42);
-        const rng2 = make_seeded_rand(42);
+        const random_generator_1 = makeSeededRand(42);
+        const random_generator_2 = makeSeededRand(42);
         for (let i = 0; i < 100; i++) {
-            expect(rng1()).toBe(rng2());
+            expect(random_generator_1()).toBe(random_generator_2());
         }
     });
 
     test('different seeds produce different sequences', () => {
-        const rng1 = make_seeded_rand(1);
-        const rng2 = make_seeded_rand(999);
-        const seq1 = Array.from({ length: 20 }, () => rng1());
-        const seq2 = Array.from({ length: 20 }, () => rng2());
-        expect(seq1).not.toEqual(seq2);
+        const random_generator_1 = makeSeededRand(1);
+        const random_generator_2 = makeSeededRand(999);
+        const sequence_1 = Array.from({ length: 20 }, () => random_generator_1());
+        const sequence_2 = Array.from({ length: 20 }, () => random_generator_2());
+        expect(sequence_1).not.toEqual(sequence_2);
     });
 
     test('output is in range [0, 1)', () => {
-        const rng = make_seeded_rand(42);
+        const random_generator = makeSeededRand(42);
         for (let i = 0; i < 1000; i++) {
-            const v = rng();
-            expect(v).toBeGreaterThanOrEqual(0);
-            expect(v).toBeLessThan(1);
+            const value = random_generator();
+            expect(value).toBeGreaterThanOrEqual(0);
+            expect(value).toBeLessThan(1);
         }
     });
 
@@ -33,129 +33,129 @@ describe('make_seeded_rand', () => {
         // LCG: state = (1664525 * seed + 1013904223) >>> 0
         const expected_state = (Math.imul(1664525, 42) + 1013904223) >>> 0;
         const expected = expected_state / 4294967296;
-        const rng = make_seeded_rand(42);
-        expect(rng()).toBeCloseTo(expected, 15);
+        const random_generator = makeSeededRand(42);
+        expect(random_generator()).toBeCloseTo(expected, 15);
     });
 
     test('seed 0 is handled correctly (unsigned 32-bit)', () => {
-        const rng = make_seeded_rand(0);
-        const v = rng();
-        expect(v).toBeGreaterThanOrEqual(0);
-        expect(v).toBeLessThan(1);
+        const random_generator = makeSeededRand(0);
+        const value = random_generator();
+        expect(value).toBeGreaterThanOrEqual(0);
+        expect(value).toBeLessThan(1);
     });
 
     test('sequence is not constant', () => {
-        const rng = make_seeded_rand(42);
-        const values = Array.from({ length: 20 }, () => rng());
+        const random_generator = makeSeededRand(42);
+        const values = Array.from({ length: 20 }, () => random_generator());
         const unique = new Set(values);
         expect(unique.size).toBeGreaterThan(1);
     });
 
     test('negative seed is treated as unsigned 32-bit integer', () => {
-        const rng1 = make_seeded_rand(-1);
-        const rng2 = make_seeded_rand(0xFFFFFFFF);
-        expect(rng1()).toBe(rng2());
+        const random_generator_1 = makeSeededRand(-1);
+        const random_generator_2 = makeSeededRand(0xFFFFFFFF);
+        expect(random_generator_1()).toBe(random_generator_2());
     });
 
     test('each instance has independent state', () => {
-        const rng1 = make_seeded_rand(7);
-        const rng2 = make_seeded_rand(7);
-        rng1(); rng1(); rng1(); // advance rng1 three steps
-        const rng1_fourth = rng1();
-        const rng2_first  = rng2();
-        expect(rng1_fourth).not.toBe(rng2_first);
+        const random_generator_1 = makeSeededRand(7);
+        const random_generator_2 = makeSeededRand(7);
+        random_generator_1(); random_generator_1(); random_generator_1(); // advance three steps
+        const fourth_value = random_generator_1();
+        const first_value = random_generator_2();
+        expect(fourth_value).not.toBe(first_value);
     });
 });
 
-// ─── rand ────────────────────────────────────────────────────────────────────
+// ─── random ──────────────────────────────────────────────────────────────────
 
-describe('rand (module-level instance, seed 42)', () => {
+describe('random (module-level instance, seed 42)', () => {
     test('return value is within [min, max)', () => {
         for (let i = 0; i < 100; i++) {
-            const v = rand(5, 10);
-            expect(v).toBeGreaterThanOrEqual(5);
-            expect(v).toBeLessThan(10);
+            const value = random(5, 10);
+            expect(value).toBeGreaterThanOrEqual(5);
+            expect(value).toBeLessThan(10);
         }
     });
 
     test('works with range [0, 1)', () => {
         for (let i = 0; i < 100; i++) {
-            const v = rand(0, 1);
-            expect(v).toBeGreaterThanOrEqual(0);
-            expect(v).toBeLessThan(1);
+            const value = random(0, 1);
+            expect(value).toBeGreaterThanOrEqual(0);
+            expect(value).toBeLessThan(1);
         }
     });
 
     test('returns min when min === max', () => {
-        expect(rand(7, 7)).toBe(7);
-        expect(rand(0, 0)).toBe(0);
+        expect(random(7, 7)).toBe(7);
+        expect(random(0, 0)).toBe(0);
     });
 
     test('works with negative range', () => {
         for (let i = 0; i < 50; i++) {
-            const v = rand(-10, -2);
-            expect(v).toBeGreaterThanOrEqual(-10);
-            expect(v).toBeLessThan(-2);
+            const value = random(-10, -2);
+            expect(value).toBeGreaterThanOrEqual(-10);
+            expect(value).toBeLessThan(-2);
         }
     });
 
     test('works with floating-point bounds', () => {
         for (let i = 0; i < 50; i++) {
-            const v = rand(0.32, 0.68);
-            expect(v).toBeGreaterThanOrEqual(0.32);
-            expect(v).toBeLessThan(0.68);
+            const value = random(0.32, 0.68);
+            expect(value).toBeGreaterThanOrEqual(0.32);
+            expect(value).toBeLessThan(0.68);
         }
     });
 
     test('produces varying values (not constant)', () => {
-        const values = Array.from({ length: 20 }, () => rand(0, 1000));
+        const values = Array.from({ length: 20 }, () => random(0, 1000));
         const unique = new Set(values);
         expect(unique.size).toBeGreaterThan(1);
     });
 });
 
-// ─── rand3 ───────────────────────────────────────────────────────────────────
+// ─── random3 ─────────────────────────────────────────────────────────────────
 
-describe('rand3', () => {
+describe('random3', () => {
     test('returns an array of exactly 3 elements', () => {
-        const result = rand3(0, 1);
+        const result = random3(0, 1);
         expect(Array.isArray(result)).toBe(true);
         expect(result).toHaveLength(3);
     });
 
     test('all elements are numbers', () => {
-        const result = rand3(0, 1);
-        result.forEach(v => expect(typeof v).toBe('number'));
+        const result = random3(0, 1);
+        result.forEach(value => expect(typeof value).toBe('number'));
     });
 
     test('all elements are within the specified range', () => {
         for (let i = 0; i < 30; i++) {
-            const result = rand3(2, 9);
-            result.forEach(v => {
-                expect(v).toBeGreaterThanOrEqual(2);
-                expect(v).toBeLessThan(9);
+            const result = random3(2, 9);
+            result.forEach(value => {
+                expect(value).toBeGreaterThanOrEqual(2);
+                expect(value).toBeLessThan(9);
             });
         }
     });
 
     test('elements are generated independently', () => {
         // Over 30 calls, the three components should not always be identical
-        const results = Array.from({ length: 30 }, () => rand3(0, 100));
-        const allSame = results.every(([a, b, c]) => a === b && b === c);
-        expect(allSame).toBe(false);
+        const results = Array.from({ length: 30 }, () => random3(0, 100));
+        const all_same = results.every(([a, b, c]) => a === b && b === c);
+        expect(all_same).toBe(false);
     });
 
     test('min === max returns array of three equal values', () => {
-        const result = rand3(5, 5);
+        const result = random3(5, 5);
         expect(result).toEqual([5, 5, 5]);
     });
 
     test('works with negative range', () => {
         for (let i = 0; i < 20; i++) {
-            const result = rand3(-5, -1);
-            result.forEach(v => {
-                expect(v).toBeGreaterThanOrEqual(-5);
-                expect(v).toBeLessThan(-1);
+            const result = random3(-5, -1);
+            result.forEach(value => {
+                expect(value).toBeGreaterThanOrEqual(-5);
+                expect(value).toBeLessThan(-1);
             });
         }
     });

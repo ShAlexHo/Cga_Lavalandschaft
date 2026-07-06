@@ -23,11 +23,11 @@ vi.mock('three', () => {
     }
 
     class ShaderMaterial {
-        constructor(params = {}) {
-            this.uniforms       = params.uniforms ?? {};
-            this.vertexShader   = params.vertexShader ?? '';
-            this.fragmentShader = params.fragmentShader ?? '';
-            this.side           = params.side ?? 0;
+        constructor(parameters = {}) {
+            this.uniforms       = parameters.uniforms ?? {};
+            this.vertexShader   = parameters.vertexShader ?? '';
+            this.fragmentShader = parameters.fragmentShader ?? '';
+            this.side           = parameters.side ?? 0;
         }
     }
 
@@ -56,19 +56,19 @@ vi.mock('../shaders/metaball.frag?raw', () => ({ default: '// frag shader' }));
 
 // ─── Fresh module instance per test ──────────────────────────────────────────
 //
-// metaballs.js keeps its wave/pool state (pool_head, cur_wave_count, pausing, ...)
+// metaballs.js keeps its wave/pool state (pool_head, current_wave_count, pausing, ...)
 // in module-level variables, so tests must not share one import across cases -
 // otherwise call order between tests would leak into the results. Re-importing
 // after vi.resetModules() also clears rand.js's cache, so the seeded RNG
 // restarts from the same seed every time - ball parameters stay deterministic.
 
-let mb;
+let metaballs_module;
 beforeEach(async () => {
     vi.resetModules();
-    mb = await import('../metaballs.js');
+    metaballs_module = await import('../metaballs.js');
 });
 
-function make_effect() {
+function makeEffect() {
     return {
         reset:   vi.fn(),
         addBall: vi.fn(),
@@ -79,19 +79,19 @@ function make_effect() {
 // ─── settings (default values) ───────────────────────────────────────────────
 
 describe('settings (default values)', () => {
-    test('count is 100', () => expect(mb.settings.count).toBe(100));
-    test('spread is 1.0', () => expect(mb.settings.spread).toBe(1.0));
-    test('speed_factor is 0.003', () => expect(mb.settings.speed_factor).toBe(0.003));
-    test('paused is false', () => expect(mb.settings.paused).toBe(false));
-    test('max_count is 500', () => expect(mb.settings.max_count).toBe(500));
-    test('flow_z_radius is 11', () => expect(mb.settings.flow_z_radius).toBe(11));
+    test('count is 100', () => expect(metaballs_module.settings.count).toBe(100));
+    test('spread is 1.0', () => expect(metaballs_module.settings.spread).toBe(1.0));
+    test('speed_factor is 0.003', () => expect(metaballs_module.settings.speed_factor).toBe(0.003));
+    test('paused is false', () => expect(metaballs_module.settings.paused).toBe(false));
+    test('max_count is 500', () => expect(metaballs_module.settings.max_count).toBe(500));
+    test('flow_z_radius is 11', () => expect(metaballs_module.settings.flow_z_radius).toBe(11));
 });
 
-// ─── rebuild_field ───────────────────────────────────────────────────────────
+// ─── rebuildField ────────────────────────────────────────────────────────────
 
-describe('rebuild_field', () => {
+describe('rebuildField', () => {
     let effect;
-    beforeEach(() => { effect = make_effect(); });
+    beforeEach(() => { effect = makeEffect(); });
 
     test('calls reset() first and update() last', () => {
         const order = [];
@@ -99,34 +99,34 @@ describe('rebuild_field', () => {
         effect.addBall.mockImplementation(() => order.push('addBall'));
         effect.update.mockImplementation(() => order.push('update'));
 
-        mb.rebuild_field(effect);
+        metaballs_module.rebuildField(effect);
 
         expect(order[0]).toBe('reset');
         expect(order[order.length - 1]).toBe('update');
     });
 
     test('adds no balls when the pool has no active balls yet', () => {
-        mb.rebuild_field(effect);
+        metaballs_module.rebuildField(effect);
         expect(effect.addBall).not.toHaveBeenCalled();
     });
 });
 
-// ─── update_metaballs ────────────────────────────────────────────────────────
+// ─── updateMetaballs ─────────────────────────────────────────────────────────
 
-describe('update_metaballs', () => {
+describe('updateMetaballs', () => {
     let effect;
-    beforeEach(() => { effect = make_effect(); });
+    beforeEach(() => { effect = makeEffect(); });
 
     test('does nothing while paused', () => {
-        mb.settings.paused = true;
-        mb.update_metaballs(effect, 0);
+        metaballs_module.settings.paused = true;
+        metaballs_module.updateMetaballs(effect, 0);
         expect(effect.reset).not.toHaveBeenCalled();
         expect(effect.addBall).not.toHaveBeenCalled();
         expect(effect.update).not.toHaveBeenCalled();
     });
 
     test('spawns exactly one ball on the very first call, at the crater', () => {
-        mb.update_metaballs(effect, 0);
+        metaballs_module.updateMetaballs(effect, 0);
         expect(effect.addBall).toHaveBeenCalledTimes(1);
 
         const [x, y, z, strength, subtract] = effect.addBall.mock.calls[0];
@@ -139,30 +139,30 @@ describe('update_metaballs', () => {
     });
 
     test('does not spawn a second ball less than a second after the first', () => {
-        mb.update_metaballs(effect, 0);
+        metaballs_module.updateMetaballs(effect, 0);
         effect.addBall.mockClear();
 
-        mb.update_metaballs(effect, 0.5);
+        metaballs_module.updateMetaballs(effect, 0.5);
         expect(effect.addBall).toHaveBeenCalledTimes(1); // still just the 1 active ball, repositioned
     });
 
     test('spawns the next ball once a full second has elapsed', () => {
-        mb.update_metaballs(effect, 0);
+        metaballs_module.updateMetaballs(effect, 0);
         effect.addBall.mockClear();
 
-        mb.update_metaballs(effect, 1.0);
+        metaballs_module.updateMetaballs(effect, 1.0);
         expect(effect.addBall).toHaveBeenCalledTimes(2); // both active balls redrawn
     });
 
     test('a ball flows from the crater towards the ground over its lifetime', () => {
-        mb.update_metaballs(effect, 0); // ball #0 spawns at the crater
+        metaballs_module.updateMetaballs(effect, 0); // ball #0 spawns at the crater
         effect.addBall.mockClear();
 
-        mb.update_metaballs(effect, 2000); // far past BALL_LIFETIME -> ball #0 fully descended, ball #1 spawns fresh
+        metaballs_module.updateMetaballs(effect, 2000); // far past BALL_LIFETIME -> ball #0 fully descended, ball #1 spawns fresh
         const calls = effect.addBall.mock.calls;
         expect(calls).toHaveLength(2);
 
-        const [x0, y0] = calls[0]; // ball #0: landed (t clamped to 1.0 regardless of its random speed_mult)
+        const [x0, y0] = calls[0]; // ball #0: landed (life_fraction clamped to 1.0 regardless of its random speed_mult)
         expect(y0).toBeCloseTo(0.45 + (0.288 - 0.45) * 0.95, 9);
         const radius = (11 / 30) * 0.95;
         expect(x0).toBeGreaterThanOrEqual(0.5 - radius - 1e-9);
@@ -175,25 +175,25 @@ describe('update_metaballs', () => {
     });
 
     test('positions are deterministic for the same call sequence', async () => {
-        mb.update_metaballs(effect, 0);
-        mb.update_metaballs(effect, 2000);
-        const calls_a = effect.addBall.mock.calls.map(c => c.slice());
+        metaballs_module.updateMetaballs(effect, 0);
+        metaballs_module.updateMetaballs(effect, 2000);
+        const calls_first_run = effect.addBall.mock.calls.map(call => call.slice());
 
         vi.resetModules();
-        const mb2 = await import('../metaballs.js');
-        const effect2 = make_effect();
-        mb2.update_metaballs(effect2, 0);
-        mb2.update_metaballs(effect2, 2000);
-        const calls_b = effect2.addBall.mock.calls.map(c => c.slice());
+        const second_metaballs_module = await import('../metaballs.js');
+        const second_effect = makeEffect();
+        second_metaballs_module.updateMetaballs(second_effect, 0);
+        second_metaballs_module.updateMetaballs(second_effect, 2000);
+        const calls_second_run = second_effect.addBall.mock.calls.map(call => call.slice());
 
-        expect(calls_a).toEqual(calls_b);
+        expect(calls_first_run).toEqual(calls_second_run);
     });
 });
 
-// ─── update_light ────────────────────────────────────────────────────────────
+// ─── updateLight ─────────────────────────────────────────────────────────────
 
-describe('update_light', () => {
-    function make_material() {
+describe('updateLight', () => {
+    function makeMaterial() {
         return {
             uniforms: {
                 u_light_position: { value: { copy: vi.fn() } },
@@ -205,56 +205,56 @@ describe('update_light', () => {
     const mock_camera = { matrixWorldInverse: {} };
 
     test('sets u_time to the given time value', () => {
-        const mat = make_material();
-        mb.update_light(mat, mock_camera, 3.14);
-        expect(mat.uniforms.u_time.value).toBe(3.14);
+        const material = makeMaterial();
+        metaballs_module.updateLight(material, mock_camera, 3.14);
+        expect(material.uniforms.u_time.value).toBe(3.14);
     });
 
     test('u_time is updated correctly across multiple calls', () => {
-        const mat = make_material();
-        mb.update_light(mat, mock_camera, 0);
-        expect(mat.uniforms.u_time.value).toBe(0);
+        const material = makeMaterial();
+        metaballs_module.updateLight(material, mock_camera, 0);
+        expect(material.uniforms.u_time.value).toBe(0);
 
-        mb.update_light(mat, mock_camera, 99.5);
-        expect(mat.uniforms.u_time.value).toBe(99.5);
+        metaballs_module.updateLight(material, mock_camera, 99.5);
+        expect(material.uniforms.u_time.value).toBe(99.5);
     });
 
     test('calls copy() on u_light_position.value', () => {
-        const mat = make_material();
-        mb.update_light(mat, mock_camera, 1.0);
-        expect(mat.uniforms.u_light_position.value.copy).toHaveBeenCalled();
+        const material = makeMaterial();
+        metaballs_module.updateLight(material, mock_camera, 1.0);
+        expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
     });
 });
 
-// ─── create_metaballs ────────────────────────────────────────────────────────
+// ─── createMetaballs ─────────────────────────────────────────────────────────
 
-describe('create_metaballs', () => {
+describe('createMetaballs', () => {
     let mock_scene;
     beforeEach(() => { mock_scene = { add: vi.fn() }; });
 
     test('returns an object with effect and material', () => {
-        const result = mb.create_metaballs(mock_scene);
+        const result = metaballs_module.createMetaballs(mock_scene);
         expect(result).toHaveProperty('effect');
         expect(result).toHaveProperty('material');
     });
 
     test('adds the effect to the scene', () => {
-        const { effect } = mb.create_metaballs(mock_scene);
+        const { effect } = metaballs_module.createMetaballs(mock_scene);
         expect(mock_scene.add).toHaveBeenCalledWith(effect);
     });
 
     test('sets effect.isolation to 50', () => {
-        const { effect } = mb.create_metaballs(mock_scene);
+        const { effect } = metaballs_module.createMetaballs(mock_scene);
         expect(effect.isolation).toBe(50);
     });
 
     test('calls effect.scale.set(30, 30, 30)', () => {
-        const { effect } = mb.create_metaballs(mock_scene);
+        const { effect } = metaballs_module.createMetaballs(mock_scene);
         expect(effect.scale.set).toHaveBeenCalledWith(30, 30, 30);
     });
 
     test('material contains all expected uniforms', () => {
-        const { material } = mb.create_metaballs(mock_scene);
+        const { material } = metaballs_module.createMetaballs(mock_scene);
         const expected_keys = [
             'u_light_position',
             'u_time',
@@ -274,22 +274,22 @@ describe('create_metaballs', () => {
     });
 
     test('u_time starts at 0', () => {
-        const { material } = mb.create_metaballs(mock_scene);
+        const { material } = metaballs_module.createMetaballs(mock_scene);
         expect(material.uniforms.u_time.value).toBe(0.0);
     });
 
     test('u_glow_enabled starts enabled (1.0)', () => {
-        const { material } = mb.create_metaballs(mock_scene);
+        const { material } = metaballs_module.createMetaballs(mock_scene);
         expect(material.uniforms.u_glow_enabled.value).toBe(1.0);
     });
 
     test('u_noise_enabled starts enabled (1.0)', () => {
-        const { material } = mb.create_metaballs(mock_scene);
+        const { material } = metaballs_module.createMetaballs(mock_scene);
         expect(material.uniforms.u_noise_enabled.value).toBe(1.0);
     });
 
     test('u_bump_enabled starts enabled (1.0)', () => {
-        const { material } = mb.create_metaballs(mock_scene);
+        const { material } = metaballs_module.createMetaballs(mock_scene);
         expect(material.uniforms.u_bump_enabled.value).toBe(1.0);
     });
 });

@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { createSceneController } from './core/scene_controller.js';
-import { setup_gui } from './ui/gui.js';
+import { setupGui } from './ui/gui.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
@@ -45,7 +45,7 @@ const clock = new THREE.Clock();
 
 const controller = createSceneController({ scene, camera, bloomPass: bloom_pass });
 
-setup_gui(controller);
+setupGui(controller);
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;

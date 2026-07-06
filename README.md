@@ -55,6 +55,15 @@ npm run preview
 | [Three.js](https://threejs.org/) | 3D-Rendering |
 | [Vite](https://vitejs.dev/) | Build-Tool & Dev-Server |
 
+## Coding Guidelines
+
+Gilt für den gesamten `src/`-Code inkl. Tests (`__tests__/`, `e2e/`):
+
+- **Variablen**: `snake_case` (z.B. `metaball_y_offset`, `ground_parameters`).
+- **Konstanten** (Werte, die nie neu zugewiesen werden): `UPPER_SNAKE_CASE` (z.B. `MAX_BALLS`, `LIGHT_WORLD_POSITION`). Ein `const`-Binding auf ein mutierbares State-Objekt (z.B. `settings`) ist keine Konstante in diesem Sinne und bleibt lowercase.
+- **Funktionen/Methoden**: `camelCase` (z.B. `createMetaballs`, `setupGui`), unabhängig davon ob per `function`-Deklaration oder als Arrow-Function einer `const` zugewiesen.
+- **Keine Abkürzungen.** Namen voll ausschreiben (`callback` statt `cb`, `parameters` statt `params`, `position` statt `pos`, `value` statt `v`). Ausnahme: feststehende Fachbegriffe/Standardakronyme (`hex`, `JSON`, `URL`, `DOM`, Bibliotheksnamen wie `THREE`/`GUI`), klassische Schleifenzähler (`i`, `j`) und Koordinatenbuchstaben (`x`, `y`, `z`, `r`, `g`, `b`).
+
 ---
 
 # Unstill Life: Lava Landscape
@@ -113,3 +122,12 @@ npm run preview
 |---------|---------|
 | [Three.js](https://threejs.org/) | 3D rendering |
 | [Vite](https://vitejs.dev/) | Build tool & dev server |
+
+## Coding Guidelines
+
+Applies to all `src/` code, including tests (`__tests__/`, `e2e/`):
+
+- **Variables**: `snake_case` (e.g. `metaball_y_offset`, `ground_parameters`).
+- **Constants** (values that are never reassigned): `UPPER_SNAKE_CASE` (e.g. `MAX_BALLS`, `LIGHT_WORLD_POSITION`). A `const` binding to a mutable state object (e.g. `settings`) is not a constant in this sense and stays lowercase.
+- **Functions/methods**: `camelCase` (e.g. `createMetaballs`, `setupGui`), regardless of whether declared via `function` or assigned to a `const` as an arrow function.
+- **No abbreviations.** Spell names out in full (`callback` instead of `cb`, `parameters` instead of `params`, `position` instead of `pos`, `value` instead of `v`). Exception: established technical terms/standard acronyms (`hex`, `JSON`, `URL`, `DOM`, library names like `THREE`/`GUI`), classic loop counters (`i`, `j`), and coordinate letters (`x`, `y`, `z`, `r`, `g`, `b`).
