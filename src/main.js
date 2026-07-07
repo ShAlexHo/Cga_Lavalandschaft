@@ -9,10 +9,10 @@ import { setupGui } from './ui/gui.js';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0505);
 
-const ambientLight = new THREE.AmbientLight(0x550000, 0.9);
-const keyLight = new THREE.DirectionalLight(0xff7733, 1.3);
-keyLight.position.set(5, 8, 5);
-scene.add(ambientLight, keyLight);
+const ambient_light = new THREE.AmbientLight(0x550000, 0.9);
+const key_light = new THREE.DirectionalLight(0xff7733, 1.3);
+key_light.position.set(5, 8, 5);
+scene.add(ambient_light, key_light);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.7, 7.5);

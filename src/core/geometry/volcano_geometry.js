@@ -4,7 +4,8 @@ import { VOLCANO_PROFILE, VOLCANO_PROFILE_SUBDIVISIONS, VOLCANO_LATHE_SEGMENTS }
 function subdivideProfile(profile, steps) {
     const interpolated_points = [];
     for (let i = 0; i < profile.length - 1; i++) {
-        const point_a = profile[i], point_b = profile[i + 1];
+        const point_a = profile[i];
+        const point_b = profile[i + 1];
         for (let step = 0; step < steps; step++) {
             const interpolation_factor = step / steps;
             interpolated_points.push(new THREE.Vector2(

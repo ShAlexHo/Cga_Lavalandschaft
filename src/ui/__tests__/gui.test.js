@@ -113,7 +113,7 @@ function makeController() {
 /**
  * Builds a fake dat.gui root + folders. Every add()/addColor() call is recorded
  * into `registry`, tagged with the folder name it was created under, so tests
- * can look up "the controller bound to Boden/hoehe" without caring about call
+ * can look up "the controller bound to Boden/height" without caring about call
  * order.
  */
 function makeMockGui() {
@@ -134,7 +134,7 @@ function makeMockGui() {
     const gui = {
         add: record('root'),
         addColor: record('root'),
-        addFolder: vi.fn((name) => makeFolder(name)),
+        addFolder: vi.fn(name => makeFolder(name)),
     };
     GUI.mockImplementation(() => gui);
     return { gui, registry };
@@ -205,7 +205,7 @@ describe('setupGui – Metaballs folder', () => {
         ['isolation', 'setMetaballIsolation'],
         ['spread', 'setMetaballSpread'],
         ['speed_factor', 'setMetaballSpeed'],
-        ['hoehe', 'setMetaballHeight'],
+        ['height', 'setMetaballHeight'],
         ['flow_z_radius', 'setFlowRadius'],
     ])('%s onChange calls facade.%s', (key, setter) => {
         const { registry } = makeMockGui();
@@ -220,10 +220,10 @@ describe('setupGui – Metaballs folder', () => {
 
 describe('setupGui – Lavafarbe folder', () => {
     test.each([
-        ['farbe_hell', 'setColorHot', '#ff0000'],
-        ['farbe_dunkel', 'setColorCool', '#220000'],
-        ['gluehen', 'setGlowEnabled', false],
-        ['glueh_farbe', 'setGlowColor', '#ffaa00'],
+        ['color_hot', 'setColorHot', '#ff0000'],
+        ['color_cool', 'setColorCool', '#220000'],
+        ['glow_enabled', 'setGlowEnabled', false],
+        ['glow_color', 'setGlowColor', '#ffaa00'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -238,11 +238,11 @@ describe('setupGui – Lavafarbe folder', () => {
 describe('setupGui – Noise folder', () => {
     test.each([
         ['noise', 'setNoiseEnabled', false],
-        ['noise_farbe_1', 'setNoiseColor1', '#111111'],
-        ['noise_farbe_2', 'setNoiseColor2', '#222222'],
+        ['noise_color_1', 'setNoiseColor1', '#111111'],
+        ['noise_color_2', 'setNoiseColor2', '#222222'],
         ['bumping', 'setBumpEnabled', false],
         ['displacement', 'setDisplacementEnabled', false],
-        ['staerke', 'setDisplacementStrength', 0.0012],
+        ['strength', 'setDisplacementStrength', 0.0012],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -256,9 +256,9 @@ describe('setupGui – Noise folder', () => {
 
 describe('setupGui – Boden folder', () => {
     test.each([
-        ['sichtbar', 'setGroundVisible', false],
-        ['farbe', 'setGroundColor', '#550000'],
-        ['hoehe', 'setGroundHeight', -1.5],
+        ['visible', 'setGroundVisible', false],
+        ['color', 'setGroundColor', '#550000'],
+        ['height', 'setGroundHeight', -1.5],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -272,11 +272,11 @@ describe('setupGui – Boden folder', () => {
 
 describe('setupGui – Vulkan folder', () => {
     test.each([
-        ['sichtbar', 'setVolcanoVisible', false],
+        ['visible', 'setVolcanoVisible', false],
         ['displacement_scale', 'setVolcanoDisplacementScale', 3.2],
         ['displacement_frequency', 'setVolcanoDisplacementFrequency', 0.9],
-        ['fels_farbe', 'setVolcanoRockColor', '#999999'],
-        ['riss_farbe', 'setVolcanoCrackColor', '#000001'],
+        ['rock_color', 'setVolcanoRockColor', '#999999'],
+        ['crack_color', 'setVolcanoCrackColor', '#000001'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -330,20 +330,20 @@ describe('setupGui – Speichern / Laden', () => {
         uploadJson.mockClear();
     });
 
-    test('speichern saves the facade snapshot to localStorage and as a download', () => {
+    test('save saves the facade snapshot to localStorage and as a download', () => {
         const { registry } = makeMockGui();
         const snapshot = { paused: true, count: 7 };
         const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
         setupGui(facade);
 
-        const entry = find(registry, 'Speichern / Laden', 'speichern');
-        entry.obj.speichern();
+        const entry = find(registry, 'Speichern / Laden', 'save');
+        entry.obj.save();
 
         expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
         expect(downloadJson).toHaveBeenCalledWith(snapshot);
     });
 
-    test('laden applies the uploaded data via the facade and refreshes every controller display', () => {
+    test('load applies the uploaded data via the facade and refreshes every controller display', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
         setupGui(facade);
@@ -351,8 +351,8 @@ describe('setupGui – Speichern / Laden', () => {
         const uploaded = { count: 55 };
         uploadJson.mockImplementation(on_loaded => on_loaded(uploaded));
 
-        const entry = find(registry, 'Speichern / Laden', 'laden');
-        entry.obj.laden();
+        const entry = find(registry, 'Speichern / Laden', 'load');
+        entry.obj.load();
 
         expect(facade.applySnapshot).toHaveBeenCalledWith(uploaded);
         registry
@@ -360,13 +360,13 @@ describe('setupGui – Speichern / Laden', () => {
             .forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
     });
 
-    test('standard resets the facade to defaults and refreshes every controller display', () => {
+    test('reset resets the facade to defaults and refreshes every controller display', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
         setupGui(facade);
 
-        const entry = find(registry, 'Speichern / Laden', 'standard');
-        entry.obj.standard();
+        const entry = find(registry, 'Speichern / Laden', 'reset');
+        entry.obj.reset();
 
         expect(facade.resetToDefaults).toHaveBeenCalledOnce();
         registry

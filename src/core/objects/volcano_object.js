@@ -9,7 +9,9 @@ export function createVolcano(scene) {
 
     return {
         mesh,
-        update: camera => updateVolcanoLight(material, camera),
+        update(camera) {
+            updateVolcanoLight(material, camera);
+        },
 
         getVisible: () => mesh.visible,
         setVisible: value => { mesh.visible = value; },

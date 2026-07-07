@@ -22,10 +22,10 @@ vi.mock('three', () => {
 
     class ShaderMaterial {
         constructor(parameters = {}) {
-            this.uniforms       = parameters.uniforms ?? {};
-            this.vertexShader   = parameters.vertexShader ?? '';
+            this.uniforms = parameters.uniforms ?? {};
+            this.vertexShader = parameters.vertexShader ?? '';
             this.fragmentShader = parameters.fragmentShader ?? '';
-            this.side           = parameters.side ?? 0;
+            this.side = parameters.side ?? 0;
         }
     }
 

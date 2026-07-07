@@ -13,13 +13,13 @@ import {
 
 export const MAX_BALLS = METABALL_MAX_BALLS;
 
-const BALL_STRENGTH = ( METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY ) ** 2;
+const BALL_STRENGTH = (METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY) ** 2;
 
 export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
 
 const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 
-const BALL_POOL = Array.from({ length: MAX_BALLS }, (_, i) => ({
+const ball_pool = Array.from({ length: MAX_BALLS }, (_, i) => ({
     x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z, strength: BALL_STRENGTH * random(0.70, 1.25), subtract: random(25, 45),
     speed_mult: random(0.6, 1.4),
     angle: randomGauss((i % METABALL_SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
@@ -35,10 +35,10 @@ let last_spawn_time = -1.0;
 let pausing = false;
 let pause_end = -Infinity;
 const wave_starts = [0];
-const wave_sizes  = [];
+const wave_sizes = [];
 
 export function getActiveBalls() {
-    return BALL_POOL.filter(ball => ball.active);
+    return ball_pool.filter(ball => ball.active);
 }
 
 // Returns the active balls after advancing the simulation by one frame,
@@ -60,7 +60,7 @@ export function stepMetaballAnimation(time) {
                 const delete_start = wave_starts[delete_iteration];
                 const delete_count = wave_sizes[delete_iteration];
                 for (let j = 0; j < delete_count; j++) {
-                    BALL_POOL[(delete_start + j) % MAX_BALLS].active = false;
+                    ball_pool[(delete_start + j) % MAX_BALLS].active = false;
                 }
             }
         }
@@ -68,7 +68,7 @@ export function stepMetaballAnimation(time) {
         if (current_wave_count < settings.count && time - last_spawn_time >= 1.0) {
             const index = pool_head;
             spawn_times[index] = time;
-            BALL_POOL[index].active = true;
+            ball_pool[index].active = true;
             current_wave_count++;
             pool_head = (pool_head + 1) % MAX_BALLS;
             last_spawn_time = time;
@@ -80,8 +80,8 @@ export function stepMetaballAnimation(time) {
     }
 
     for (let i = 0; i < MAX_BALLS; i++) {
-        if (!BALL_POOL[i].active) continue;
-        const ball = BALL_POOL[i];
+        if (!ball_pool[i].active) continue;
+        const ball = ball_pool[i];
         const life_fraction = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / METABALL_BALL_LIFETIME, 1.0);
         const remaining_fraction = 1.0 - life_fraction;
         const phase = (1.0 - remaining_fraction ** 16) * 0.95;

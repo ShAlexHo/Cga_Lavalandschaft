@@ -39,7 +39,7 @@ vi.mock('three', () => {
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
 
 vi.mock('../geometry/metaball_geometry.js', () => ({
-    createMetaballGeometry: vi.fn((scene) => {
+    createMetaballGeometry: vi.fn(scene => {
         const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
         scene.add(effect);
         return effect;
@@ -79,7 +79,7 @@ vi.mock('../rendering/metaball_material.js', () => {
 });
 
 vi.mock('../geometry/volcano_geometry.js', () => ({
-    createVolcanoGeometry: vi.fn((scene) => {
+    createVolcanoGeometry: vi.fn(scene => {
         const mesh = { position: { x: 0, y: 0, z: 0 }, visible: true };
         scene.add(mesh);
         return mesh;

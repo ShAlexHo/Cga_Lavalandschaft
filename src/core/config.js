@@ -5,7 +5,7 @@
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 
 export const METABALL_SCALE_XY = 30.0;
-export const METABALL_SCALE_Z  = 30.0;
+export const METABALL_SCALE_Z = 30.0;
 export const METABALL_RESOLUTION = 180;
 export const METABALL_MAX_POLYGON_COUNT = 250_000;
 export const METABALL_DEFAULT_ISOLATION = 50;
@@ -26,8 +26,8 @@ export const METABALL_SECTORS = 6;
 
 export const VOLCANO_PROFILE = [
     { x: 14.0, y: 0.0 },
-    { x: 2.5,  y: 5.0 },
-    { x: 1.0,  y: 4.2 },
+    { x: 2.5, y: 5.0 },
+    { x: 1.0, y: 4.2 },
 ];
 export const VOLCANO_PROFILE_SUBDIVISIONS = 24;
 export const VOLCANO_LATHE_SEGMENTS = 96;

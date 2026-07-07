@@ -4,8 +4,8 @@ vi.mock('three/addons/objects/MarchingCubes.js', () => {
     class MarchingCubes {
         constructor(_resolution, _material, _uvs, _colors, _max) {
             this.isolation = 80;
-            this.scale     = { set: vi.fn() };
-            this.position  = { y: 0 };
+            this.scale = { set: vi.fn() };
+            this.position = { y: 0 };
         }
         reset() {}
         addBall() {}
@@ -19,9 +19,9 @@ import { METABALL_SCALE_XY, METABALL_SCALE_Z } from '../../config.js';
 
 function makeEffect() {
     return {
-        reset:   vi.fn(),
+        reset: vi.fn(),
         addBall: vi.fn(),
-        update:  vi.fn(),
+        update: vi.fn(),
     };
 }
 

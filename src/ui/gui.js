@@ -19,14 +19,14 @@ export function setupGui(facade) {
         isolation: facade.getMetaballIsolation(),
         spread: facade.getMetaballSpread(),
         speed_factor: facade.getMetaballSpeed(),
-        hoehe: facade.getMetaballHeight(),
+        height: facade.getMetaballHeight(),
         flow_z_radius: facade.getFlowRadius(),
     };
     bind(metaballs_folder.add(metaballs_parameters, 'count', 1, facade.getMaxMetaballCount(), 1))
         .name('Limit')
         .onChange(value => facade.setMetaballCount(value));
     bind(metaballs_folder.add(metaballs_parameters, 'isolation', 1, 100, 1))
-        .name('Threshold')
+        .name('Schwellenwert')
         .onChange(value => facade.setMetaballIsolation(value));
     bind(metaballs_folder.add(metaballs_parameters, 'spread', 0.1, 2.0, 0.01))
         .name('Verteilung')
@@ -34,7 +34,7 @@ export function setupGui(facade) {
     bind(metaballs_folder.add(metaballs_parameters, 'speed_factor', 0.0, 0.01, 0.0001))
         .name('Geschwindigkeit')
         .onChange(value => facade.setMetaballSpeed(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'hoehe', 0, 5, 0.05))
+    bind(metaballs_folder.add(metaballs_parameters, 'height', 0, 5, 0.05))
         .name('Höhe')
         .onChange(value => facade.setMetaballHeight(value));
     bind(metaballs_folder.add(metaballs_parameters, 'flow_z_radius', 0, 20, 0.1))
@@ -44,21 +44,21 @@ export function setupGui(facade) {
 
     const colors_folder = gui.addFolder('Lavafarbe');
     const color_parameters = {
-        farbe_hell: facade.getColorHot(),
-        farbe_dunkel: facade.getColorCool(),
-        gluehen: facade.getGlowEnabled(),
-        glueh_farbe: facade.getGlowColor(),
+        color_hot: facade.getColorHot(),
+        color_cool: facade.getColorCool(),
+        glow_enabled: facade.getGlowEnabled(),
+        glow_color: facade.getGlowColor(),
     };
-    bind(colors_folder.addColor(color_parameters, 'farbe_hell'))
+    bind(colors_folder.addColor(color_parameters, 'color_hot'))
         .name('Hell (beleuchtet)')
         .onChange(value => facade.setColorHot(value));
-    bind(colors_folder.addColor(color_parameters, 'farbe_dunkel'))
+    bind(colors_folder.addColor(color_parameters, 'color_cool'))
         .name('Dunkel (Schatten)')
         .onChange(value => facade.setColorCool(value));
-    bind(colors_folder.add(color_parameters, 'gluehen'))
+    bind(colors_folder.add(color_parameters, 'glow_enabled'))
         .name('Glühen')
         .onChange(value => facade.setGlowEnabled(value));
-    bind(colors_folder.addColor(color_parameters, 'glueh_farbe'))
+    bind(colors_folder.addColor(color_parameters, 'glow_color'))
         .name('Glühfarbe')
         .onChange(value => facade.setGlowColor(value));
     colors_folder.open();
@@ -66,17 +66,17 @@ export function setupGui(facade) {
     const noise_folder = gui.addFolder('Noise');
     const noise_parameters = {
         noise: facade.getNoiseEnabled(),
-        noise_farbe_1: facade.getNoiseColor1(),
-        noise_farbe_2: facade.getNoiseColor2(),
+        noise_color_1: facade.getNoiseColor1(),
+        noise_color_2: facade.getNoiseColor2(),
         bumping: facade.getBumpEnabled(),
     };
     bind(noise_folder.add(noise_parameters, 'noise'))
         .name('Aktiviert')
         .onChange(value => facade.setNoiseEnabled(value));
-    bind(noise_folder.addColor(noise_parameters, 'noise_farbe_1'))
+    bind(noise_folder.addColor(noise_parameters, 'noise_color_1'))
         .name('primäre Farbe')
         .onChange(value => facade.setNoiseColor1(value));
-    bind(noise_folder.addColor(noise_parameters, 'noise_farbe_2'))
+    bind(noise_folder.addColor(noise_parameters, 'noise_color_2'))
         .name('sekundäre Farbe')
         .onChange(value => facade.setNoiseColor2(value));
     bind(noise_folder.add(noise_parameters, 'bumping'))
@@ -85,42 +85,42 @@ export function setupGui(facade) {
 
     const displacement_parameters = {
         displacement: facade.getDisplacementEnabled(),
-        staerke: facade.getDisplacementStrength(),
+        strength: facade.getDisplacementStrength(),
     };
     bind(noise_folder.add(displacement_parameters, 'displacement'))
         .name('Displacement')
         .onChange(value => facade.setDisplacementEnabled(value));
-    bind(noise_folder.add(displacement_parameters, 'staerke', 0.0, 0.004, 0.0001))
+    bind(noise_folder.add(displacement_parameters, 'strength', 0.0, 0.004, 0.0001))
         .name('Displacement Stärke')
         .onChange(value => facade.setDisplacementStrength(value));
     noise_folder.open();
 
     const ground_folder = gui.addFolder('Boden');
     const ground_parameters = {
-        sichtbar: facade.getGroundVisible(),
-        farbe: facade.getGroundColor(),
-        hoehe: facade.getGroundHeight(),
+        visible: facade.getGroundVisible(),
+        color: facade.getGroundColor(),
+        height: facade.getGroundHeight(),
     };
-    bind(ground_folder.add(ground_parameters, 'sichtbar'))
-        .name('sichtbar')
+    bind(ground_folder.add(ground_parameters, 'visible'))
+        .name('Sichtbar')
         .onChange(value => facade.setGroundVisible(value));
-    bind(ground_folder.addColor(ground_parameters, 'farbe'))
+    bind(ground_folder.addColor(ground_parameters, 'color'))
         .name('Farbe')
         .onChange(value => facade.setGroundColor(value));
-    bind(ground_folder.add(ground_parameters, 'hoehe', -10, 0, 0.01))
+    bind(ground_folder.add(ground_parameters, 'height', -10, 0, 0.01))
         .name('Höhe')
         .onChange(value => facade.setGroundHeight(value));
     ground_folder.open();
 
     const volcano_folder = gui.addFolder('Vulkan');
     const volcano_parameters = {
-        sichtbar: facade.getVolcanoVisible(),
+        visible: facade.getVolcanoVisible(),
         displacement_scale: facade.getVolcanoDisplacementScale(),
         displacement_frequency: facade.getVolcanoDisplacementFrequency(),
-        fels_farbe: facade.getVolcanoRockColor(),
-        riss_farbe: facade.getVolcanoCrackColor(),
+        rock_color: facade.getVolcanoRockColor(),
+        crack_color: facade.getVolcanoCrackColor(),
     };
-    bind(volcano_folder.add(volcano_parameters, 'sichtbar'))
+    bind(volcano_folder.add(volcano_parameters, 'visible'))
         .name('Sichtbar')
         .onChange(value => facade.setVolcanoVisible(value));
     bind(volcano_folder.add(volcano_parameters, 'displacement_scale', 0.0, 6.0, 0.05))
@@ -129,10 +129,10 @@ export function setupGui(facade) {
     bind(volcano_folder.add(volcano_parameters, 'displacement_frequency', 0.1, 2.0, 0.05))
         .name('Rissfrequenz')
         .onChange(value => facade.setVolcanoDisplacementFrequency(value));
-    bind(volcano_folder.addColor(volcano_parameters, 'fels_farbe'))
+    bind(volcano_folder.addColor(volcano_parameters, 'rock_color'))
         .name('Felsfarbe')
         .onChange(value => facade.setVolcanoRockColor(value));
-    bind(volcano_folder.addColor(volcano_parameters, 'riss_farbe'))
+    bind(volcano_folder.addColor(volcano_parameters, 'crack_color'))
         .name('Rissfarbe')
         .onChange(value => facade.setVolcanoCrackColor(value));
     volcano_folder.open();
@@ -176,26 +176,26 @@ export function setupGui(facade) {
         metaballs_parameters.isolation = facade.getMetaballIsolation();
         metaballs_parameters.spread = facade.getMetaballSpread();
         metaballs_parameters.speed_factor = facade.getMetaballSpeed();
-        metaballs_parameters.hoehe = facade.getMetaballHeight();
+        metaballs_parameters.height = facade.getMetaballHeight();
         metaballs_parameters.flow_z_radius = facade.getFlowRadius();
-        color_parameters.farbe_hell = facade.getColorHot();
-        color_parameters.farbe_dunkel = facade.getColorCool();
-        color_parameters.gluehen = facade.getGlowEnabled();
-        color_parameters.glueh_farbe = facade.getGlowColor();
+        color_parameters.color_hot = facade.getColorHot();
+        color_parameters.color_cool = facade.getColorCool();
+        color_parameters.glow_enabled = facade.getGlowEnabled();
+        color_parameters.glow_color = facade.getGlowColor();
         noise_parameters.noise = facade.getNoiseEnabled();
-        noise_parameters.noise_farbe_1 = facade.getNoiseColor1();
-        noise_parameters.noise_farbe_2 = facade.getNoiseColor2();
+        noise_parameters.noise_color_1 = facade.getNoiseColor1();
+        noise_parameters.noise_color_2 = facade.getNoiseColor2();
         noise_parameters.bumping = facade.getBumpEnabled();
         displacement_parameters.displacement = facade.getDisplacementEnabled();
-        displacement_parameters.staerke = facade.getDisplacementStrength();
-        ground_parameters.sichtbar = facade.getGroundVisible();
-        ground_parameters.farbe = facade.getGroundColor();
-        ground_parameters.hoehe = facade.getGroundHeight();
-        volcano_parameters.sichtbar = facade.getVolcanoVisible();
+        displacement_parameters.strength = facade.getDisplacementStrength();
+        ground_parameters.visible = facade.getGroundVisible();
+        ground_parameters.color = facade.getGroundColor();
+        ground_parameters.height = facade.getGroundHeight();
+        volcano_parameters.visible = facade.getVolcanoVisible();
         volcano_parameters.displacement_scale = facade.getVolcanoDisplacementScale();
         volcano_parameters.displacement_frequency = facade.getVolcanoDisplacementFrequency();
-        volcano_parameters.fels_farbe = facade.getVolcanoRockColor();
-        volcano_parameters.riss_farbe = facade.getVolcanoCrackColor();
+        volcano_parameters.rock_color = facade.getVolcanoRockColor();
+        volcano_parameters.crack_color = facade.getVolcanoCrackColor();
         position_parameters.x = facade.getOffsetX();
         position_parameters.y = facade.getOffsetY();
         position_parameters.z = facade.getOffsetZ();
@@ -205,19 +205,19 @@ export function setupGui(facade) {
     }
 
     const persistence_actions = {
-        speichern: () => {
+        save: () => {
             const data = facade.getSnapshot();
             saveToLocalStorage(data);
             downloadJson(data);
         },
-        laden: () => uploadJson(data => { facade.applySnapshot(data); refreshDisplay(); }),
-        standard: () => { facade.resetToDefaults(); refreshDisplay(); },
+        load: () => uploadJson(data => { facade.applySnapshot(data); refreshDisplay(); }),
+        reset: () => { facade.resetToDefaults(); refreshDisplay(); },
     };
 
     const persistence_folder = gui.addFolder('Speichern / Laden');
-    persistence_folder.add(persistence_actions, 'speichern').name('💾 Speichern');
-    persistence_folder.add(persistence_actions, 'laden').name('📂 Laden');
-    persistence_folder.add(persistence_actions, 'standard').name('🔄 Standard');
+    persistence_folder.add(persistence_actions, 'save').name('💾 Speichern');
+    persistence_folder.add(persistence_actions, 'load').name('📂 Laden');
+    persistence_folder.add(persistence_actions, 'reset').name('🔄 Standard');
     persistence_folder.open();
 
     const saved = loadFromLocalStorage();
