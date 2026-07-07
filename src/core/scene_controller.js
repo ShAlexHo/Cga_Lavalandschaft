@@ -1,12 +1,17 @@
 import * as THREE from 'three';
-import { createMetaballs, rebuildField, updateMetaballs, updateLight, settings } from './metaballs.js';
-import { createVolcano, updateVolcanoLight } from './volcano.js';
+import { createMetaballGeometry, rebuildMetaballGeometry } from './geometry/metaball_geometry.js';
+import { settings, getActiveBalls, stepMetaballAnimation } from './animation/metaball_animation.js';
+import { createMetaballMaterial, updateMetaballLight } from './rendering/metaball_material.js';
+import { createVolcanoGeometry } from './geometry/volcano_geometry.js';
+import { createVolcanoMaterial, updateVolcanoLight } from './rendering/volcano_material.js';
 import default_settings from './default_settings.json';
 
 const toHexColor = color => '#' + color.getHexString();
 
 export function createSceneController({ scene, camera, bloomPass }) {
-    const { effect, material } = createMetaballs(scene);
+    const material = createMetaballMaterial();
+    const effect = createMetaballGeometry(scene, material);
+    rebuildMetaballGeometry(effect, getActiveBalls());
     effect.position.y = 0.36;
 
     const ground = new THREE.Mesh(
@@ -22,7 +27,8 @@ export function createSceneController({ scene, camera, bloomPass }) {
     ground.position.y = -6;
     scene.add(ground);
 
-    const { mesh: volcano, material: volcano_material } = createVolcano(scene);
+    const volcano_material = createVolcanoMaterial();
+    const volcano = createVolcanoGeometry(scene, volcano_material);
     volcano.position.y = ground.position.y;
 
     const effect_offset = effect.position.y - volcano.position.y;
@@ -39,8 +45,9 @@ export function createSceneController({ scene, camera, bloomPass }) {
 
     const controller = {
         update(time) {
-            updateMetaballs(effect, time);
-            updateLight(material, camera, time);
+            const balls = stepMetaballAnimation(time);
+            if (balls) rebuildMetaballGeometry(effect, balls);
+            updateMetaballLight(material, camera, time);
             updateVolcanoLight(volcano_material, camera);
         },
 
@@ -48,10 +55,10 @@ export function createSceneController({ scene, camera, bloomPass }) {
         setPaused: value => { settings.paused = value; },
 
         getMetaballCount: () => settings.count,
-        setMetaballCount: value => { settings.count = value; rebuildField(effect); },
+        setMetaballCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
         getMaxMetaballCount: () => settings.max_count,
         getMetaballIsolation: () => effect.isolation,
-        setMetaballIsolation: value => { effect.isolation = value; rebuildField(effect); },
+        setMetaballIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
         getMetaballSpread: () => settings.spread,
         setMetaballSpread: value => { settings.spread = value; },
         getMetaballSpeed: () => settings.speed_factor,

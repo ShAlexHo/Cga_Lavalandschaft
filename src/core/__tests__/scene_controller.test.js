@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mock three (only Mesh/PlaneGeometry/MeshStandardMaterial are used directly
 //     by scene_controller.js — the ground mesh is built here, everything else
-//     comes from the (also mocked) metaballs.js/volcano.js) ────────────────────
+//     comes from the (also mocked) geometry/animation/rendering layers) ──────
 
 vi.mock('three', () => {
     function makeColor(hex = '000000') {
@@ -32,61 +32,73 @@ vi.mock('three', () => {
     return { Mesh, PlaneGeometry, MeshStandardMaterial };
 });
 
-// ─── Mock metaballs.js and volcano.js wholesale — their own logic is covered
-//     by metaballs.test.js; here we only need fakes that let us observe how
-//     the facade drives them. ──────────────────────────────────────────────
+// ─── Mock the geometry/animation/rendering layers wholesale — their own logic
+//     is covered by the tests next to each module; here we only need fakes
+//     that let us observe how the facade drives them. ────────────────────────
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
 
-vi.mock('../metaballs.js', () => {
-    function makeColor(hex) {
-        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-    }
+vi.mock('../geometry/metaball_geometry.js', () => ({
+    createMetaballGeometry: vi.fn((scene) => {
+        const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
+        scene.add(effect);
+        return effect;
+    }),
+    rebuildMetaballGeometry: vi.fn(),
+}));
+
+vi.mock('../animation/metaball_animation.js', () => {
     const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
     return {
         settings,
-        createMetaballs: vi.fn((scene) => {
-            const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
-            const material = {
-                uniforms: {
-                    u_color_hot: { value: makeColor('a01500') },
-                    u_color_cool: { value: makeColor('7c3027') },
-                    u_glow_color: { value: makeColor('ff3f00') },
-                    u_noise_color_1: { value: makeColor('7c3027') },
-                    u_noise_color_2: { value: makeColor('ea6927') },
-                    u_glow_enabled: { value: 1.0 },
-                    u_noise_enabled: { value: 1.0 },
-                    u_bump_enabled: { value: 1.0 },
-                    u_displacement: { value: 0.00005 },
-                },
-            };
-            scene.add(effect);
-            return { effect, material };
-        }),
-        rebuildField: vi.fn(),
-        updateMetaballs: vi.fn(),
-        updateLight: vi.fn(),
+        getActiveBalls: vi.fn(() => []),
+        stepMetaballAnimation: vi.fn(),
     };
 });
 
-vi.mock('../volcano.js', () => {
+vi.mock('../rendering/metaball_material.js', () => {
     function makeColor(hex) {
         return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
     }
     return {
-        createVolcano: vi.fn((scene) => {
-            const mesh = { position: { x: 0, y: 0, z: 0 }, visible: true };
-            const material = {
-                uniforms: {
-                    u_disp_scale: { value: 2.5 },
-                    u_disp_freq: { value: 0.5 },
-                    u_rock_color: { value: makeColor('afafaf') },
-                    u_crack_color: { value: makeColor('0a0a0a') },
-                },
-            };
-            scene.add(mesh);
-            return { mesh, material };
-        }),
+        createMetaballMaterial: vi.fn(() => ({
+            uniforms: {
+                u_color_hot: { value: makeColor('a01500') },
+                u_color_cool: { value: makeColor('7c3027') },
+                u_glow_color: { value: makeColor('ff3f00') },
+                u_noise_color_1: { value: makeColor('7c3027') },
+                u_noise_color_2: { value: makeColor('ea6927') },
+                u_glow_enabled: { value: 1.0 },
+                u_noise_enabled: { value: 1.0 },
+                u_bump_enabled: { value: 1.0 },
+                u_displacement: { value: 0.00005 },
+            },
+        })),
+        updateMetaballLight: vi.fn(),
+    };
+});
+
+vi.mock('../geometry/volcano_geometry.js', () => ({
+    createVolcanoGeometry: vi.fn((scene) => {
+        const mesh = { position: { x: 0, y: 0, z: 0 }, visible: true };
+        scene.add(mesh);
+        return mesh;
+    }),
+}));
+
+vi.mock('../rendering/volcano_material.js', () => {
+    function makeColor(hex) {
+        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
+    }
+    return {
+        createVolcanoMaterial: vi.fn(() => ({
+            uniforms: {
+                u_disp_scale: { value: 2.5 },
+                u_disp_freq: { value: 0.5 },
+                u_rock_color: { value: makeColor('afafaf') },
+                u_crack_color: { value: makeColor('0a0a0a') },
+            },
+        })),
         updateVolcanoLight: vi.fn(),
     };
 });
@@ -107,8 +119,10 @@ vi.mock('../default_settings.json', () => ({
 }));
 
 import { createSceneController } from '../scene_controller.js';
-import { settings as mock_settings, rebuildField, updateMetaballs, updateLight } from '../metaballs.js';
-import { updateVolcanoLight } from '../volcano.js';
+import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
+import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
+import { updateMetaballLight } from '../rendering/metaball_material.js';
+import { updateVolcanoLight } from '../rendering/volcano_material.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -170,14 +184,14 @@ describe('createSceneController – metaballs', () => {
         const controller = makeController();
         controller.setMetaballCount(250);
         expect(controller.getMetaballCount()).toBe(250);
-        expect(rebuildField).toHaveBeenCalled();
+        expect(rebuildMetaballGeometry).toHaveBeenCalled();
     });
 
     test('setMetaballIsolation updates effect.isolation and rebuilds the field', () => {
         const controller = makeController();
         controller.setMetaballIsolation(77);
         expect(controller.getMetaballIsolation()).toBe(77);
-        expect(rebuildField).toHaveBeenCalled();
+        expect(rebuildMetaballGeometry).toHaveBeenCalled();
     });
 
     test('getMaxMetaballCount reflects settings.max_count', () => {
@@ -255,7 +269,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
 // ─── update() lifecycle ───────────────────────────────────────────────────────
 
 describe('createSceneController – update()', () => {
-    test('delegates to updateMetaballs, updateLight and updateVolcanoLight with the right arguments', () => {
+    test('delegates to stepMetaballAnimation, updateMetaballLight and updateVolcanoLight with the right arguments', () => {
         const scene = makeScene();
         const camera = makeCamera();
         const bloomPass = makeBloomPass();
@@ -263,12 +277,26 @@ describe('createSceneController – update()', () => {
 
         controller.update(12.5);
 
-        expect(updateMetaballs).toHaveBeenCalledTimes(1);
-        expect(updateMetaballs.mock.calls[0][1]).toBe(12.5);
-        expect(updateLight).toHaveBeenCalledTimes(1);
-        expect(updateLight.mock.calls[0][1]).toBe(camera);
-        expect(updateLight.mock.calls[0][2]).toBe(12.5);
+        expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
+        expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
+        expect(updateMetaballLight).toHaveBeenCalledTimes(1);
+        expect(updateMetaballLight.mock.calls[0][1]).toBe(camera);
+        expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
+    });
+
+    test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {
+        const controller = makeController();
+        rebuildMetaballGeometry.mockClear(); // drop the initial rebuild done during construction
+
+        stepMetaballAnimation.mockReturnValueOnce(null);
+        controller.update(0);
+        expect(rebuildMetaballGeometry).not.toHaveBeenCalled();
+
+        const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
+        stepMetaballAnimation.mockReturnValueOnce(balls);
+        controller.update(1);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(expect.anything(), balls);
     });
 });
