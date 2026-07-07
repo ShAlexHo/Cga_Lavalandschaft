@@ -1,26 +1,28 @@
 import { random, randomGauss } from '../rand.js';
-import { SCALE_XY } from '../geometry/metaball_geometry.js';
+import {
+    METABALL_SCALE_XY,
+    METABALL_MAX_BALLS,
+    METABALL_LEGACY_EFFECT_SCALE,
+    METABALL_CRATER_X,
+    METABALL_CRATER_Y,
+    METABALL_CRATER_Z,
+    METABALL_GROUND_Y,
+    METABALL_BALL_LIFETIME,
+    METABALL_SECTORS,
+} from '../config.js';
 
-export const MAX_BALLS = 500;
+export const MAX_BALLS = METABALL_MAX_BALLS;
 
-const LEGACY_EFFECT_SCALE = 6.0;
-const BALL_STRENGTH = ( LEGACY_EFFECT_SCALE / SCALE_XY ) ** 2;
-
-const CRATER_Y = 0.45;
-const CRATER_X = 0.5;
-const CRATER_Z = 0.5;
-const GROUND_Y = 0.288;
-const BALL_LIFETIME = 3.5;
+const BALL_STRENGTH = ( METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY ) ** 2;
 
 export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
 
-const SECTORS = 6;
-const SECTOR_WIDTH = (Math.PI * 2) / SECTORS;
+const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 
 const BALL_POOL = Array.from({ length: MAX_BALLS }, (_, i) => ({
-    x: CRATER_X, y: CRATER_Y, z: CRATER_Z, strength: BALL_STRENGTH * random(0.70, 1.25), subtract: random(25, 45),
+    x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z, strength: BALL_STRENGTH * random(0.70, 1.25), subtract: random(25, 45),
     speed_mult: random(0.6, 1.4),
-    angle: randomGauss((i % SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
+    angle: randomGauss((i % METABALL_SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
     active: false,
 }));
 
@@ -80,13 +82,13 @@ export function stepMetaballAnimation(time) {
     for (let i = 0; i < MAX_BALLS; i++) {
         if (!BALL_POOL[i].active) continue;
         const ball = BALL_POOL[i];
-        const life_fraction = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / BALL_LIFETIME, 1.0);
+        const life_fraction = Math.min((time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / METABALL_BALL_LIFETIME, 1.0);
         const remaining_fraction = 1.0 - life_fraction;
         const phase = (1.0 - remaining_fraction ** 16) * 0.95;
-        const radius = settings.flow_z_radius / SCALE_XY * phase;
-        ball.y = CRATER_Y + (GROUND_Y - CRATER_Y) * phase;
-        ball.x = CRATER_X + radius * Math.cos(ball.angle);
-        ball.z = CRATER_Z + radius * Math.sin(ball.angle);
+        const radius = settings.flow_z_radius / METABALL_SCALE_XY * phase;
+        ball.y = METABALL_CRATER_Y + (METABALL_GROUND_Y - METABALL_CRATER_Y) * phase;
+        ball.x = METABALL_CRATER_X + radius * Math.cos(ball.angle);
+        ball.z = METABALL_CRATER_Z + radius * Math.sin(ball.angle);
     }
 
     return getActiveBalls();

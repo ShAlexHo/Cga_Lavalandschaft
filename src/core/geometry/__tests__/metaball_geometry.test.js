@@ -14,7 +14,8 @@ vi.mock('three/addons/objects/MarchingCubes.js', () => {
     return { MarchingCubes };
 });
 
-import { createMetaballGeometry, rebuildMetaballGeometry, SCALE_XY, SCALE_Z } from '../metaball_geometry.js';
+import { createMetaballGeometry, rebuildMetaballGeometry } from '../metaball_geometry.js';
+import { METABALL_SCALE_XY, METABALL_SCALE_Z } from '../../config.js';
 
 function makeEffect() {
     return {
@@ -40,7 +41,7 @@ describe('createMetaballGeometry', () => {
 
     test('calls effect.scale.set(30, 30, 30)', () => {
         const effect = createMetaballGeometry(mock_scene, {});
-        expect(effect.scale.set).toHaveBeenCalledWith(SCALE_XY, SCALE_XY, SCALE_Z);
+        expect(effect.scale.set).toHaveBeenCalledWith(METABALL_SCALE_XY, METABALL_SCALE_XY, METABALL_SCALE_Z);
     });
 });
 

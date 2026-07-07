@@ -1,7 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../geometry/metaball_geometry.js', () => ({ SCALE_XY: 30 }));
-
 // ─── Fresh module instance per test ──────────────────────────────────────────
 //
 // metaball_animation.js keeps its wave/pool state (pool_head, current_wave_count,

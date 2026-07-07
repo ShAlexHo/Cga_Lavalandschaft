@@ -63,6 +63,7 @@ Gilt für den gesamten `src/`-Code inkl. Tests (`__tests__/`, `e2e/`):
 - **Konstanten** (Werte, die nie neu zugewiesen werden): `UPPER_SNAKE_CASE` (z.B. `MAX_BALLS`, `LIGHT_WORLD_POSITION`). Ein `const`-Binding auf ein mutierbares State-Objekt (z.B. `settings`) ist keine Konstante in diesem Sinne und bleibt lowercase.
 - **Funktionen/Methoden**: `camelCase` (z.B. `createMetaballs`, `setupGui`), unabhängig davon ob per `function`-Deklaration oder als Arrow-Function einer `const` zugewiesen.
 - **Keine Abkürzungen.** Namen voll ausschreiben (`callback` statt `cb`, `parameters` statt `params`, `position` statt `pos`, `value` statt `v`). Ausnahme: feststehende Fachbegriffe/Standardakronyme (`hex`, `JSON`, `URL`, `DOM`, Bibliotheksnamen wie `THREE`/`GUI`), klassische Schleifenzähler (`i`, `j`) und Koordinatenbuchstaben (`x`, `y`, `z`, `r`, `g`, `b`).
+- **Sprache**: Code (Bezeichner, Kommentare) wird auf Englisch geschrieben. Ausnahme: sichtbare GUI-Texte (z.B. dat.gui-Labels in `ui/gui.js`) bleiben deutsch, da sie die Bedienoberfläche für deutschsprachige Nutzer darstellen.
 
 ---
 
@@ -131,3 +132,4 @@ Applies to all `src/` code, including tests (`__tests__/`, `e2e/`):
 - **Constants** (values that are never reassigned): `UPPER_SNAKE_CASE` (e.g. `MAX_BALLS`, `LIGHT_WORLD_POSITION`). A `const` binding to a mutable state object (e.g. `settings`) is not a constant in this sense and stays lowercase.
 - **Functions/methods**: `camelCase` (e.g. `createMetaballs`, `setupGui`), regardless of whether declared via `function` or assigned to a `const` as an arrow function.
 - **No abbreviations.** Spell names out in full (`callback` instead of `cb`, `parameters` instead of `params`, `position` instead of `pos`, `value` instead of `v`). Exception: established technical terms/standard acronyms (`hex`, `JSON`, `URL`, `DOM`, library names like `THREE`/`GUI`), classic loop counters (`i`, `j`), and coordinate letters (`x`, `y`, `z`, `r`, `g`, `b`).
+- **Language**: code (identifiers, comments) is written in English. Exception: user-facing GUI text (e.g. dat.gui labels in `ui/gui.js`) stays German, since that is the visible interface for German-speaking users.

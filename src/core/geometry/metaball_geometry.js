@@ -1,16 +1,16 @@
 import { MarchingCubes } from 'three/addons/objects/MarchingCubes.js';
-
-export const SCALE_XY = 30.0;
-export const SCALE_Z  = 30.0;
-
-const RESOLUTION         = 180;
-const MAX_POLYGON_COUNT  = 250_000;
-const DEFAULT_ISOLATION  = 50;
+import {
+    METABALL_SCALE_XY,
+    METABALL_SCALE_Z,
+    METABALL_RESOLUTION,
+    METABALL_MAX_POLYGON_COUNT,
+    METABALL_DEFAULT_ISOLATION,
+} from '../config.js';
 
 export function createMetaballGeometry(scene, material) {
-    const effect = new MarchingCubes(RESOLUTION, material, false, false, MAX_POLYGON_COUNT);
-    effect.isolation = DEFAULT_ISOLATION;
-    effect.scale.set(SCALE_XY, SCALE_XY, SCALE_Z);
+    const effect = new MarchingCubes(METABALL_RESOLUTION, material, false, false, METABALL_MAX_POLYGON_COUNT);
+    effect.isolation = METABALL_DEFAULT_ISOLATION;
+    effect.scale.set(METABALL_SCALE_XY, METABALL_SCALE_XY, METABALL_SCALE_Z);
     scene.add(effect);
     return effect;
 }
