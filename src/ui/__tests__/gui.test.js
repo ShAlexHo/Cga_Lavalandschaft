@@ -8,7 +8,7 @@ vi.mock('dat.gui', () => {
 
 // ─── Mock persistence.js ─────────────────────────────────────────────────────
 
-vi.mock('../persistence.js', () => ({
+vi.mock('../../persistence/persistence.js', () => ({
     saveToLocalStorage: vi.fn(),
     loadFromLocalStorage: vi.fn(() => null),
     downloadJson: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../persistence.js', () => ({
 }));
 
 import { GUI } from 'dat.gui';
-import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence.js';
+import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../../persistence/persistence.js';
 import { setupGui } from '../gui.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

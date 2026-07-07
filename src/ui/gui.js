@@ -1,5 +1,5 @@
 import { GUI } from 'dat.gui';
-import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from './persistence.js';
+import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence/persistence.js';
 
 export function setupGui(facade) {
     const gui = new GUI();
