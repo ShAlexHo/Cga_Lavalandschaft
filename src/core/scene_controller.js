@@ -1,130 +1,95 @@
-import * as THREE from 'three';
-import { createMetaballGeometry, rebuildMetaballGeometry } from './geometry/metaball_geometry.js';
-import { settings, getActiveBalls, stepMetaballAnimation } from './animation/metaball_animation.js';
-import { createMetaballMaterial, updateMetaballLight } from './rendering/metaball_material.js';
-import { createVolcanoGeometry } from './geometry/volcano_geometry.js';
-import { createVolcanoMaterial, updateVolcanoLight } from './rendering/volcano_material.js';
+import { createGround } from './objects/ground_object.js';
+import { createVolcano } from './objects/volcano_object.js';
+import { createMetaballField } from './objects/metaball_field_object.js';
 import default_settings from './default_settings.json';
 
-const toHexColor = color => '#' + color.getHexString();
-
 export function createSceneController({ scene, camera, bloomPass }) {
-    const material = createMetaballMaterial();
-    const effect = createMetaballGeometry(scene, material);
-    rebuildMetaballGeometry(effect, getActiveBalls());
-    effect.position.y = 0.36;
+    const ground = createGround(scene);
+    const volcano = createVolcano(scene);
+    const metaball_field = createMetaballField(scene);
 
-    const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(30, 30),
-        new THREE.MeshStandardMaterial({
-            color: 0x220500,
-            emissive: 0x2b0800,
-            roughness: 0.88,
-            metalness: 0.05,
-        })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -6;
-    scene.add(ground);
+    metaball_field.effect.position.y = 0.36;
+    volcano.mesh.position.y = ground.mesh.position.y;
 
-    const volcano_material = createVolcanoMaterial();
-    const volcano = createVolcanoGeometry(scene, volcano_material);
-    volcano.position.y = ground.position.y;
-
-    const effect_offset = effect.position.y - volcano.position.y;
+    const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
     let metaball_y_offset = 1.6;
-    let displacement_enabled = true;
-    let displacement_last = material.uniforms.u_displacement.value;
 
     function applyY(ground_y) {
-        ground.position.y = ground_y;
-        volcano.position.y = ground_y + position.y;
-        effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
+        ground.mesh.position.y = ground_y;
+        volcano.mesh.position.y = ground_y + position.y;
+        metaball_field.effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
     }
 
     const controller = {
         update(time) {
-            const balls = stepMetaballAnimation(time);
-            if (balls) rebuildMetaballGeometry(effect, balls);
-            updateMetaballLight(material, camera, time);
-            updateVolcanoLight(volcano_material, camera);
+            metaball_field.update(time, camera);
+            volcano.update(camera);
         },
 
-        isPaused: () => settings.paused,
-        setPaused: value => { settings.paused = value; },
+        isPaused: () => metaball_field.isPaused(),
+        setPaused: value => metaball_field.setPaused(value),
 
-        getMetaballCount: () => settings.count,
-        setMetaballCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
-        getMaxMetaballCount: () => settings.max_count,
-        getMetaballIsolation: () => effect.isolation,
-        setMetaballIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
-        getMetaballSpread: () => settings.spread,
-        setMetaballSpread: value => { settings.spread = value; },
-        getMetaballSpeed: () => settings.speed_factor,
-        setMetaballSpeed: value => { settings.speed_factor = value; },
+        getMetaballCount: () => metaball_field.getCount(),
+        setMetaballCount: value => metaball_field.setCount(value),
+        getMaxMetaballCount: () => metaball_field.getMaxCount(),
+        getMetaballIsolation: () => metaball_field.getIsolation(),
+        setMetaballIsolation: value => metaball_field.setIsolation(value),
+        getMetaballSpread: () => metaball_field.getSpread(),
+        setMetaballSpread: value => metaball_field.setSpread(value),
+        getMetaballSpeed: () => metaball_field.getSpeed(),
+        setMetaballSpeed: value => metaball_field.setSpeed(value),
         getMetaballHeight: () => metaball_y_offset,
-        setMetaballHeight: value => { metaball_y_offset = value; applyY(ground.position.y); },
-        getFlowRadius: () => settings.flow_z_radius,
-        setFlowRadius: value => { settings.flow_z_radius = value; },
+        setMetaballHeight: value => { metaball_y_offset = value; applyY(ground.mesh.position.y); },
+        getFlowRadius: () => metaball_field.getFlowRadius(),
+        setFlowRadius: value => metaball_field.setFlowRadius(value),
 
-        getColorHot: () => toHexColor(material.uniforms.u_color_hot.value),
-        setColorHot: value => material.uniforms.u_color_hot.value.set(value),
-        getColorCool: () => toHexColor(material.uniforms.u_color_cool.value),
-        setColorCool: value => material.uniforms.u_color_cool.value.set(value),
-        getGlowEnabled: () => material.uniforms.u_glow_enabled.value === 1.0,
-        setGlowEnabled: value => { material.uniforms.u_glow_enabled.value = value ? 1.0 : 0.0; },
-        getGlowColor: () => toHexColor(material.uniforms.u_glow_color.value),
-        setGlowColor: value => material.uniforms.u_glow_color.value.set(value),
+        getColorHot: () => metaball_field.getColorHot(),
+        setColorHot: value => metaball_field.setColorHot(value),
+        getColorCool: () => metaball_field.getColorCool(),
+        setColorCool: value => metaball_field.setColorCool(value),
+        getGlowEnabled: () => metaball_field.getGlowEnabled(),
+        setGlowEnabled: value => metaball_field.setGlowEnabled(value),
+        getGlowColor: () => metaball_field.getGlowColor(),
+        setGlowColor: value => metaball_field.setGlowColor(value),
 
-        getNoiseEnabled: () => material.uniforms.u_noise_enabled.value === 1.0,
-        setNoiseEnabled: value => { material.uniforms.u_noise_enabled.value = value ? 1.0 : 0.0; },
-        getNoiseColor1: () => toHexColor(material.uniforms.u_noise_color_1.value),
-        setNoiseColor1: value => material.uniforms.u_noise_color_1.value.set(value),
-        getNoiseColor2: () => toHexColor(material.uniforms.u_noise_color_2.value),
-        setNoiseColor2: value => material.uniforms.u_noise_color_2.value.set(value),
-        getBumpEnabled: () => material.uniforms.u_bump_enabled.value === 1.0,
-        setBumpEnabled: value => { material.uniforms.u_bump_enabled.value = value ? 1.0 : 0.0; },
-        getDisplacementEnabled: () => displacement_enabled,
-        setDisplacementEnabled: value => {
-            displacement_enabled = value;
-            if (value) {
-                material.uniforms.u_displacement.value = displacement_last;
-            } else {
-                displacement_last = material.uniforms.u_displacement.value;
-                material.uniforms.u_displacement.value = 0.0;
-            }
-        },
-        getDisplacementStrength: () => material.uniforms.u_displacement.value,
-        setDisplacementStrength: value => { material.uniforms.u_displacement.value = value; },
+        getNoiseEnabled: () => metaball_field.getNoiseEnabled(),
+        setNoiseEnabled: value => metaball_field.setNoiseEnabled(value),
+        getNoiseColor1: () => metaball_field.getNoiseColor1(),
+        setNoiseColor1: value => metaball_field.setNoiseColor1(value),
+        getNoiseColor2: () => metaball_field.getNoiseColor2(),
+        setNoiseColor2: value => metaball_field.setNoiseColor2(value),
+        getBumpEnabled: () => metaball_field.getBumpEnabled(),
+        setBumpEnabled: value => metaball_field.setBumpEnabled(value),
+        getDisplacementEnabled: () => metaball_field.getDisplacementEnabled(),
+        setDisplacementEnabled: value => metaball_field.setDisplacementEnabled(value),
+        getDisplacementStrength: () => metaball_field.getDisplacementStrength(),
+        setDisplacementStrength: value => metaball_field.setDisplacementStrength(value),
 
-        getGroundVisible: () => ground.visible,
-        setGroundVisible: value => { ground.visible = value; },
-        getGroundColor: () => toHexColor(ground.material.color),
-        setGroundColor: value => {
-            ground.material.color.set(value);
-            ground.material.emissive.set(value).multiplyScalar(0.25);
-        },
-        getGroundHeight: () => ground.position.y,
+        getGroundVisible: () => ground.getVisible(),
+        setGroundVisible: value => ground.setVisible(value),
+        getGroundColor: () => ground.getColor(),
+        setGroundColor: value => ground.setColor(value),
+        getGroundHeight: () => ground.mesh.position.y,
         setGroundHeight: value => applyY(value),
 
-        getVolcanoVisible: () => volcano.visible,
-        setVolcanoVisible: value => { volcano.visible = value; },
-        getVolcanoRockColor: () => toHexColor(volcano_material.uniforms.u_rock_color.value),
-        setVolcanoRockColor: value => volcano_material.uniforms.u_rock_color.value.set(value),
-        getVolcanoCrackColor: () => toHexColor(volcano_material.uniforms.u_crack_color.value),
-        setVolcanoCrackColor: value => volcano_material.uniforms.u_crack_color.value.set(value),
-        getVolcanoDisplacementScale: () => volcano_material.uniforms.u_disp_scale.value,
-        setVolcanoDisplacementScale: value => { volcano_material.uniforms.u_disp_scale.value = value; },
-        getVolcanoDisplacementFrequency: () => volcano_material.uniforms.u_disp_freq.value,
-        setVolcanoDisplacementFrequency: value => { volcano_material.uniforms.u_disp_freq.value = value; },
+        getVolcanoVisible: () => volcano.getVisible(),
+        setVolcanoVisible: value => volcano.setVisible(value),
+        getVolcanoRockColor: () => volcano.getRockColor(),
+        setVolcanoRockColor: value => volcano.setRockColor(value),
+        getVolcanoCrackColor: () => volcano.getCrackColor(),
+        setVolcanoCrackColor: value => volcano.setCrackColor(value),
+        getVolcanoDisplacementScale: () => volcano.getDisplacementScale(),
+        setVolcanoDisplacementScale: value => volcano.setDisplacementScale(value),
+        getVolcanoDisplacementFrequency: () => volcano.getDisplacementFrequency(),
+        setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
 
         getOffsetX: () => position.x,
-        setOffsetX: value => { position.x = value; volcano.position.x = value; effect.position.x = value; },
+        setOffsetX: value => { position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; },
         getOffsetY: () => position.y,
-        setOffsetY: value => { position.y = value; applyY(ground.position.y); },
+        setOffsetY: value => { position.y = value; applyY(ground.mesh.position.y); },
         getOffsetZ: () => position.z,
-        setOffsetZ: value => { position.z = value; volcano.position.z = value; effect.position.z = value; },
+        setOffsetZ: value => { position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; },
 
         getBloom: () => ({
             enabled: bloomPass.enabled,
@@ -218,7 +183,7 @@ export function createSceneController({ scene, camera, bloomPass }) {
         }
     }
 
-    applyY(ground.position.y);
+    applyY(ground.mesh.position.y);
 
     return controller;
 }
