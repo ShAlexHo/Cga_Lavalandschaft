@@ -81,6 +81,24 @@ function makeFacade(overrides = {}) {
         getVolcanoDisplacementFrequency: vi.fn(() => 0.5),
         setVolcanoDisplacementFrequency: vi.fn(),
 
+        getSmokeVisible: vi.fn(() => true),
+        setSmokeVisible: vi.fn(),
+        getSmokeCount: vi.fn(() => 200),
+        setSmokeCount: vi.fn(),
+        getMaxSmokeCount: vi.fn(() => 400),
+        getSmokeSpread: vi.fn(() => 1.0),
+        setSmokeSpread: vi.fn(),
+        getSmokeRiseSpeed: vi.fn(() => 1.0),
+        setSmokeRiseSpeed: vi.fn(),
+        getSmokeColor1: vi.fn(() => '#5c4534'),
+        setSmokeColor1: vi.fn(),
+        getSmokeColor2: vi.fn(() => '#cac2b4'),
+        setSmokeColor2: vi.fn(),
+        getSmokeColor3: vi.fn(() => '#d9622a'),
+        setSmokeColor3: vi.fn(),
+        getSmokeParticleSize: vi.fn(() => 22),
+        setSmokeParticleSize: vi.fn(),
+
         getOffsetX: vi.fn(() => 0),
         setOffsetX: vi.fn(),
         getOffsetY: vi.fn(() => 0),
@@ -172,7 +190,7 @@ describe('setupGui – structure', () => {
         setupGui(makeFacade());
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
-            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan',
+            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Rauch & Asche',
             'Position (Vulkan + Lava)', 'Bloom', 'Speichern / Laden',
         ]);
     });
@@ -282,6 +300,36 @@ describe('setupGui – Vulkan folder', () => {
         const facade = makeFacade();
         setupGui(facade);
         fire(registry, 'Vulkan', key, value);
+        expect(facade[setter]).toHaveBeenCalledWith(value);
+    });
+});
+
+// ─── Rauch & Asche folder ────────────────────────────────────────────────────
+
+describe('setupGui – Rauch & Asche folder', () => {
+    test('count control is seeded from getSmokeCount/getMaxSmokeCount and writes back via setSmokeCount', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getSmokeCount: vi.fn(() => 150), getMaxSmokeCount: vi.fn(() => 300) });
+        setupGui(facade);
+        const entry = find(registry, 'Rauch & Asche', 'count');
+        expect(entry.obj.count).toBe(150);
+        fire(registry, 'Rauch & Asche', 'count', 90);
+        expect(facade.setSmokeCount).toHaveBeenCalledWith(90);
+    });
+
+    test.each([
+        ['visible', 'setSmokeVisible', false],
+        ['spread', 'setSmokeSpread', 1.8],
+        ['rise_speed', 'setSmokeRiseSpeed', 2.1],
+        ['color_1', 'setSmokeColor1', '#334455'],
+        ['color_2', 'setSmokeColor2', '#aabbcc'],
+        ['color_3', 'setSmokeColor3', '#ff8800'],
+        ['particle_size', 'setSmokeParticleSize', 120],
+    ])('%s onChange calls facade.%s', (key, setter, value) => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Rauch & Asche', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });

@@ -103,6 +103,41 @@ vi.mock('../rendering/volcano_material.js', () => {
     };
 });
 
+const DEFAULT_SMOKE_SETTINGS = { count: 200, spread: 1.0, rise_speed: 1.0, max_count: 400 };
+
+vi.mock('../geometry/smoke_geometry.js', () => ({
+    createSmokeGeometry: vi.fn(scene => {
+        const points = { position: { x: 0, y: 0, z: 0 }, visible: true };
+        scene.add(points);
+        return points;
+    }),
+    updateSmokeGeometry: vi.fn(),
+}));
+
+vi.mock('../rendering/smoke_material.js', () => {
+    function makeColor(hex) {
+        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
+    }
+    return {
+        createSmokeMaterial: vi.fn(() => ({
+            uniforms: {
+                u_color_1: { value: makeColor('5c4534') },
+                u_color_2: { value: makeColor('cac2b4') },
+                u_color_3: { value: makeColor('d9622a') },
+                u_size: { value: 22 },
+            },
+        })),
+    };
+});
+
+vi.mock('../animation/smoke_animation.js', () => {
+    const settings = { count: 200, spread: 1.0, rise_speed: 1.0, max_count: 400 };
+    return {
+        settings,
+        stepSmokeAnimation: vi.fn(() => []),
+    };
+});
+
 vi.mock('../default_settings.json', () => ({
     default: {
         paused: true, metaballCount: 10, metaballIsolation: 60, metaballSpread: 1.2, metaballSpeed: 0.005,
@@ -113,6 +148,8 @@ vi.mock('../default_settings.json', () => ({
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777', volcanoCrackColor: '#888888',
+        smokeVisible: false, smokeCount: 20, smokeSpread: 0.5, smokeRiseSpeed: 0.6,
+        smokeColor1: '#999999', smokeColor2: '#dddddd', smokeColor3: '#eeeeee', smokeParticleSize: 30,
         offsetX: 1, offsetY: 2, offsetZ: 3,
         bloomEnabled: false, bloomStrength: 0.1, bloomRadius: 0.2, bloomThreshold: 0.9,
     },
@@ -123,6 +160,7 @@ import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
 import { updateMetaballLight } from '../rendering/metaball_material.js';
 import { updateVolcanoLight } from '../rendering/volcano_material.js';
+import { settings as mock_smoke_settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -137,6 +175,7 @@ function makeController() {
 beforeEach(() => {
     vi.clearAllMocks();
     Object.assign(mock_settings, DEFAULT_SETTINGS);
+    Object.assign(mock_smoke_settings, DEFAULT_SMOKE_SETTINGS);
 });
 
 // ─── construction / positioning ──────────────────────────────────────────────
@@ -242,6 +281,8 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101',
+            smokeVisible: false, smokeCount: 42, smokeSpread: 0.8, smokeRiseSpeed: 1.4,
+            smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45,
             offsetX: 5, offsetY: -1, offsetZ: 2,
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
         };
@@ -263,6 +304,49 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
         expect(controller.getMetaballCount()).toBe(10);
         expect(controller.isPaused()).toBe(true);
         expect(controller.getGroundHeight()).toBe(-3);
+        expect(controller.getSmokeCount()).toBe(20);
+    });
+});
+
+// ─── smoke ────────────────────────────────────────────────────────────────────
+
+describe('createSceneController – smoke', () => {
+    test('getMaxSmokeCount reflects settings.max_count', () => {
+        const controller = makeController();
+        expect(controller.getMaxSmokeCount()).toBe(400);
+    });
+
+    test('setSmokeCount/setSmokeSpread/setSmokeRiseSpeed update the animation settings', () => {
+        const controller = makeController();
+        controller.setSmokeCount(80);
+        controller.setSmokeSpread(1.5);
+        controller.setSmokeRiseSpeed(0.7);
+        expect(controller.getSmokeCount()).toBe(80);
+        expect(controller.getSmokeSpread()).toBe(1.5);
+        expect(controller.getSmokeRiseSpeed()).toBe(0.7);
+    });
+
+    test('color/particle size/visibility forward to the smoke object', () => {
+        const controller = makeController();
+        controller.setSmokeColor1('#123123');
+        expect(controller.getSmokeColor1()).toBe('#123123');
+        controller.setSmokeColor2('#321321');
+        expect(controller.getSmokeColor2()).toBe('#321321');
+        controller.setSmokeColor3('#456456');
+        expect(controller.getSmokeColor3()).toBe('#456456');
+        controller.setSmokeParticleSize(99);
+        expect(controller.getSmokeParticleSize()).toBe(99);
+        controller.setSmokeVisible(false);
+        expect(controller.getSmokeVisible()).toBe(false);
+    });
+
+    test('setOffsetX/Z also move the smoke effect', () => {
+        const scene = makeScene();
+        const controller = createSceneController({ scene, camera: makeCamera(), bloomPass: makeBloomPass() });
+        controller.setOffsetX(3);
+        controller.setOffsetZ(-4);
+        expect(controller.getOffsetX()).toBe(3);
+        expect(controller.getOffsetZ()).toBe(-4);
     });
 });
 
@@ -284,6 +368,7 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
+        expect(stepSmokeAnimation).toHaveBeenCalledWith(12.5);
     });
 
     test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {

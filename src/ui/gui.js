@@ -137,6 +137,43 @@ export function setupGui(facade) {
         .onChange(value => facade.setVolcanoCrackColor(value));
     volcano_folder.open();
 
+    const smoke_folder = gui.addFolder('Rauch & Asche');
+    const smoke_parameters = {
+        visible: facade.getSmokeVisible(),
+        count: facade.getSmokeCount(),
+        spread: facade.getSmokeSpread(),
+        rise_speed: facade.getSmokeRiseSpeed(),
+        color_1: facade.getSmokeColor1(),
+        color_2: facade.getSmokeColor2(),
+        color_3: facade.getSmokeColor3(),
+        particle_size: facade.getSmokeParticleSize(),
+    };
+    bind(smoke_folder.add(smoke_parameters, 'visible'))
+        .name('Sichtbar')
+        .onChange(value => facade.setSmokeVisible(value));
+    bind(smoke_folder.add(smoke_parameters, 'count', 1, facade.getMaxSmokeCount(), 1))
+        .name('Anzahl')
+        .onChange(value => facade.setSmokeCount(value));
+    bind(smoke_folder.add(smoke_parameters, 'spread', 0.0, 8.0, 0.1))
+        .name('Streuung')
+        .onChange(value => facade.setSmokeSpread(value));
+    bind(smoke_folder.add(smoke_parameters, 'rise_speed', 0.1, 3.0, 0.05))
+        .name('Aufstiegsgeschwindigkeit')
+        .onChange(value => facade.setSmokeRiseSpeed(value));
+    bind(smoke_folder.addColor(smoke_parameters, 'color_1'))
+        .name('Farbe (Asche, dunkel)')
+        .onChange(value => facade.setSmokeColor1(value));
+    bind(smoke_folder.addColor(smoke_parameters, 'color_2'))
+        .name('Farbe (Rauch, hell)')
+        .onChange(value => facade.setSmokeColor2(value));
+    bind(smoke_folder.addColor(smoke_parameters, 'color_3'))
+        .name('Farbe (Glut, Akzent)')
+        .onChange(value => facade.setSmokeColor3(value));
+    bind(smoke_folder.add(smoke_parameters, 'particle_size', 0.1, 200, 0.1))
+        .name('Partikelgröße')
+        .onChange(value => facade.setSmokeParticleSize(value));
+    smoke_folder.open();
+
     const position_folder = gui.addFolder('Position (Vulkan + Lava)');
     const position_parameters = {
         x: facade.getOffsetX(),
@@ -196,6 +233,14 @@ export function setupGui(facade) {
         volcano_parameters.displacement_frequency = facade.getVolcanoDisplacementFrequency();
         volcano_parameters.rock_color = facade.getVolcanoRockColor();
         volcano_parameters.crack_color = facade.getVolcanoCrackColor();
+        smoke_parameters.visible = facade.getSmokeVisible();
+        smoke_parameters.count = facade.getSmokeCount();
+        smoke_parameters.spread = facade.getSmokeSpread();
+        smoke_parameters.rise_speed = facade.getSmokeRiseSpeed();
+        smoke_parameters.color_1 = facade.getSmokeColor1();
+        smoke_parameters.color_2 = facade.getSmokeColor2();
+        smoke_parameters.color_3 = facade.getSmokeColor3();
+        smoke_parameters.particle_size = facade.getSmokeParticleSize();
         position_parameters.x = facade.getOffsetX();
         position_parameters.y = facade.getOffsetY();
         position_parameters.z = facade.getOffsetZ();

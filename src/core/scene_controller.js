@@ -1,12 +1,15 @@
 import { createGround } from './objects/ground_object.js';
 import { createVolcano } from './objects/volcano_object.js';
 import { createMetaballField } from './objects/metaball_field_object.js';
+import { createSmoke } from './objects/smoke_object.js';
+import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import default_settings from './default_settings.json';
 
 export function createSceneController({ scene, camera, bloomPass }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
+    const smoke = createSmoke(scene);
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -19,12 +22,14 @@ export function createSceneController({ scene, camera, bloomPass }) {
         ground.mesh.position.y = ground_y;
         volcano.mesh.position.y = ground_y + position.y;
         metaball_field.effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
+        smoke.effect.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
     }
 
     const controller = {
         update(time) {
             metaball_field.update(time, camera);
             volcano.update(camera);
+            smoke.update(time);
         },
 
         isPaused: () => metaball_field.isPaused(),
@@ -84,12 +89,30 @@ export function createSceneController({ scene, camera, bloomPass }) {
         getVolcanoDisplacementFrequency: () => volcano.getDisplacementFrequency(),
         setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
 
+        getSmokeVisible: () => smoke.getVisible(),
+        setSmokeVisible: value => smoke.setVisible(value),
+        getSmokeCount: () => smoke.getCount(),
+        setSmokeCount: value => smoke.setCount(value),
+        getMaxSmokeCount: () => smoke.getMaxCount(),
+        getSmokeSpread: () => smoke.getSpread(),
+        setSmokeSpread: value => smoke.setSpread(value),
+        getSmokeRiseSpeed: () => smoke.getRiseSpeed(),
+        setSmokeRiseSpeed: value => smoke.setRiseSpeed(value),
+        getSmokeColor1: () => smoke.getColor1(),
+        setSmokeColor1: value => smoke.setColor1(value),
+        getSmokeColor2: () => smoke.getColor2(),
+        setSmokeColor2: value => smoke.setColor2(value),
+        getSmokeColor3: () => smoke.getColor3(),
+        setSmokeColor3: value => smoke.setColor3(value),
+        getSmokeParticleSize: () => smoke.getParticleSize(),
+        setSmokeParticleSize: value => smoke.setParticleSize(value),
+
         getOffsetX: () => position.x,
-        setOffsetX: value => { position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; },
+        setOffsetX: value => { position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; smoke.effect.position.x = value; },
         getOffsetY: () => position.y,
         setOffsetY: value => { position.y = value; applyY(ground.mesh.position.y); },
         getOffsetZ: () => position.z,
-        setOffsetZ: value => { position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; },
+        setOffsetZ: value => { position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; smoke.effect.position.z = value; },
 
         getBloom: () => ({
             enabled: bloomPass.enabled,
@@ -132,6 +155,14 @@ export function createSceneController({ scene, camera, bloomPass }) {
             volcanoDisplacementFrequency: controller.getVolcanoDisplacementFrequency(),
             volcanoRockColor: controller.getVolcanoRockColor(),
             volcanoCrackColor: controller.getVolcanoCrackColor(),
+            smokeVisible: controller.getSmokeVisible(),
+            smokeCount: controller.getSmokeCount(),
+            smokeSpread: controller.getSmokeSpread(),
+            smokeRiseSpeed: controller.getSmokeRiseSpeed(),
+            smokeColor1: controller.getSmokeColor1(),
+            smokeColor2: controller.getSmokeColor2(),
+            smokeColor3: controller.getSmokeColor3(),
+            smokeParticleSize: controller.getSmokeParticleSize(),
             offsetX: controller.getOffsetX(),
             offsetY: controller.getOffsetY(),
             offsetZ: controller.getOffsetZ(),
@@ -168,6 +199,14 @@ export function createSceneController({ scene, camera, bloomPass }) {
         volcanoDisplacementFrequency: controller.setVolcanoDisplacementFrequency,
         volcanoRockColor: controller.setVolcanoRockColor,
         volcanoCrackColor: controller.setVolcanoCrackColor,
+        smokeVisible: controller.setSmokeVisible,
+        smokeCount: controller.setSmokeCount,
+        smokeSpread: controller.setSmokeSpread,
+        smokeRiseSpeed: controller.setSmokeRiseSpeed,
+        smokeColor1: controller.setSmokeColor1,
+        smokeColor2: controller.setSmokeColor2,
+        smokeColor3: controller.setSmokeColor3,
+        smokeParticleSize: controller.setSmokeParticleSize,
         offsetX: controller.setOffsetX,
         offsetY: controller.setOffsetY,
         offsetZ: controller.setOffsetZ,
