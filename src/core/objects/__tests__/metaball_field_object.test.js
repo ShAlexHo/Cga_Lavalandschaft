@@ -36,13 +36,14 @@ vi.mock('../../animation/metaball_animation.js', () => {
         settings,
         getActiveBalls: vi.fn(() => []),
         stepMetaballAnimation: vi.fn(),
+        getEruptionIntensity: vi.fn(() => 1.0),
     };
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
 import { createMetaballGeometry, rebuildMetaballGeometry } from '../../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
-import { settings as mock_settings, stepMetaballAnimation } from '../../animation/metaball_animation.js';
+import { settings as mock_settings, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
 
@@ -85,6 +86,13 @@ describe('createMetaballField', () => {
         field.setPaused(true);
         expect(field.isPaused()).toBe(true);
         expect(mock_settings.paused).toBe(true);
+    });
+
+    test('getEruptionIntensity forwards to the animation module', () => {
+        const field = createMetaballField(makeScene());
+        getEruptionIntensity.mockReturnValueOnce(0.42);
+        expect(field.getEruptionIntensity(7)).toBe(0.42);
+        expect(getEruptionIntensity).toHaveBeenCalledWith(7);
     });
 
     test('setCount/setIsolation rebuild the geometry with the currently active balls', () => {

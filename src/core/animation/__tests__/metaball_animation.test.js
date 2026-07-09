@@ -1,4 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { METABALL_WAVE_TRANSITION } from '../../config.js';
 
 // ─── Fresh module instance per test ──────────────────────────────────────────
 //
@@ -93,5 +94,33 @@ describe('stepMetaballAnimation', () => {
         const balls_second_run = second_animation_module.stepMetaballAnimation(2000).map(ball => ({ ...ball }));
 
         expect(balls_first_run).toEqual(balls_second_run);
+    });
+});
+
+// ─── getEruptionIntensity ───────────────────────────────────────────────────
+
+describe('getEruptionIntensity', () => {
+    test('is 1.0 while a wave is actively spawning', () => {
+        expect(animation_module.getEruptionIntensity(0)).toBe(1.0);
+    });
+
+    test('eases down to 0 after a wave finishes and no new balls are being spawned', () => {
+        animation_module.settings.count = 1;
+        animation_module.stepMetaballAnimation(0); // spawns the 1 ball of the wave
+        animation_module.stepMetaballAnimation(0.1); // wave count already met -> pause begins at time=0.1
+
+        expect(animation_module.getEruptionIntensity(0.1)).toBeCloseTo(1.0, 5); // right at the pause boundary, not yet faded
+        expect(animation_module.getEruptionIntensity(0.1 + METABALL_WAVE_TRANSITION / 2)).toBeCloseTo(0.5, 5); // smoothstep midpoint
+        expect(animation_module.getEruptionIntensity(0.1 + METABALL_WAVE_TRANSITION + 1)).toBe(0); // well past the fade-out, well before the next wave
+    });
+
+    test('eases back up to 1.0 as the next wave approaches, regardless of the exact (random) pause length', () => {
+        animation_module.settings.count = 1;
+        animation_module.stepMetaballAnimation(0);
+        animation_module.stepMetaballAnimation(0.1);
+
+        // Far enough into the future that any random pause_end (20-30s out) has long passed -
+        // getEruptionIntensity is a pure read of time vs. the stored pause window, so this is deterministic.
+        expect(animation_module.getEruptionIntensity(10_000)).toBe(1.0);
     });
 });

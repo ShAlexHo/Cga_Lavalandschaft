@@ -60,9 +60,9 @@ describe('createSmoke', () => {
         const particles = [{ x: 0, y: 0, z: 0, opacity: 1 }];
         stepSmokeAnimation.mockReturnValueOnce(particles);
 
-        smoke.update(2.5);
+        smoke.update(2.5, 0.8);
 
-        expect(stepSmokeAnimation).toHaveBeenCalledWith(2.5);
+        expect(stepSmokeAnimation).toHaveBeenCalledWith(2.5, 0.8);
         expect(updateSmokeGeometry).toHaveBeenCalledWith(smoke.effect, particles);
     });
 

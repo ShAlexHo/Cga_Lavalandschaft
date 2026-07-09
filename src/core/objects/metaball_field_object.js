@@ -1,6 +1,6 @@
 import { createMetaballGeometry, rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
-import { settings, getActiveBalls, stepMetaballAnimation } from '../animation/metaball_animation.js';
+import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from './color_utils.js';
 
 export function createMetaballField(scene) {
@@ -21,6 +21,7 @@ export function createMetaballField(scene) {
 
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
+        getEruptionIntensity: time => getEruptionIntensity(time),
 
         getCount: () => settings.count,
         setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },

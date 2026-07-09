@@ -1,4 +1,5 @@
 import { random, randomGauss } from '../rand.js';
+import { clamp, smoothstep } from './math_utils.js';
 import {
     SMOKE_MAX_PARTICLES,
     SMOKE_DEFAULT_COUNT,
@@ -18,18 +19,10 @@ import {
     SMOKE_AMBIENT_HEIGHT_MIN,
     SMOKE_AMBIENT_HEIGHT_MAX,
     SMOKE_AMBIENT_OPACITY,
+    SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../config.js';
 
 export const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
-
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-
-function smoothstep(edge0, edge1, x) {
-    const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
-    return t * t * (3 - 2 * t);
-}
 
 // Bell-curve size distribution, so oversized grains stay rare instead of as common as any other size.
 const SIZE_MULT_MEAN = (SMOKE_SIZE_MULT_MIN + SMOKE_SIZE_MULT_MAX) / 2;
@@ -61,10 +54,15 @@ const output_pool = Array.from({ length: MAX_PARTICLES }, () => ({
 }));
 const particles = [];
 
-// Pure function of time, so freezing `time` (see main.js) freezes the plume for free.
-export function stepSmokeAnimation(time) {
+// Pure function of time (and the metaball eruption's current intensity, see metaball_animation.js),
+// so freezing `time` (see main.js) freezes the plume for free.
+export function stepSmokeAnimation(time, eruption_intensity = 1.0) {
     const active_count = Math.min(settings.count, MAX_PARTICLES);
     particles.length = active_count;
+
+    // Between lava waves (no fresh metaballs spawning) the crater plume itself thins out - eases via
+    // eruption_intensity rather than snapping, so the plume dims/recovers smoothly instead of popping.
+    const plume_opacity_factor = SMOKE_PAUSED_ERUPTION_OPACITY + (1 - SMOKE_PAUSED_ERUPTION_OPACITY) * clamp(eruption_intensity, 0, 1);
 
     for (let i = 0; i < active_count; i++) {
         const particle = particle_pool[i];
@@ -72,8 +70,9 @@ export function stepSmokeAnimation(time) {
         const lifetime = (SMOKE_LIFETIME * particle.lifetime_mult) / settings.rise_speed;
         const age_fraction = ((time + particle.phase_offset) % lifetime) / lifetime;
 
-        // Age dominates the mix so young particles stay close to u_color_1 instead of already leaning pale.
-        const color_mix = clamp(age_fraction * 0.8 + particle.color_seed * 0.2, 0, 1);
+        // Age still dominates the mix so young particles stay close to u_color_1, but color_seed carries more
+        // weight than before for a more mottled, varied cloud instead of a too-uniform gradient.
+        const color_mix = clamp(age_fraction * 0.65 + particle.color_seed * 0.35, 0, 1);
 
         const size_mult = clamp(SIZE_MULT_MEAN + particle.size_seed * SIZE_MULT_STD_DEV, SMOKE_SIZE_MULT_MIN, SMOKE_SIZE_MULT_MAX);
 
@@ -119,7 +118,7 @@ export function stepSmokeAnimation(time) {
         output.x = radius * Math.cos(angle);
         output.y = age_fraction * SMOKE_RISE_HEIGHT;
         output.z = radius * Math.sin(angle);
-        output.opacity = life_envelope * distance_falloff;
+        output.opacity = life_envelope * distance_falloff * plume_opacity_factor;
         output.colorMix = color_mix;
         output.accentMix = accent_mix;
         output.sizeMult = size_mult;

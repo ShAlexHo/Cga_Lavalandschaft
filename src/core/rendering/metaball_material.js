@@ -3,6 +3,7 @@ import vertex_glsl from '../shaders/metaball.vert?raw';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import fragment_glsl from '../shaders/metaball.frag?raw';
 import { METABALL_LIGHT_POSITION } from '../config.js';
+import { computeLightViewPosition } from './light_utils.js';
 
 const vertex_shader = noise_glsl + vertex_glsl;
 const fragment_shader = noise_glsl + fragment_glsl;
@@ -32,7 +33,7 @@ export function createMetaballMaterial() {
 }
 
 export function updateMetaballLight(material, camera, time) {
-    _light_view_position.copy(LIGHT_WORLD_POSITION).applyMatrix4(camera.matrixWorldInverse);
+    computeLightViewPosition(camera, LIGHT_WORLD_POSITION, _light_view_position);
     material.uniforms.u_light_position.value.copy(_light_view_position);
     material.uniforms.u_time.value = time;
 }

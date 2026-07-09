@@ -9,8 +9,8 @@ export function createSmoke(scene) {
 
     return {
         effect,
-        update(time) {
-            updateSmokeGeometry(effect, stepSmokeAnimation(time));
+        update(time, eruption_intensity) {
+            updateSmokeGeometry(effect, stepSmokeAnimation(time, eruption_intensity));
         },
 
         getVisible: () => effect.visible,

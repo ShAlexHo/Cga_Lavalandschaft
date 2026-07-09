@@ -53,6 +53,7 @@ vi.mock('../animation/metaball_animation.js', () => {
         settings,
         getActiveBalls: vi.fn(() => []),
         stepMetaballAnimation: vi.fn(),
+        getEruptionIntensity: vi.fn(() => 1.0),
     };
 });
 
@@ -368,7 +369,7 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
-        expect(stepSmokeAnimation).toHaveBeenCalledWith(12.5);
+        expect(stepSmokeAnimation).toHaveBeenCalledWith(12.5, 1.0);
     });
 
     test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {

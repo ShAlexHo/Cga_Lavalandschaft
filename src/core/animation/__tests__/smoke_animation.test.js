@@ -186,6 +186,7 @@ describe('stepSmokeAnimation', () => {
 
     test('turning up spread widens the plume\'s outer reach without diluting the center', () => {
         animation_module.settings.count = SMOKE_MAX_PARTICLES;
+        animation_module.settings.rise_speed = 1.0; // independent of SMOKE_DEFAULT_RISE_SPEED - this test only cares about spread
 
         animation_module.settings.spread = 0;
         const narrow_radii = animation_module.stepSmokeAnimation(4.0).map(radiusOf).sort((a, b) => a - b);
@@ -200,5 +201,33 @@ describe('stepSmokeAnimation', () => {
         // ...but the plume's outer edge reaches dramatically further out.
         const outer_index = narrow_radii.length - 1;
         expect(wide_radii[outer_index]).toBeGreaterThan(narrow_radii[outer_index] * 10);
+    });
+
+    // ─── eruption_intensity coupling (metaball wave pauses) ──────────────────
+
+    test('a low eruption_intensity dims the crater plume overall, but leaves the (reliably-far) ambient haze untouched', () => {
+        animation_module.settings.count = SMOKE_MAX_PARTICLES;
+        animation_module.settings.spread = 0; // isolate ambient particles: at spread=0 the crater plume can't reach this far out
+
+        const full = animation_module.stepSmokeAnimation(4.0, 1.0).map(particle => ({ ...particle }));
+        const paused = animation_module.stepSmokeAnimation(4.0, 0.0);
+
+        // Far from the axis is reliably ambient (the plume core can't reach that far at spread=0) - untouched by eruption_intensity.
+        const far_indices = full.map((_, i) => i).filter(i => radiusOf(full[i]) > SMOKE_AMBIENT_RADIUS * 0.95);
+        expect(far_indices.length).toBeGreaterThan(0);
+        far_indices.forEach(i => expect(paused[i].opacity).toBeCloseTo(full[i].opacity, 9));
+
+        // Overall, most particles are plume (SMOKE_AMBIENT_FRACTION is a minority) and get dimmed towards
+        // SMOKE_PAUSED_ERUPTION_OPACITY, so total opacity drops well below what leaving them untouched would give.
+        const total_full = full.reduce((sum, particle) => sum + particle.opacity, 0);
+        const total_paused = paused.reduce((sum, particle) => sum + particle.opacity, 0);
+        expect(total_paused).toBeLessThan(total_full * 0.6);
+    });
+
+    test('eruption_intensity defaults to 1.0 (no dimming) when omitted', () => {
+        animation_module.settings.count = SMOKE_MAX_PARTICLES;
+        const with_default = animation_module.stepSmokeAnimation(4.0).map(particle => ({ ...particle }));
+        const with_explicit_full = animation_module.stepSmokeAnimation(4.0, 1.0);
+        expect(with_default).toEqual(with_explicit_full);
     });
 });

@@ -1,4 +1,5 @@
 import { random, randomGauss } from '../rand.js';
+import { smoothstep } from './math_utils.js';
 import {
     METABALL_SCALE_XY,
     METABALL_MAX_BALLS,
@@ -9,6 +10,7 @@ import {
     METABALL_GROUND_Y,
     METABALL_BALL_LIFETIME,
     METABALL_SECTORS,
+    METABALL_WAVE_TRANSITION,
 } from '../config.js';
 
 export const MAX_BALLS = METABALL_MAX_BALLS;
@@ -33,6 +35,7 @@ let pool_head = 0;
 let current_wave_count = 0;
 let last_spawn_time = -1.0;
 let pausing = false;
+let pause_start = -Infinity;
 let pause_end = -Infinity;
 const wave_starts = [0];
 const wave_sizes = [];
@@ -45,6 +48,15 @@ export function getActiveBalls() {
         if (ball_pool[i].active) active_balls.push(ball_pool[i]);
     }
     return active_balls;
+}
+
+// 1.0 while a wave is actively spawning; eases down/up around a wave pause (no new balls being
+// initialized) instead of snapping, so dependents like the smoke plume can fade smoothly.
+export function getEruptionIntensity(time) {
+    if (!pausing) return 1.0;
+    const fading_out = 1 - smoothstep(pause_start, pause_start + METABALL_WAVE_TRANSITION, time);
+    const fading_in = smoothstep(pause_end - METABALL_WAVE_TRANSITION, pause_end, time);
+    return Math.max(fading_out, fading_in);
 }
 
 // Returns the active balls after advancing the simulation by one frame,
@@ -81,6 +93,7 @@ export function stepMetaballAnimation(time) {
         } else if (current_wave_count >= settings.count) {
             wave_sizes.push(current_wave_count);
             pausing = true;
+            pause_start = time;
             pause_end = time + random(20, 30);
         }
     }

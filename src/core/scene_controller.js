@@ -29,7 +29,7 @@ export function createSceneController({ scene, camera, bloomPass }) {
         update(time) {
             metaball_field.update(time, camera);
             volcano.update(camera);
-            smoke.update(time);
+            smoke.update(time, metaball_field.getEruptionIntensity(time));
         },
 
         isPaused: () => metaball_field.isPaused(),
