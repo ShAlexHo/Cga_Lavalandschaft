@@ -56,13 +56,19 @@ const particle_pool = Array.from({ length: MAX_PARTICLES }, () => ({
     ambient_opacity_seed: random(0.3, 1.0),
 }));
 
+const output_pool = Array.from({ length: MAX_PARTICLES }, () => ({
+    x: 0, y: 0, z: 0, opacity: 0, colorMix: 0, accentMix: 0, sizeMult: 0, shapeSeed: 0,
+}));
+const particles = [];
+
 // Pure function of time, so freezing `time` (see main.js) freezes the plume for free.
 export function stepSmokeAnimation(time) {
     const active_count = Math.min(settings.count, MAX_PARTICLES);
-    const particles = [];
+    particles.length = active_count;
 
     for (let i = 0; i < active_count; i++) {
         const particle = particle_pool[i];
+        const output = output_pool[i];
         const lifetime = (SMOKE_LIFETIME * particle.lifetime_mult) / settings.rise_speed;
         const age_fraction = ((time + particle.phase_offset) % lifetime) / lifetime;
 
@@ -81,16 +87,15 @@ export function stepSmokeAnimation(time) {
             const ambient_radius = particle.ambient_radius_seed * SMOKE_AMBIENT_RADIUS;
             const ambient_height_range = SMOKE_AMBIENT_HEIGHT_MAX - SMOKE_AMBIENT_HEIGHT_MIN;
 
-            particles.push({
-                x: ambient_radius * Math.cos(particle.ambient_angle),
-                y: SMOKE_AMBIENT_HEIGHT_MIN + particle.ambient_height_seed * ambient_height_range,
-                z: ambient_radius * Math.sin(particle.ambient_angle),
-                opacity: life_envelope * SMOKE_AMBIENT_OPACITY * particle.ambient_opacity_seed,
-                colorMix: color_mix,
-                accentMix: 0,
-                sizeMult: size_mult,
-                shapeSeed: particle.shape_seed,
-            });
+            output.x = ambient_radius * Math.cos(particle.ambient_angle);
+            output.y = SMOKE_AMBIENT_HEIGHT_MIN + particle.ambient_height_seed * ambient_height_range;
+            output.z = ambient_radius * Math.sin(particle.ambient_angle);
+            output.opacity = life_envelope * SMOKE_AMBIENT_OPACITY * particle.ambient_opacity_seed;
+            output.colorMix = color_mix;
+            output.accentMix = 0;
+            output.sizeMult = size_mult;
+            output.shapeSeed = particle.shape_seed;
+            particles[i] = output;
             continue;
         }
 
@@ -111,16 +116,15 @@ export function stepSmokeAnimation(time) {
         const accent_headroom = 1 - SMOKE_ACCENT_THRESHOLD;
         const accent_mix = clamp((particle.accent_seed - SMOKE_ACCENT_THRESHOLD) / accent_headroom, 0, 1) * (1 - age_fraction) * SMOKE_ACCENT_STRENGTH;
 
-        particles.push({
-            x: radius * Math.cos(angle),
-            y: age_fraction * SMOKE_RISE_HEIGHT,
-            z: radius * Math.sin(angle),
-            opacity: life_envelope * distance_falloff,
-            colorMix: color_mix,
-            accentMix: accent_mix,
-            sizeMult: size_mult,
-            shapeSeed: particle.shape_seed,
-        });
+        output.x = radius * Math.cos(angle);
+        output.y = age_fraction * SMOKE_RISE_HEIGHT;
+        output.z = radius * Math.sin(angle);
+        output.opacity = life_envelope * distance_falloff;
+        output.colorMix = color_mix;
+        output.accentMix = accent_mix;
+        output.sizeMult = size_mult;
+        output.shapeSeed = particle.shape_seed;
+        particles[i] = output;
     }
 
     return particles;

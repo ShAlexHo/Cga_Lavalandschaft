@@ -37,8 +37,14 @@ let pause_end = -Infinity;
 const wave_starts = [0];
 const wave_sizes = [];
 
+const active_balls = [];
+
 export function getActiveBalls() {
-    return ball_pool.filter(ball => ball.active);
+    active_balls.length = 0;
+    for (let i = 0; i < MAX_BALLS; i++) {
+        if (ball_pool[i].active) active_balls.push(ball_pool[i]);
+    }
+    return active_balls;
 }
 
 // Returns the active balls after advancing the simulation by one frame,

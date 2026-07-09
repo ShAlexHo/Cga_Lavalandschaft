@@ -117,7 +117,7 @@ describe('stepSmokeAnimation', () => {
     });
 
     test('rise_speed changes how far particles have progressed through their cycle', () => {
-        const baseline = animation_module.stepSmokeAnimation(2.0);
+        const baseline = animation_module.stepSmokeAnimation(2.0).map(particle => ({ ...particle }));
         animation_module.settings.rise_speed = 3.0;
         const scaled = animation_module.stepSmokeAnimation(2.0);
         expect(scaled).not.toEqual(baseline);
