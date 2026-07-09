@@ -1,8 +1,7 @@
 import { createSmokeGeometry, updateSmokeGeometry } from '../geometry/smoke_geometry.js';
 import { createSmokeMaterial } from '../rendering/smoke_material.js';
 import { settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
-
-const toHexColor = color => '#' + color.getHexString();
+import { toHexColor } from './color_utils.js';
 
 export function createSmoke(scene) {
     const material = createSmokeMaterial();

@@ -1,8 +1,7 @@
 import { createMetaballGeometry, rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation } from '../animation/metaball_animation.js';
-
-const toHexColor = color => '#' + color.getHexString();
+import { toHexColor } from './color_utils.js';
 
 export function createMetaballField(scene) {
     const material = createMetaballMaterial();

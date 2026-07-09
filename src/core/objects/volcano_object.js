@@ -1,7 +1,6 @@
 import { createVolcanoGeometry } from '../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
-
-const toHexColor = color => '#' + color.getHexString();
+import { toHexColor } from './color_utils.js';
 
 export function createVolcano(scene) {
     const material = createVolcanoMaterial();

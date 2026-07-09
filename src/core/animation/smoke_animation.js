@@ -22,8 +22,12 @@ import {
 
 export const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
 
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
 function smoothstep(edge0, edge1, x) {
-    const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
+    const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
     return t * t * (3 - 2 * t);
 }
 
@@ -63,9 +67,9 @@ export function stepSmokeAnimation(time) {
         const age_fraction = ((time + particle.phase_offset) % lifetime) / lifetime;
 
         // Age dominates the mix so young particles stay close to u_color_1 instead of already leaning pale.
-        const color_mix = Math.min(Math.max(age_fraction * 0.8 + particle.color_seed * 0.2, 0), 1);
+        const color_mix = clamp(age_fraction * 0.8 + particle.color_seed * 0.2, 0, 1);
 
-        const size_mult = Math.min(Math.max(SIZE_MULT_MEAN + particle.size_seed * SIZE_MULT_STD_DEV, SMOKE_SIZE_MULT_MIN), SMOKE_SIZE_MULT_MAX);
+        const size_mult = clamp(SIZE_MULT_MEAN + particle.size_seed * SIZE_MULT_STD_DEV, SMOKE_SIZE_MULT_MIN, SMOKE_SIZE_MULT_MAX);
 
         // smoothstep's zero slope at the fade-out edges lets particles drift into invisibility instead of cutting off.
         const fade_in = smoothstep(0, SMOKE_FADE_IN_END, age_fraction);
@@ -105,7 +109,7 @@ export function stepSmokeAnimation(time) {
 
         // Only particles above the accent threshold get a glowing-ember tint, which fades out as they age/cool.
         const accent_headroom = 1 - SMOKE_ACCENT_THRESHOLD;
-        const accent_mix = Math.min(Math.max((particle.accent_seed - SMOKE_ACCENT_THRESHOLD) / accent_headroom, 0), 1) * (1 - age_fraction) * SMOKE_ACCENT_STRENGTH;
+        const accent_mix = clamp((particle.accent_seed - SMOKE_ACCENT_THRESHOLD) / accent_headroom, 0, 1) * (1 - age_fraction) * SMOKE_ACCENT_STRENGTH;
 
         particles.push({
             x: radius * Math.cos(angle),

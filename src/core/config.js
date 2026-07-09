@@ -37,7 +37,7 @@ export const VOLCANO_CRACK_FREQUENCY = 1.0; // crack-color frequency (tinting ma
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────
 
 export const SMOKE_MAX_PARTICLES = 1400;
-export const SMOKE_DEFAULT_COUNT = 450;
+export const SMOKE_DEFAULT_COUNT = 816;
 export const SMOKE_SPAWN_HEIGHT = 4.6; // height above the volcano's own origin where the crater opening sits
 export const SMOKE_RISE_HEIGHT = 10.0; // world units a particle rises before being recycled
 export const SMOKE_CORE_SPREAD = 5.0; // fixed radial (xy-plane) reach near the plume's axis - stays constant regardless of the spread setting, so the center never gets diluted; large so the ash blankets the volcano's summit area rather than forming a thin column

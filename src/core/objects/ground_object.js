@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-
-const toHexColor = color => '#' + color.getHexString();
+import { toHexColor } from './color_utils.js';
 
 export function createGround(scene) {
     const mesh = new THREE.Mesh(
