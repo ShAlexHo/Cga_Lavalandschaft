@@ -4,24 +4,34 @@ import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } fr
 export function setupGui(facade) {
     const gui = new GUI();
     const all_controllers = [];
+    const refresh_bindings = [];
 
     function bind(controller) {
         all_controllers.push(controller);
         return controller;
     }
 
-    const root_parameters = { paused: facade.isPaused() };
+    function makeParameters(getters) {
+        const parameters = {};
+        for (const [key, getter] of Object.entries(getters)) {
+            parameters[key] = getter();
+            refresh_bindings.push(() => { parameters[key] = getter(); });
+        }
+        return parameters;
+    }
+
+    const root_parameters = makeParameters({ paused: facade.isPaused });
     bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
 
     const metaballs_folder = gui.addFolder('Metaballs');
-    const metaballs_parameters = {
-        count: facade.getMetaballCount(),
-        isolation: facade.getMetaballIsolation(),
-        spread: facade.getMetaballSpread(),
-        speed_factor: facade.getMetaballSpeed(),
-        height: facade.getMetaballHeight(),
-        flow_z_radius: facade.getFlowRadius(),
-    };
+    const metaballs_parameters = makeParameters({
+        count: facade.getMetaballCount,
+        isolation: facade.getMetaballIsolation,
+        spread: facade.getMetaballSpread,
+        speed_factor: facade.getMetaballSpeed,
+        height: facade.getMetaballHeight,
+        flow_z_radius: facade.getFlowRadius,
+    });
     bind(metaballs_folder.add(metaballs_parameters, 'count', 1, facade.getMaxMetaballCount(), 1))
         .name('Limit')
         .onChange(value => facade.setMetaballCount(value));
@@ -43,12 +53,12 @@ export function setupGui(facade) {
     metaballs_folder.open();
 
     const colors_folder = gui.addFolder('Lavafarbe');
-    const color_parameters = {
-        color_hot: facade.getColorHot(),
-        color_cool: facade.getColorCool(),
-        glow_enabled: facade.getGlowEnabled(),
-        glow_color: facade.getGlowColor(),
-    };
+    const color_parameters = makeParameters({
+        color_hot: facade.getColorHot,
+        color_cool: facade.getColorCool,
+        glow_enabled: facade.getGlowEnabled,
+        glow_color: facade.getGlowColor,
+    });
     bind(colors_folder.addColor(color_parameters, 'color_hot'))
         .name('Hell (beleuchtet)')
         .onChange(value => facade.setColorHot(value));
@@ -64,12 +74,12 @@ export function setupGui(facade) {
     colors_folder.open();
 
     const noise_folder = gui.addFolder('Noise');
-    const noise_parameters = {
-        noise: facade.getNoiseEnabled(),
-        noise_color_1: facade.getNoiseColor1(),
-        noise_color_2: facade.getNoiseColor2(),
-        bumping: facade.getBumpEnabled(),
-    };
+    const noise_parameters = makeParameters({
+        noise: facade.getNoiseEnabled,
+        noise_color_1: facade.getNoiseColor1,
+        noise_color_2: facade.getNoiseColor2,
+        bumping: facade.getBumpEnabled,
+    });
     bind(noise_folder.add(noise_parameters, 'noise'))
         .name('Aktiviert')
         .onChange(value => facade.setNoiseEnabled(value));
@@ -83,10 +93,10 @@ export function setupGui(facade) {
         .name('Bumping')
         .onChange(value => facade.setBumpEnabled(value));
 
-    const displacement_parameters = {
-        displacement: facade.getDisplacementEnabled(),
-        strength: facade.getDisplacementStrength(),
-    };
+    const displacement_parameters = makeParameters({
+        displacement: facade.getDisplacementEnabled,
+        strength: facade.getDisplacementStrength,
+    });
     bind(noise_folder.add(displacement_parameters, 'displacement'))
         .name('Displacement')
         .onChange(value => facade.setDisplacementEnabled(value));
@@ -96,11 +106,11 @@ export function setupGui(facade) {
     noise_folder.open();
 
     const ground_folder = gui.addFolder('Boden');
-    const ground_parameters = {
-        visible: facade.getGroundVisible(),
-        color: facade.getGroundColor(),
-        height: facade.getGroundHeight(),
-    };
+    const ground_parameters = makeParameters({
+        visible: facade.getGroundVisible,
+        color: facade.getGroundColor,
+        height: facade.getGroundHeight,
+    });
     bind(ground_folder.add(ground_parameters, 'visible'))
         .name('Sichtbar')
         .onChange(value => facade.setGroundVisible(value));
@@ -113,13 +123,13 @@ export function setupGui(facade) {
     ground_folder.open();
 
     const volcano_folder = gui.addFolder('Vulkan');
-    const volcano_parameters = {
-        visible: facade.getVolcanoVisible(),
-        displacement_scale: facade.getVolcanoDisplacementScale(),
-        displacement_frequency: facade.getVolcanoDisplacementFrequency(),
-        rock_color: facade.getVolcanoRockColor(),
-        crack_color: facade.getVolcanoCrackColor(),
-    };
+    const volcano_parameters = makeParameters({
+        visible: facade.getVolcanoVisible,
+        displacement_scale: facade.getVolcanoDisplacementScale,
+        displacement_frequency: facade.getVolcanoDisplacementFrequency,
+        rock_color: facade.getVolcanoRockColor,
+        crack_color: facade.getVolcanoCrackColor,
+    });
     bind(volcano_folder.add(volcano_parameters, 'visible'))
         .name('Sichtbar')
         .onChange(value => facade.setVolcanoVisible(value));
@@ -138,16 +148,16 @@ export function setupGui(facade) {
     volcano_folder.open();
 
     const smoke_folder = gui.addFolder('Rauch & Asche');
-    const smoke_parameters = {
-        visible: facade.getSmokeVisible(),
-        count: facade.getSmokeCount(),
-        spread: facade.getSmokeSpread(),
-        rise_speed: facade.getSmokeRiseSpeed(),
-        color_1: facade.getSmokeColor1(),
-        color_2: facade.getSmokeColor2(),
-        color_3: facade.getSmokeColor3(),
-        particle_size: facade.getSmokeParticleSize(),
-    };
+    const smoke_parameters = makeParameters({
+        visible: facade.getSmokeVisible,
+        count: facade.getSmokeCount,
+        spread: facade.getSmokeSpread,
+        rise_speed: facade.getSmokeRiseSpeed,
+        color_1: facade.getSmokeColor1,
+        color_2: facade.getSmokeColor2,
+        color_3: facade.getSmokeColor3,
+        particle_size: facade.getSmokeParticleSize,
+    });
     bind(smoke_folder.add(smoke_parameters, 'visible'))
         .name('Sichtbar')
         .onChange(value => facade.setSmokeVisible(value));
@@ -175,11 +185,11 @@ export function setupGui(facade) {
     smoke_folder.open();
 
     const position_folder = gui.addFolder('Position (Vulkan + Lava)');
-    const position_parameters = {
-        x: facade.getOffsetX(),
-        y: facade.getOffsetY(),
-        z: facade.getOffsetZ(),
-    };
+    const position_parameters = makeParameters({
+        x: facade.getOffsetX,
+        y: facade.getOffsetY,
+        z: facade.getOffsetZ,
+    });
     bind(position_folder.add(position_parameters, 'x', -10, 10, 0.1))
         .name('X')
         .onChange(value => facade.setOffsetX(value));
@@ -193,6 +203,7 @@ export function setupGui(facade) {
 
     const bloom_folder = gui.addFolder('Bloom');
     const bloom_parameters = facade.getBloom();
+    refresh_bindings.push(() => Object.assign(bloom_parameters, facade.getBloom()));
     bind(bloom_folder.add(bloom_parameters, 'enabled'))
         .name('Aktiviert')
         .onChange(value => facade.setBloom({ enabled: value }));
@@ -208,44 +219,7 @@ export function setupGui(facade) {
     bloom_folder.open();
 
     function refreshDisplay() {
-        root_parameters.paused = facade.isPaused();
-        metaballs_parameters.count = facade.getMetaballCount();
-        metaballs_parameters.isolation = facade.getMetaballIsolation();
-        metaballs_parameters.spread = facade.getMetaballSpread();
-        metaballs_parameters.speed_factor = facade.getMetaballSpeed();
-        metaballs_parameters.height = facade.getMetaballHeight();
-        metaballs_parameters.flow_z_radius = facade.getFlowRadius();
-        color_parameters.color_hot = facade.getColorHot();
-        color_parameters.color_cool = facade.getColorCool();
-        color_parameters.glow_enabled = facade.getGlowEnabled();
-        color_parameters.glow_color = facade.getGlowColor();
-        noise_parameters.noise = facade.getNoiseEnabled();
-        noise_parameters.noise_color_1 = facade.getNoiseColor1();
-        noise_parameters.noise_color_2 = facade.getNoiseColor2();
-        noise_parameters.bumping = facade.getBumpEnabled();
-        displacement_parameters.displacement = facade.getDisplacementEnabled();
-        displacement_parameters.strength = facade.getDisplacementStrength();
-        ground_parameters.visible = facade.getGroundVisible();
-        ground_parameters.color = facade.getGroundColor();
-        ground_parameters.height = facade.getGroundHeight();
-        volcano_parameters.visible = facade.getVolcanoVisible();
-        volcano_parameters.displacement_scale = facade.getVolcanoDisplacementScale();
-        volcano_parameters.displacement_frequency = facade.getVolcanoDisplacementFrequency();
-        volcano_parameters.rock_color = facade.getVolcanoRockColor();
-        volcano_parameters.crack_color = facade.getVolcanoCrackColor();
-        smoke_parameters.visible = facade.getSmokeVisible();
-        smoke_parameters.count = facade.getSmokeCount();
-        smoke_parameters.spread = facade.getSmokeSpread();
-        smoke_parameters.rise_speed = facade.getSmokeRiseSpeed();
-        smoke_parameters.color_1 = facade.getSmokeColor1();
-        smoke_parameters.color_2 = facade.getSmokeColor2();
-        smoke_parameters.color_3 = facade.getSmokeColor3();
-        smoke_parameters.particle_size = facade.getSmokeParticleSize();
-        position_parameters.x = facade.getOffsetX();
-        position_parameters.y = facade.getOffsetY();
-        position_parameters.z = facade.getOffsetZ();
-        Object.assign(bloom_parameters, facade.getBloom());
-
+        refresh_bindings.forEach(update => update());
         all_controllers.forEach(controller => controller.updateDisplay());
     }
 
