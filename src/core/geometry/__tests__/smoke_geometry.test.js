@@ -68,6 +68,7 @@ describe('createSmokeGeometry', () => {
         expect(points.geometry.attributes.a_opacity.array).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(points.geometry.attributes.a_color_mix.array).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(points.geometry.attributes.a_accent_mix.array).toHaveLength(SMOKE_MAX_PARTICLES);
+        expect(points.geometry.attributes.a_glow_mult.array).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(points.geometry.attributes.a_size_mult.array).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(points.geometry.attributes.a_shape_seed.array).toHaveLength(SMOKE_MAX_PARTICLES);
     });
@@ -78,13 +79,13 @@ describe('updateSmokeGeometry', () => {
     beforeEach(() => { points = createSmokeGeometry(makeScene(), {}); });
 
     function makeParticle(overrides) {
-        return { x: 0, y: 0, z: 0, opacity: 1, colorMix: 0.5, accentMix: 0, sizeMult: 1, shapeSeed: 0.5, ...overrides };
+        return { x: 0, y: 0, z: 0, opacity: 1, colorMix: 0.5, accentMix: 0, glowMult: 0, sizeMult: 1, shapeSeed: 0.5, ...overrides };
     }
 
     test('writes each particle\'s position, opacity, color mix, accent mix, size mult and shape seed into the buffers', () => {
         const particles = [
-            makeParticle({ x: 1, y: 2, z: 3, opacity: 0.5, colorMix: 0.1, accentMix: 0.2, sizeMult: 0.6, shapeSeed: 0.15 }),
-            makeParticle({ x: 4, y: 5, z: 6, opacity: 0.25, colorMix: 0.9, accentMix: 0.8, sizeMult: 1.7, shapeSeed: 0.85 }),
+            makeParticle({ x: 1, y: 2, z: 3, opacity: 0.5, colorMix: 0.1, accentMix: 0.2, glowMult: 0.4, sizeMult: 0.6, shapeSeed: 0.15 }),
+            makeParticle({ x: 4, y: 5, z: 6, opacity: 0.25, colorMix: 0.9, accentMix: 0.8, glowMult: 1.6, sizeMult: 1.7, shapeSeed: 0.85 }),
         ];
         updateSmokeGeometry(points, particles);
 
@@ -98,6 +99,7 @@ describe('updateSmokeGeometry', () => {
         };
         closeToPair('a_color_mix', [0.1, 0.9]);
         closeToPair('a_accent_mix', [0.2, 0.8]);
+        closeToPair('a_glow_mult', [0.4, 1.6]);
         closeToPair('a_size_mult', [0.6, 1.7]);
         closeToPair('a_shape_seed', [0.15, 0.85]);
     });
@@ -108,6 +110,7 @@ describe('updateSmokeGeometry', () => {
         expect(points.geometry.attributes.a_opacity.needsUpdate).toBe(true);
         expect(points.geometry.attributes.a_color_mix.needsUpdate).toBe(true);
         expect(points.geometry.attributes.a_accent_mix.needsUpdate).toBe(true);
+        expect(points.geometry.attributes.a_glow_mult.needsUpdate).toBe(true);
         expect(points.geometry.attributes.a_size_mult.needsUpdate).toBe(true);
         expect(points.geometry.attributes.a_shape_seed.needsUpdate).toBe(true);
     });

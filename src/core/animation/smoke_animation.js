@@ -12,6 +12,8 @@ import {
     SMOKE_SIZE_MULT_MAX,
     SMOKE_ACCENT_THRESHOLD,
     SMOKE_ACCENT_STRENGTH,
+    SMOKE_EMBER_GLOW_MULT_MIN,
+    SMOKE_EMBER_GLOW_MULT_MAX,
     SMOKE_FADE_IN_END,
     SMOKE_FADE_OUT_START,
     SMOKE_AMBIENT_FRACTION,
@@ -28,6 +30,9 @@ export const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
 const SIZE_MULT_MEAN = (SMOKE_SIZE_MULT_MIN + SMOKE_SIZE_MULT_MAX) / 2;
 const SIZE_MULT_STD_DEV = (SMOKE_SIZE_MULT_MAX - SMOKE_SIZE_MULT_MIN) / 4;
 
+const GLOW_MULT_MEAN = (SMOKE_EMBER_GLOW_MULT_MIN + SMOKE_EMBER_GLOW_MULT_MAX) / 2;
+const GLOW_MULT_STD_DEV = (SMOKE_EMBER_GLOW_MULT_MAX - SMOKE_EMBER_GLOW_MULT_MIN) / 4;
+
 export const settings = { count: SMOKE_DEFAULT_COUNT, spread: SMOKE_DEFAULT_SPREAD, rise_speed: SMOKE_DEFAULT_RISE_SPEED, max_count: MAX_PARTICLES };
 
 // Half-normal magnitude, so most particles stay near the plume's axis with a shrinking tail further out.
@@ -41,6 +46,7 @@ const particle_pool = Array.from({ length: MAX_PARTICLES }, () => ({
     color_seed: random(0, 1),
     size_seed: randomGauss(0, 1),
     accent_seed: random(0, 1),
+    glow_mult_seed: randomGauss(0, 1),
     shape_seed: random(0, 1),
     // sqrt of a uniform sample gives uniform-area placement instead of clustering near the axis.
     ambient_radius_seed: Math.sqrt(random(0, 1)),
@@ -50,7 +56,7 @@ const particle_pool = Array.from({ length: MAX_PARTICLES }, () => ({
 }));
 
 const output_pool = Array.from({ length: MAX_PARTICLES }, () => ({
-    x: 0, y: 0, z: 0, opacity: 0, colorMix: 0, accentMix: 0, sizeMult: 0, shapeSeed: 0,
+    x: 0, y: 0, z: 0, opacity: 0, colorMix: 0, accentMix: 0, glowMult: 0, sizeMult: 0, shapeSeed: 0,
 }));
 const particles = [];
 
@@ -92,6 +98,7 @@ export function stepSmokeAnimation(time, eruption_intensity = 1.0) {
             output.opacity = life_envelope * SMOKE_AMBIENT_OPACITY * particle.ambient_opacity_seed;
             output.colorMix = color_mix;
             output.accentMix = 0;
+            output.glowMult = 0;
             output.sizeMult = size_mult;
             output.shapeSeed = particle.shape_seed;
             particles[i] = output;
@@ -114,6 +121,7 @@ export function stepSmokeAnimation(time, eruption_intensity = 1.0) {
         // Only particles above the accent threshold get a glowing-ember tint, which fades out as they age/cool.
         const accent_headroom = 1 - SMOKE_ACCENT_THRESHOLD;
         const accent_mix = clamp((particle.accent_seed - SMOKE_ACCENT_THRESHOLD) / accent_headroom, 0, 1) * (1 - age_fraction) * SMOKE_ACCENT_STRENGTH;
+        const glow_mult = clamp(GLOW_MULT_MEAN + particle.glow_mult_seed * GLOW_MULT_STD_DEV, SMOKE_EMBER_GLOW_MULT_MIN, SMOKE_EMBER_GLOW_MULT_MAX);
 
         output.x = radius * Math.cos(angle);
         output.y = age_fraction * SMOKE_RISE_HEIGHT;
@@ -121,6 +129,7 @@ export function stepSmokeAnimation(time, eruption_intensity = 1.0) {
         output.opacity = life_envelope * distance_falloff * plume_opacity_factor;
         output.colorMix = color_mix;
         output.accentMix = accent_mix;
+        output.glowMult = glow_mult;
         output.sizeMult = size_mult;
         output.shapeSeed = particle.shape_seed;
         particles[i] = output;

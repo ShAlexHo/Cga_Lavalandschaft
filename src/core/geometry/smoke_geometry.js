@@ -7,6 +7,7 @@ export function createSmokeGeometry(scene, material) {
     geometry.setAttribute('a_opacity', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
     geometry.setAttribute('a_color_mix', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
     geometry.setAttribute('a_accent_mix', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
+    geometry.setAttribute('a_glow_mult', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
     geometry.setAttribute('a_size_mult', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
     geometry.setAttribute('a_shape_seed', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
 
@@ -22,6 +23,7 @@ export function updateSmokeGeometry(points, particles) {
     const opacity_attribute = points.geometry.attributes.a_opacity;
     const color_mix_attribute = points.geometry.attributes.a_color_mix;
     const accent_mix_attribute = points.geometry.attributes.a_accent_mix;
+    const glow_mult_attribute = points.geometry.attributes.a_glow_mult;
     const size_mult_attribute = points.geometry.attributes.a_size_mult;
     const shape_seed_attribute = points.geometry.attributes.a_shape_seed;
 
@@ -31,6 +33,7 @@ export function updateSmokeGeometry(points, particles) {
         opacity_attribute.setX(i, particle.opacity);
         color_mix_attribute.setX(i, particle.colorMix);
         accent_mix_attribute.setX(i, particle.accentMix);
+        glow_mult_attribute.setX(i, particle.glowMult);
         size_mult_attribute.setX(i, particle.sizeMult);
         shape_seed_attribute.setX(i, particle.shapeSeed);
     }
@@ -39,6 +42,7 @@ export function updateSmokeGeometry(points, particles) {
     opacity_attribute.needsUpdate = true;
     color_mix_attribute.needsUpdate = true;
     accent_mix_attribute.needsUpdate = true;
+    glow_mult_attribute.needsUpdate = true;
     size_mult_attribute.needsUpdate = true;
     shape_seed_attribute.needsUpdate = true;
     points.geometry.setDrawRange(0, particles.length);

@@ -54,7 +54,10 @@ export const SMOKE_COLOR_1 = 0x000000; // black ash near the crater - deliberate
 export const SMOKE_COLOR_2 = 0xbfbfbb; // pale, neutral grey steam higher up - kept close to true grey (not warm/reddish) while still distinct in brightness from color 1
 export const SMOKE_COLOR_3 = 0x2d1507; // sparse ember accent on a minority of freshly spawned particles - a dark reddish-brown tone, still well short of a red/orange glow
 export const SMOKE_ACCENT_STRENGTH = 0.6; // caps how strongly the ember accent can ever tint a particle, keeping it a faint hint rather than a red highlight
-export const SMOKE_ACCENT_THRESHOLD = 0.6; // only the top (1 - threshold) share of particles show any ember accent, keeping it a rare highlight rather than a uniform tint
+export const SMOKE_ACCENT_THRESHOLD = 0.8; // only the top (1 - threshold) share of particles show any ember accent/glow, keeping it a rare highlight rather than a uniform tint
+export const SMOKE_EMBER_GLOW_STRENGTH = 6.0; // HDR multiplier added on top of the ember accent so freshly spawned, high-accent particles push past the bloom pass's threshold and read as a small light source, not yet exposed in the GUI
+export const SMOKE_EMBER_GLOW_MULT_MIN = 0.4; // per-particle random multiplier range applied to SMOKE_EMBER_GLOW_STRENGTH, so ember particles glow with varying brightness instead of all matching one fixed intensity
+export const SMOKE_EMBER_GLOW_MULT_MAX = 1.8;
 export const SMOKE_PAUSED_ERUPTION_OPACITY = 0.35; // crater-plume opacity floor while no metaballs are being spawned (between lava waves) - thins the plume without hiding it entirely; the ambient haze is unaffected
 
 // A share of particles act as ambient background ash, scattered evenly
