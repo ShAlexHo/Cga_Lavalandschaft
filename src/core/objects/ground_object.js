@@ -3,7 +3,7 @@ import { toHexColor } from './color_utils.js';
 
 export function createGround(scene) {
     const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(30, 30),
+        new THREE.PlaneGeometry(80, 80),
         new THREE.MeshStandardMaterial({
             color: 0x220500,
             emissive: 0x2b0800,

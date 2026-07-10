@@ -40,6 +40,10 @@ composer.addPass(bloom_pass);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.maxDistance = 36;
+controls.minDistance = 10;
+controls.minPolarAngle = 1;
+controls.maxPolarAngle = Math.PI / 2 - 0.1;
 
 const clock = new THREE.Clock();
 
@@ -59,6 +63,7 @@ const animate = () => {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
     if (!controller.isPaused()) elapsed_time += delta;
+    controls.target.copy(controller.getVolcanoPosition());
     controls.update();
     controller.update(elapsed_time);
     composer.render();

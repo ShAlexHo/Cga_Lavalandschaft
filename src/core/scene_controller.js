@@ -78,6 +78,8 @@ export function createSceneController({ scene, camera, bloomPass }) {
         getGroundHeight: () => ground.mesh.position.y,
         setGroundHeight: value => applyY(value),
 
+        getVolcanoPosition: () => volcano.mesh.position,
+
         getVolcanoVisible: () => volcano.getVisible(),
         setVolcanoVisible: value => volcano.setVisible(value),
         getVolcanoRockColor: () => volcano.getRockColor(),
