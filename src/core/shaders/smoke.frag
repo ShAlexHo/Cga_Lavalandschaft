@@ -2,6 +2,9 @@ uniform vec3 u_color_1;
 uniform vec3 u_color_2;
 uniform vec3 u_color_3;
 uniform float u_ember_glow_strength;
+uniform vec3 u_sun_color;
+uniform float u_sun_enabled;
+uniform float u_sun_strength;
 
 varying float v_opacity;
 varying float v_color_mix;
@@ -20,5 +23,6 @@ void main() {
     vec3 color = mix(u_color_1, u_color_2, v_color_mix);
     color = mix(color, u_color_3, v_accent_mix);
     color += u_color_3 * u_ember_glow_strength * v_glow_mult * v_accent_mix;
+    color += u_sun_color * u_sun_strength * u_sun_enabled;
     gl_FragColor = vec4(color, v_opacity * mask);
 }

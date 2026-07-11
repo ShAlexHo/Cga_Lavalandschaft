@@ -20,6 +20,9 @@ vi.mock('../../rendering/smoke_material.js', () => ({
             u_color_2: { value: makeColor('cac2b4') },
             u_color_3: { value: makeColor('d9622a') },
             u_size: { value: 22 },
+            u_sun_color: { value: makeColor('ff1a1a') },
+            u_sun_enabled: { value: 1.0 },
+            u_sun_strength: { value: 0.06 },
         },
     })),
 }));
@@ -106,5 +109,16 @@ describe('createSmoke', () => {
 
         smoke.setParticleSize(90);
         expect(smoke.getParticleSize()).toBe(90);
+    });
+
+    test('getSunEnabled/setSunEnabled and getSunStrength/setSunStrength forward to the material uniforms', () => {
+        const smoke = createSmoke(makeScene());
+
+        expect(smoke.getSunEnabled()).toBe(true);
+        smoke.setSunEnabled(false);
+        expect(smoke.getSunEnabled()).toBe(false);
+
+        smoke.setSunStrength(0.09);
+        expect(smoke.getSunStrength()).toBe(0.09);
     });
 });

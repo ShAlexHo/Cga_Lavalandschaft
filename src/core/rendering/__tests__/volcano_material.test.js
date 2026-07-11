@@ -64,10 +64,10 @@ describe('createVolcanoMaterial', () => {
         expect(material.uniforms.u_disp_scale.value).toBe(2.5);
     });
 
-    test('u_sun_strength starts at 0.02 and u_sun_focus starts at 6.0', () => {
+    test('u_sun_strength starts at 0.06 and u_sun_focus starts at 8.0', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_sun_strength.value).toBe(0.02);
-        expect(material.uniforms.u_sun_focus.value).toBe(6.0);
+        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
+        expect(material.uniforms.u_sun_focus.value).toBe(8.0);
     });
 
     test('u_sun_enabled starts at 1.0', () => {

@@ -83,9 +83,9 @@ function makeFacade(overrides = {}) {
 
         getSunVisible: vi.fn(() => true),
         setSunVisible: vi.fn(),
-        getSunStrength: vi.fn(() => 0.02),
+        getSunStrength: vi.fn(() => 0.06),
         setSunStrength: vi.fn(),
-        getSunFocus: vi.fn(() => 6.0),
+        getSunFocus: vi.fn(() => 8.0),
         setSunFocus: vi.fn(),
 
         getSmokeVisible: vi.fn(() => true),

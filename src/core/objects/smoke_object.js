@@ -32,5 +32,10 @@ export function createSmoke(scene) {
         setColor3: value => material.uniforms.u_color_3.value.set(value),
         getParticleSize: () => material.uniforms.u_size.value,
         setParticleSize: value => { material.uniforms.u_size.value = value; },
+
+        getSunEnabled: () => material.uniforms.u_sun_enabled.value === 1.0,
+        setSunEnabled: value => { material.uniforms.u_sun_enabled.value = value ? 1.0 : 0.0; },
+        getSunStrength: () => material.uniforms.u_sun_strength.value,
+        setSunStrength: value => { material.uniforms.u_sun_strength.value = value; },
     };
 }

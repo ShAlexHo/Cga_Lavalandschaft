@@ -32,11 +32,20 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms).toHaveProperty('u_color_2');
         expect(material.uniforms).toHaveProperty('u_color_3');
         expect(material.uniforms).toHaveProperty('u_size');
+        expect(material.uniforms).toHaveProperty('u_sun_color');
+        expect(material.uniforms).toHaveProperty('u_sun_enabled');
+        expect(material.uniforms).toHaveProperty('u_sun_strength');
     });
 
     test('u_size starts at SMOKE_PARTICLE_SIZE', () => {
         const material = createSmokeMaterial();
         expect(material.uniforms.u_size.value).toBe(SMOKE_PARTICLE_SIZE);
+    });
+
+    test('u_sun_enabled starts at 1.0 and u_sun_strength starts at 0.06', () => {
+        const material = createSmokeMaterial();
+        expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
+        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
     });
 
     test('is transparent and does not write depth, so plumes blend instead of occluding each other', () => {
