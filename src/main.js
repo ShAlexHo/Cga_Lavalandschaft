@@ -41,7 +41,7 @@ composer.addPass(bloom_pass);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.maxDistance = 36;
-controls.minDistance = 10;
+controls.minDistance = 16;
 controls.minPolarAngle = 1;
 controls.maxPolarAngle = Math.PI / 2 - 0.1;
 
