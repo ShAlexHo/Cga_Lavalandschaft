@@ -1,0 +1,80 @@
+import { describe, test, expect, vi } from 'vitest';
+
+vi.mock('three', () => {
+    class Vector3 {
+        constructor(x = 0, y = 0, z = 0) {
+            this.x = x; this.y = y; this.z = z;
+        }
+        set(x, y, z) {
+            this.x = x; this.y = y; this.z = z;
+            return this;
+        }
+        copy(other) {
+            this.x = other.x; this.y = other.y; this.z = other.z;
+            return this;
+        }
+    }
+    class PointLight {
+        constructor(color, intensity, distance) {
+            this.color = color;
+            this.intensity = intensity;
+            this.distance = distance;
+            this.position = new Vector3();
+            this.visible = true;
+        }
+    }
+    class Mesh {
+        constructor(geometry, material) {
+            this.geometry = geometry;
+            this.material = material;
+            this.position = new Vector3();
+            this.visible = true;
+        }
+    }
+    class SphereGeometry { constructor(radius, width_segments, height_segments) { this.radius = radius; this.width_segments = width_segments; this.height_segments = height_segments; } }
+    class MeshBasicMaterial { constructor(parameters = {}) { this.color = parameters.color; } }
+    return { Vector3, PointLight, Mesh, SphereGeometry, MeshBasicMaterial };
+});
+
+import { createSun } from '../sun_object.js';
+import { SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS } from '../../config.js';
+
+function makeScene() { return { add: vi.fn() }; }
+
+describe('createSun', () => {
+    test('adds both the light and the visual disc mesh to the scene', () => {
+        const scene = makeScene();
+        const sun = createSun(scene);
+        expect(scene.add).toHaveBeenCalledWith(sun.light, sun.mesh);
+    });
+
+    test('light uses the configured color/intensity/distance and sky position', () => {
+        const sun = createSun(makeScene());
+        expect(sun.light.color).toBe(SUN_LIGHT_COLOR);
+        expect(sun.light.intensity).toBe(SUN_LIGHT_INTENSITY);
+        expect(sun.light.distance).toBe(SUN_LIGHT_DISTANCE);
+        expect(sun.light.position).toEqual({ x: SUN_LIGHT_POSITION.x, y: SUN_LIGHT_POSITION.y, z: SUN_LIGHT_POSITION.z });
+    });
+
+    test('visual disc mesh matches the light\'s color/radius and position', () => {
+        const sun = createSun(makeScene());
+        expect(sun.mesh.material.color).toBe(SUN_LIGHT_COLOR);
+        expect(sun.mesh.geometry.radius).toBe(SUN_VISUAL_RADIUS);
+        expect(sun.mesh.position).toEqual(sun.light.position);
+    });
+
+    test('getVisible/setVisible toggle both the light and the mesh together', () => {
+        const sun = createSun(makeScene());
+        expect(sun.getVisible()).toBe(true);
+
+        sun.setVisible(false);
+        expect(sun.getVisible()).toBe(false);
+        expect(sun.light.visible).toBe(false);
+        expect(sun.mesh.visible).toBe(false);
+
+        sun.setVisible(true);
+        expect(sun.getVisible()).toBe(true);
+        expect(sun.light.visible).toBe(true);
+        expect(sun.mesh.visible).toBe(true);
+    });
+});

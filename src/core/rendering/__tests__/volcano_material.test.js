@@ -43,6 +43,11 @@ describe('createVolcanoMaterial', () => {
         const material = createVolcanoMaterial();
         const expected_keys = [
             'u_light_position',
+            'u_sun_position',
+            'u_sun_color',
+            'u_sun_enabled',
+            'u_sun_strength',
+            'u_sun_focus',
             'u_disp_scale',
             'u_disp_freq',
             'u_crack_freq',
@@ -58,11 +63,27 @@ describe('createVolcanoMaterial', () => {
         const material = createVolcanoMaterial();
         expect(material.uniforms.u_disp_scale.value).toBe(2.5);
     });
+
+    test('u_sun_strength starts at 0.02 and u_sun_focus starts at 6.0', () => {
+        const material = createVolcanoMaterial();
+        expect(material.uniforms.u_sun_strength.value).toBe(0.02);
+        expect(material.uniforms.u_sun_focus.value).toBe(6.0);
+    });
+
+    test('u_sun_enabled starts at 1.0', () => {
+        const material = createVolcanoMaterial();
+        expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
+    });
 });
 
 describe('updateVolcanoLight', () => {
     function makeMaterial() {
-        return { uniforms: { u_light_position: { value: { copy: vi.fn() } } } };
+        return {
+            uniforms: {
+                u_light_position: { value: { copy: vi.fn() } },
+                u_sun_position: { value: { copy: vi.fn() } },
+            },
+        };
     }
 
     const mock_camera = { matrixWorldInverse: {} };
@@ -71,5 +92,11 @@ describe('updateVolcanoLight', () => {
         const material = makeMaterial();
         updateVolcanoLight(material, mock_camera);
         expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
+    });
+
+    test('calls copy() on u_sun_position.value', () => {
+        const material = makeMaterial();
+        updateVolcanoLight(material, mock_camera);
+        expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
     });
 });

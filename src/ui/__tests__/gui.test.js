@@ -81,6 +81,13 @@ function makeFacade(overrides = {}) {
         getVolcanoDisplacementFrequency: vi.fn(() => 0.5),
         setVolcanoDisplacementFrequency: vi.fn(),
 
+        getSunVisible: vi.fn(() => true),
+        setSunVisible: vi.fn(),
+        getSunStrength: vi.fn(() => 0.02),
+        setSunStrength: vi.fn(),
+        getSunFocus: vi.fn(() => 6.0),
+        setSunFocus: vi.fn(),
+
         getSmokeVisible: vi.fn(() => true),
         setSmokeVisible: vi.fn(),
         getSmokeCount: vi.fn(() => 200),
@@ -190,7 +197,7 @@ describe('setupGui – structure', () => {
         setupGui(makeFacade());
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
-            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Rauch & Asche',
+            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
             'Position (Vulkan + Lava)', 'Bloom', 'Speichern / Laden',
         ]);
     });
@@ -300,6 +307,22 @@ describe('setupGui – Vulkan folder', () => {
         const facade = makeFacade();
         setupGui(facade);
         fire(registry, 'Vulkan', key, value);
+        expect(facade[setter]).toHaveBeenCalledWith(value);
+    });
+});
+
+// ─── Sonne folder ────────────────────────────────────────────────────────────
+
+describe('setupGui – Sonne folder', () => {
+    test.each([
+        ['visible', 'setSunVisible', false],
+        ['strength', 'setSunStrength', 0.12],
+        ['focus', 'setSunFocus', 8.0],
+    ])('%s onChange calls facade.%s', (key, setter, value) => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Sonne', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });

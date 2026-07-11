@@ -22,5 +22,11 @@ export function createVolcano(scene) {
         setDisplacementScale: value => { material.uniforms.u_disp_scale.value = value; },
         getDisplacementFrequency: () => material.uniforms.u_disp_freq.value,
         setDisplacementFrequency: value => { material.uniforms.u_disp_freq.value = value; },
+        getSunEnabled: () => material.uniforms.u_sun_enabled.value === 1.0,
+        setSunEnabled: value => { material.uniforms.u_sun_enabled.value = value ? 1.0 : 0.0; },
+        getSunStrength: () => material.uniforms.u_sun_strength.value,
+        setSunStrength: value => { material.uniforms.u_sun_strength.value = value; },
+        getSunFocus: () => material.uniforms.u_sun_focus.value,
+        setSunFocus: value => { material.uniforms.u_sun_focus.value = value; },
     };
 }

@@ -147,6 +147,23 @@ export function setupGui(facade) {
         .onChange(value => facade.setVolcanoCrackColor(value));
     volcano_folder.open();
 
+    const sun_folder = gui.addFolder('Sonne');
+    const sun_parameters = makeParameters({
+        visible: facade.getSunVisible,
+        strength: facade.getSunStrength,
+        focus: facade.getSunFocus,
+    });
+    bind(sun_folder.add(sun_parameters, 'visible'))
+        .name('Sichtbar')
+        .onChange(value => facade.setSunVisible(value));
+    bind(sun_folder.add(sun_parameters, 'strength', 0.0, 0.3, 0.005))
+        .name('Sonneneinstrahlung')
+        .onChange(value => facade.setSunStrength(value));
+    bind(sun_folder.add(sun_parameters, 'focus', 1.0, 12.0, 0.1))
+        .name('Sonnenfokus')
+        .onChange(value => facade.setSunFocus(value));
+    sun_folder.open();
+
     const smoke_folder = gui.addFolder('Rauch & Asche');
     const smoke_parameters = makeParameters({
         visible: facade.getSmokeVisible,

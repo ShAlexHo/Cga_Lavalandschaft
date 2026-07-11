@@ -19,6 +19,9 @@ vi.mock('../../rendering/volcano_material.js', () => ({
             u_disp_freq: { value: 0.5 },
             u_rock_color: { value: makeColor('afafaf') },
             u_crack_color: { value: makeColor('0a0a0a') },
+            u_sun_enabled: { value: 1.0 },
+            u_sun_strength: { value: 0.02 },
+            u_sun_focus: { value: 6.0 },
         },
     })),
     updateVolcanoLight: vi.fn(),
@@ -69,5 +72,20 @@ describe('createVolcano', () => {
 
         volcano.setDisplacementFrequency(0.9);
         expect(volcano.getDisplacementFrequency()).toBe(0.9);
+
+        volcano.setSunStrength(0.08);
+        expect(volcano.getSunStrength()).toBe(0.08);
+
+        volcano.setSunFocus(7.0);
+        expect(volcano.getSunFocus()).toBe(7.0);
+    });
+
+    test('getSunEnabled/setSunEnabled toggle the sun tint uniform', () => {
+        const volcano = createVolcano(makeScene());
+        expect(volcano.getSunEnabled()).toBe(true);
+        volcano.setSunEnabled(false);
+        expect(volcano.getSunEnabled()).toBe(false);
+        volcano.setSunEnabled(true);
+        expect(volcano.getSunEnabled()).toBe(true);
     });
 });

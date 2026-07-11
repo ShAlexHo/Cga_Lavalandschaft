@@ -1,4 +1,9 @@
 uniform vec3  u_light_position;
+uniform vec3  u_sun_position;
+uniform vec3  u_sun_color;
+uniform float u_sun_enabled;
+uniform float u_sun_strength;
+uniform float u_sun_focus;
 uniform float u_crack_freq;
 uniform vec3  u_rock_color;
 uniform vec3  u_crack_color;
@@ -21,6 +26,7 @@ void main() {
     if (!gl_FrontFacing) N = -N;
 
     float diffuse = max(dot(N, normalize(u_light_position - v_view_position)), 0.0);
+    float sun_diffuse = pow(max(dot(N, normalize(u_sun_position - v_view_position)), 0.0), u_sun_focus);
 
     float ash_var  = fractal_brownian_motion(v_world_position * 2.5) * 0.5 + 0.5;
     vec3 ash_color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
@@ -34,6 +40,7 @@ void main() {
     float specular   = pow(max(dot(halfway_dir, N), 0.0), 32.0) * 0.01;
 
     color = color * (0.005 + diffuse * 0.50) + vec3(specular);
+    color += u_sun_color * sun_diffuse * u_sun_strength * u_sun_enabled;
 
     gl_FragColor = vec4(color, 1.0);
 }

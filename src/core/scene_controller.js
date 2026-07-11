@@ -2,6 +2,7 @@ import { createGround } from './objects/ground_object.js';
 import { createVolcano } from './objects/volcano_object.js';
 import { createMetaballField } from './objects/metaball_field_object.js';
 import { createSmoke } from './objects/smoke_object.js';
+import { createSun } from './objects/sun_object.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import default_settings from './default_settings.json';
 
@@ -10,6 +11,7 @@ export function createSceneController({ scene, camera, bloomPass }) {
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
     const smoke = createSmoke(scene);
+    const sun = createSun(scene);
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -91,6 +93,13 @@ export function createSceneController({ scene, camera, bloomPass }) {
         getVolcanoDisplacementFrequency: () => volcano.getDisplacementFrequency(),
         setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
 
+        getSunVisible: () => sun.getVisible(),
+        setSunVisible: value => { sun.setVisible(value); volcano.setSunEnabled(value); },
+        getSunStrength: () => volcano.getSunStrength(),
+        setSunStrength: value => volcano.setSunStrength(value),
+        getSunFocus: () => volcano.getSunFocus(),
+        setSunFocus: value => volcano.setSunFocus(value),
+
         getSmokeVisible: () => smoke.getVisible(),
         setSmokeVisible: value => smoke.setVisible(value),
         getSmokeCount: () => smoke.getCount(),
@@ -157,6 +166,9 @@ export function createSceneController({ scene, camera, bloomPass }) {
         { key: 'volcanoDisplacementFrequency', get: () => controller.getVolcanoDisplacementFrequency(), set: value => controller.setVolcanoDisplacementFrequency(value) },
         { key: 'volcanoRockColor', get: () => controller.getVolcanoRockColor(), set: value => controller.setVolcanoRockColor(value) },
         { key: 'volcanoCrackColor', get: () => controller.getVolcanoCrackColor(), set: value => controller.setVolcanoCrackColor(value) },
+        { key: 'sunVisible', get: () => controller.getSunVisible(), set: value => controller.setSunVisible(value) },
+        { key: 'sunStrength', get: () => controller.getSunStrength(), set: value => controller.setSunStrength(value) },
+        { key: 'sunFocus', get: () => controller.getSunFocus(), set: value => controller.setSunFocus(value) },
         { key: 'smokeVisible', get: () => controller.getSmokeVisible(), set: value => controller.setSmokeVisible(value) },
         { key: 'smokeCount', get: () => controller.getSmokeCount(), set: value => controller.setSmokeCount(value) },
         { key: 'smokeSpread', get: () => controller.getSmokeSpread(), set: value => controller.setSmokeSpread(value) },

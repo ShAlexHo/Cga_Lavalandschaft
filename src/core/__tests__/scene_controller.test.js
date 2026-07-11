@@ -98,11 +98,29 @@ vi.mock('../rendering/volcano_material.js', () => {
                 u_disp_freq: { value: 0.5 },
                 u_rock_color: { value: makeColor('afafaf') },
                 u_crack_color: { value: makeColor('0a0a0a') },
+                u_sun_enabled: { value: 1.0 },
+                u_sun_strength: { value: 0.02 },
+                u_sun_focus: { value: 6.0 },
             },
         })),
         updateVolcanoLight: vi.fn(),
     };
 });
+
+vi.mock('../objects/sun_object.js', () => ({
+    createSun: vi.fn(scene => {
+        const state = { visible: true };
+        const light = { visible: true };
+        const mesh = { visible: true };
+        scene.add(light, mesh);
+        return {
+            light,
+            mesh,
+            getVisible: () => state.visible,
+            setVisible: value => { state.visible = value; light.visible = value; mesh.visible = value; },
+        };
+    }),
+}));
 
 const DEFAULT_SMOKE_SETTINGS = { count: 200, spread: 1.0, rise_speed: 1.0, max_count: 400 };
 
@@ -149,6 +167,7 @@ vi.mock('../default_settings.json', () => ({
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777', volcanoCrackColor: '#888888',
+        sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
         smokeVisible: false, smokeCount: 20, smokeSpread: 0.5, smokeRiseSpeed: 0.6,
         smokeColor1: '#999999', smokeColor2: '#dddddd', smokeColor3: '#eeeeee', smokeParticleSize: 30,
         offsetX: 1, offsetY: 2, offsetZ: 3,
@@ -160,7 +179,7 @@ import { createSceneController } from '../scene_controller.js';
 import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
 import { updateMetaballLight } from '../rendering/metaball_material.js';
-import { updateVolcanoLight } from '../rendering/volcano_material.js';
+import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -282,6 +301,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101',
+            sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
             smokeVisible: false, smokeCount: 42, smokeSpread: 0.8, smokeRiseSpeed: 1.4,
             smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45,
             offsetX: 5, offsetY: -1, offsetZ: 2,
@@ -306,6 +326,37 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
         expect(controller.isPaused()).toBe(true);
         expect(controller.getGroundHeight()).toBe(-3);
         expect(controller.getSmokeCount()).toBe(20);
+    });
+});
+
+// ─── sun ──────────────────────────────────────────────────────────────────────
+
+describe('createSceneController – sun', () => {
+    test('getSunVisible/setSunVisible forward to the sun object', () => {
+        const controller = makeController();
+        expect(controller.getSunVisible()).toBe(true);
+        controller.setSunVisible(false);
+        expect(controller.getSunVisible()).toBe(false);
+    });
+
+    test('getSunStrength/setSunStrength and getSunFocus/setSunFocus forward to the volcano material', () => {
+        const controller = makeController();
+        controller.setSunStrength(0.08);
+        expect(controller.getSunStrength()).toBe(0.08);
+        controller.setSunFocus(9.0);
+        expect(controller.getSunFocus()).toBe(9.0);
+    });
+
+    test('setSunVisible(false) also disables the sun tint on the volcano, setSunVisible(true) restores it', () => {
+        const controller = makeController();
+        const material = createVolcanoMaterial.mock.results[0].value;
+        expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
+
+        controller.setSunVisible(false);
+        expect(material.uniforms.u_sun_enabled.value).toBe(0.0);
+
+        controller.setSunVisible(true);
+        expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
     });
 });
 
