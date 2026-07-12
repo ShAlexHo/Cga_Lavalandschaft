@@ -12,15 +12,6 @@ varying vec3 v_world_position;
 varying vec3 v_view_position;
 varying vec3 v_normal;
 
-float crack_pattern(vec3 pos, float freq) {
-    vec3 warp = vec3(
-        simplex_noise(pos * freq * 0.6 + vec3(1.7, 9.2, 0.0)),
-        simplex_noise(pos * freq * 0.6 + vec3(8.3, 2.8, 0.0)),
-        simplex_noise(pos * freq * 0.6 + vec3(3.1, 0.0, 5.4))
-    );
-    return pow(abs(simplex_noise((pos + warp * 1.2) * freq)), 0.18);
-}
-
 void main() {
     vec3 N = normalize(v_normal);
     if (!gl_FrontFacing) N = -N;
@@ -42,7 +33,7 @@ void main() {
     float ash_var  = normalized_fractal_brownian_motion(v_world_position * 2.5);
     vec3 ash_color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
 
-    float n0 = crack_pattern(v_world_position, u_crack_freq);
+    float n0 = crack_pattern(v_world_position, u_crack_freq, 0.18);
     float crack_mask = smoothstep(0.0, 0.18, n0);
     vec3 color = mix(u_crack_color, ash_color, crack_mask);
 

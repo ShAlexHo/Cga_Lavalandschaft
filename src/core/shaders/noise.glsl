@@ -113,3 +113,14 @@ float warped_fractal_brownian_motion(vec3 position, float warp_strength) {
     );
     return normalized_fractal_brownian_motion(warped);
 }
+
+// abs() folds the noise around zero into a valley; `softness` (the pow() exponent) controls whether
+// that reads as a thin crisp line (low, e.g. the volcano's 0.18) or a wide washed-out band (high).
+float crack_pattern(vec3 pos, float freq, float softness) {
+    vec3 warp = vec3(
+        simplex_noise(pos * freq * 0.6 + vec3(1.7, 9.2, 0.0)),
+        simplex_noise(pos * freq * 0.6 + vec3(8.3, 2.8, 0.0)),
+        simplex_noise(pos * freq * 0.6 + vec3(3.1, 0.0, 5.4))
+    );
+    return pow(abs(simplex_noise((pos + warp * 1.2) * freq)), softness);
+}

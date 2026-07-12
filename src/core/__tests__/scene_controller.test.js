@@ -9,7 +9,6 @@ const { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() =>
             _hex: hex,
             set(value) { this._hex = String(value).replace('#', ''); return this; },
             getHexString() { return this._hex; },
-            multiplyScalar() { return this; },
         };
     }
     const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
@@ -17,9 +16,9 @@ const { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() =>
     return { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS };
 });
 
-// ─── Mock three (only Mesh/PlaneGeometry/MeshStandardMaterial are used directly
-//     by scene_controller.js — the ground mesh is built here, everything else
-//     comes from the (also mocked) geometry/animation/rendering layers) ──────
+// ─── Mock three (only Mesh/PlaneGeometry are used directly by scene_controller.js
+//     — the ground mesh is built here, everything else comes from the (also
+//     mocked) geometry/animation/rendering layers) ───────────────────────────
 
 vi.mock('three', () => {
     class Mesh {
@@ -32,18 +31,25 @@ vi.mock('three', () => {
         }
     }
     class PlaneGeometry { constructor(width, height) { this.width = width; this.height = height; } }
-    class MeshStandardMaterial {
-        constructor() {
-            this.color = makeColor('220500');
-            this.emissive = makeColor('2b0800');
-        }
-    }
-    return { Mesh, PlaneGeometry, MeshStandardMaterial };
+    return { Mesh, PlaneGeometry };
 });
 
 // ─── Mock the geometry/animation/rendering layers wholesale — their own logic
 //     is covered by the tests next to each module; here we only need fakes
 //     that let us observe how the facade drives them. ────────────────────────
+
+vi.mock('../rendering/ground_material.js', () => ({
+    createGroundMaterial: vi.fn(() => ({
+        uniforms: {
+            u_disp_scale: { value: 0.6 },
+            u_disp_freq: { value: 0.08 },
+            u_rock_color: { value: makeColor('220500') },
+            u_crack_color: { value: makeColor('050505') },
+            u_crack_softness: { value: 0.25 },
+        },
+    })),
+    updateGroundLight: vi.fn(),
+}));
 
 vi.mock('../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn(scene => {
@@ -165,6 +171,7 @@ vi.mock('../default_settings.json', () => ({
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
         displacementEnabled: false, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
+        groundCrackColor: '#333333', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777', volcanoCrackColor: '#888888',
         sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
@@ -179,6 +186,7 @@ import { createSceneController } from '../scene_controller.js';
 import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
 import { updateMetaballLight } from '../rendering/metaball_material.js';
+import { updateGroundLight } from '../rendering/ground_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings } from '../animation/smoke_particles.js';
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
@@ -261,6 +269,29 @@ describe('createSceneController – metaballs', () => {
     });
 });
 
+// ─── ground ───────────────────────────────────────────────────────────────────
+
+describe('createSceneController – ground', () => {
+    test('color/crack color/displacement getters and setters forward to the ground object', () => {
+        const controller = makeController();
+
+        controller.setGroundColor('#123123');
+        expect(controller.getGroundColor()).toBe('#123123');
+
+        controller.setGroundCrackColor('#321321');
+        expect(controller.getGroundCrackColor()).toBe('#321321');
+
+        controller.setGroundCrackSoftness(0.6);
+        expect(controller.getGroundCrackSoftness()).toBe(0.6);
+
+        controller.setGroundDisplacementScale(1.2);
+        expect(controller.getGroundDisplacementScale()).toBe(1.2);
+
+        controller.setGroundDisplacementFrequency(0.3);
+        expect(controller.getGroundDisplacementFrequency()).toBe(0.3);
+    });
+});
+
 // ─── displacement enabled/last-value memory ──────────────────────────────────
 
 describe('createSceneController – displacement toggle', () => {
@@ -301,6 +332,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
+            groundCrackColor: '#050505', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
@@ -428,6 +460,7 @@ describe('createSceneController – update()', () => {
 
         controller.update(12.5);
 
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera);
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);

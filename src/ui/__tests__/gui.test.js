@@ -67,6 +67,14 @@ function makeFacade(overrides = {}) {
         setGroundVisible: vi.fn(),
         getGroundColor: vi.fn(() => '#220500'),
         setGroundColor: vi.fn(),
+        getGroundCrackColor: vi.fn(() => '#050505'),
+        setGroundCrackColor: vi.fn(),
+        getGroundCrackSoftness: vi.fn(() => 0.25),
+        setGroundCrackSoftness: vi.fn(),
+        getGroundDisplacementScale: vi.fn(() => 0.6),
+        setGroundDisplacementScale: vi.fn(),
+        getGroundDisplacementFrequency: vi.fn(() => 0.08),
+        setGroundDisplacementFrequency: vi.fn(),
         getGroundHeight: vi.fn(() => -6),
         setGroundHeight: vi.fn(),
 
@@ -283,6 +291,10 @@ describe('setupGui – Boden folder', () => {
     test.each([
         ['visible', 'setGroundVisible', false],
         ['color', 'setGroundColor', '#550000'],
+        ['crack_color', 'setGroundCrackColor', '#000001'],
+        ['crack_softness', 'setGroundCrackSoftness', 0.6],
+        ['displacement_scale', 'setGroundDisplacementScale', 1.2],
+        ['displacement_frequency', 'setGroundDisplacementFrequency', 0.2],
         ['height', 'setGroundHeight', -1.5],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();

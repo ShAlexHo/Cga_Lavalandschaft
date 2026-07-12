@@ -109,6 +109,10 @@ export function setupGui(facade) {
     const ground_parameters = makeParameters({
         visible: facade.getGroundVisible,
         color: facade.getGroundColor,
+        crack_color: facade.getGroundCrackColor,
+        crack_softness: facade.getGroundCrackSoftness,
+        displacement_scale: facade.getGroundDisplacementScale,
+        displacement_frequency: facade.getGroundDisplacementFrequency,
         height: facade.getGroundHeight,
     });
     bind(ground_folder.add(ground_parameters, 'visible'))
@@ -117,6 +121,18 @@ export function setupGui(facade) {
     bind(ground_folder.addColor(ground_parameters, 'color'))
         .name('Farbe')
         .onChange(value => facade.setGroundColor(value));
+    bind(ground_folder.addColor(ground_parameters, 'crack_color'))
+        .name('Rissfarbe')
+        .onChange(value => facade.setGroundCrackColor(value));
+    bind(ground_folder.add(ground_parameters, 'crack_softness', 0.1, 1.0, 0.01))
+        .name('Rissweichheit')
+        .onChange(value => facade.setGroundCrackSoftness(value));
+    bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))
+        .name('Unebenheit')
+        .onChange(value => facade.setGroundDisplacementScale(value));
+    bind(ground_folder.add(ground_parameters, 'displacement_frequency', 0.01, 0.5, 0.01))
+        .name('Struktur-Frequenz')
+        .onChange(value => facade.setGroundDisplacementFrequency(value));
     bind(ground_folder.add(ground_parameters, 'height', -10, 0, 0.01))
         .name('Höhe')
         .onChange(value => facade.setGroundHeight(value));

@@ -12,6 +12,14 @@ export const CAMERA_MIN_DISTANCE = 16;
 export const CAMERA_MAX_DISTANCE = 36;
 export const CAMERA_MIN_POLAR_ANGLE = 1;
 export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
+// ─── Ground (geometry / rendering) ───────────────────────────────────────────
+
+export const GROUND_SIZE = 80;
+export const GROUND_SEGMENTS = 160; // resolution the displacement noise is sampled at - needs to be well above the default 1x1 plane for bumps to read as terrain rather than a tilted flat tile
+export const GROUND_CRACK_FREQUENCY = 0.2; // crack-color frequency (tinting mask), not yet exposed in the GUI - lower than the volcano's since the ground spans a much larger area
+export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
+export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
+export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.25; // crack_pattern()'s pow() exponent - higher reads as a softer, more washed-out band instead of a crisp thin line
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 

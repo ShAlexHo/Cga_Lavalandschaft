@@ -29,6 +29,7 @@ export function createSceneController({ scene, camera, bloomPass }) {
 
     const controller = {
         update(time) {
+            ground.update(camera);
             metaball_field.update(time, camera);
             sun.update(time);
             volcano.update(camera, sun.light.position);
@@ -78,6 +79,14 @@ export function createSceneController({ scene, camera, bloomPass }) {
         setGroundVisible: value => ground.setVisible(value),
         getGroundColor: () => ground.getColor(),
         setGroundColor: value => ground.setColor(value),
+        getGroundCrackColor: () => ground.getCrackColor(),
+        setGroundCrackColor: value => ground.setCrackColor(value),
+        getGroundCrackSoftness: () => ground.getCrackSoftness(),
+        setGroundCrackSoftness: value => ground.setCrackSoftness(value),
+        getGroundDisplacementScale: () => ground.getDisplacementScale(),
+        setGroundDisplacementScale: value => ground.setDisplacementScale(value),
+        getGroundDisplacementFrequency: () => ground.getDisplacementFrequency(),
+        setGroundDisplacementFrequency: value => ground.setDisplacementFrequency(value),
         getGroundHeight: () => ground.mesh.position.y,
         setGroundHeight: value => applyY(value),
 
@@ -161,6 +170,10 @@ export function createSceneController({ scene, camera, bloomPass }) {
         { key: 'displacementStrength', get: () => controller.getDisplacementStrength(), set: value => controller.setDisplacementStrength(value) },
         { key: 'groundVisible', get: () => controller.getGroundVisible(), set: value => controller.setGroundVisible(value) },
         { key: 'groundColor', get: () => controller.getGroundColor(), set: value => controller.setGroundColor(value) },
+        { key: 'groundCrackColor', get: () => controller.getGroundCrackColor(), set: value => controller.setGroundCrackColor(value) },
+        { key: 'groundCrackSoftness', get: () => controller.getGroundCrackSoftness(), set: value => controller.setGroundCrackSoftness(value) },
+        { key: 'groundDisplacementScale', get: () => controller.getGroundDisplacementScale(), set: value => controller.setGroundDisplacementScale(value) },
+        { key: 'groundDisplacementFrequency', get: () => controller.getGroundDisplacementFrequency(), set: value => controller.setGroundDisplacementFrequency(value) },
         { key: 'groundHeight', get: () => controller.getGroundHeight(), set: value => controller.setGroundHeight(value) },
         { key: 'volcanoVisible', get: () => controller.getVolcanoVisible(), set: value => controller.setVolcanoVisible(value) },
         { key: 'volcanoDisplacementScale', get: () => controller.getVolcanoDisplacementScale(), set: value => controller.setVolcanoDisplacementScale(value) },
