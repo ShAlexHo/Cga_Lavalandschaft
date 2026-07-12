@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('three', () => {
     class Vector3 {
@@ -32,14 +32,21 @@ vi.mock('three', () => {
         }
     }
     class SphereGeometry { constructor(radius, width_segments, height_segments) { this.radius = radius; this.width_segments = width_segments; this.height_segments = height_segments; } }
-    class MeshBasicMaterial { constructor(parameters = {}) { this.color = parameters.color; } }
-    return { Vector3, PointLight, Mesh, SphereGeometry, MeshBasicMaterial };
+    return { Vector3, PointLight, Mesh, SphereGeometry };
 });
 
+vi.mock('../../rendering/sun_material.js', () => ({
+    createSunMaterial: vi.fn(() => ({ uniforms: { u_time: { value: 0.0 } } })),
+    updateSunMaterial: vi.fn(),
+}));
+
 import { createSun } from '../sun_object.js';
+import { createSunMaterial, updateSunMaterial } from '../../rendering/sun_material.js';
 import { SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS } from '../../config.js';
 
 function makeScene() { return { add: vi.fn() }; }
+
+beforeEach(() => vi.clearAllMocks());
 
 describe('createSun', () => {
     test('adds both the light and the visual disc mesh to the scene', () => {
@@ -56,11 +63,18 @@ describe('createSun', () => {
         expect(sun.light.position).toEqual({ x: SUN_LIGHT_POSITION.x, y: SUN_LIGHT_POSITION.y, z: SUN_LIGHT_POSITION.z });
     });
 
-    test('visual disc mesh matches the light\'s color/radius and position', () => {
+    test('visual disc mesh uses a freshly created sun material, the configured radius, and the light\'s position', () => {
         const sun = createSun(makeScene());
-        expect(sun.mesh.material.color).toBe(SUN_LIGHT_COLOR);
+        expect(createSunMaterial).toHaveBeenCalledTimes(1);
+        expect(sun.mesh.material).toBe(createSunMaterial.mock.results[0].value);
         expect(sun.mesh.geometry.radius).toBe(SUN_VISUAL_RADIUS);
         expect(sun.mesh.position).toEqual(sun.light.position);
+    });
+
+    test('update() forwards to updateSunMaterial with the material and time', () => {
+        const sun = createSun(makeScene());
+        sun.update(12.5);
+        expect(updateSunMaterial).toHaveBeenCalledWith(sun.mesh.material, 12.5);
     });
 
     test('getVisible/setVisible toggle both the light and the mesh together', () => {

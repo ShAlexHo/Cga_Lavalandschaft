@@ -37,11 +37,14 @@ export const VOLCANO_CRACK_FREQUENCY = 1.0; // crack-color frequency (tinting ma
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────
 
-export const SUN_LIGHT_POSITION = { x: -12, y: 16, z: -9 }; // opposite side of the sky from the key light, so it reads as a distinct second light source
-export const SUN_LIGHT_COLOR = 0xff1a1a;
+export const SUN_LIGHT_POSITION = { x: 12, y: 10, z: -30 }; // further out along the same line of sight as before and higher in the sky, while staying inside the default camera frustum
+export const SUN_LIGHT_COLOR = 0xff1020; // deep red, only a faint hint of pink left
+export const SUN_CORE_COLOR = 0xff3311; // red core the turbulent sun surface blends towards - still varied, but red rather than orange
+export const SUN_BLOOD_ORANGE_COLOR = 0xcc2200; // second, independently-animated noise layer's color, for extra patch variation on top of the core/edge blend
+export const SUN_ASH_TINT_COLOR = 0xdd1100; // separate, blue-free red for tinting the ash - blending SUN_LIGHT_COLOR's slight blue over the pale smoke read as pink instead of red
 export const SUN_LIGHT_INTENSITY = 4.0;
 export const SUN_LIGHT_DISTANCE = 60;
-export const SUN_VISUAL_RADIUS = 1.1; // radius of the small unlit sphere that represents the sun disc itself
+export const SUN_VISUAL_RADIUS = 2.5; // radius of the sun disc - large enough to read clearly as a sun rather than a distant dot
 
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────
 

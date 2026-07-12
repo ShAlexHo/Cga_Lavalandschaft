@@ -23,7 +23,7 @@ vi.mock('../../shaders/smoke.vert?raw', () => ({ default: '// vertex shader' }))
 vi.mock('../../shaders/smoke.frag?raw', () => ({ default: '// fragment shader' }));
 
 import { createSmokeMaterial } from '../smoke_material.js';
-import { SMOKE_PARTICLE_SIZE } from '../../config.js';
+import { SMOKE_PARTICLE_SIZE, SUN_ASH_TINT_COLOR } from '../../config.js';
 
 describe('createSmokeMaterial', () => {
     test('contains the expected uniforms', () => {
@@ -46,6 +46,11 @@ describe('createSmokeMaterial', () => {
         const material = createSmokeMaterial();
         expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
         expect(material.uniforms.u_sun_strength.value).toBe(0.06);
+    });
+
+    test('u_sun_color starts at the dedicated ash tint color (not the shared sun light color)', () => {
+        const material = createSmokeMaterial();
+        expect(material.uniforms.u_sun_color.value.hex).toBe(SUN_ASH_TINT_COLOR);
     });
 
     test('is transparent and does not write depth, so plumes blend instead of occluding each other', () => {

@@ -116,6 +116,7 @@ vi.mock('../objects/sun_object.js', () => ({
         return {
             light,
             mesh,
+            update: vi.fn(),
             getVisible: () => state.visible,
             setVisible: value => { state.visible = value; light.visible = value; mesh.visible = value; },
         };
@@ -185,6 +186,7 @@ import { updateMetaballLight } from '../rendering/metaball_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
 import { createSmokeMaterial } from '../rendering/smoke_material.js';
+import { createSun } from '../objects/sun_object.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -438,6 +440,8 @@ describe('createSceneController – update()', () => {
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
         expect(stepSmokeAnimation).toHaveBeenCalledWith(12.5, 1.0);
+        const sun = createSun.mock.results[0].value;
+        expect(sun.update).toHaveBeenCalledWith(12.5);
     });
 
     test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {
