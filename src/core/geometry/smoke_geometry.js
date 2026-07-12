@@ -1,49 +1,27 @@
 import * as THREE from 'three';
-import { SMOKE_MAX_PARTICLES } from '../config.js';
 
-export function createSmokeGeometry(scene, material) {
+export function createSmokeGeometry(scene, material, particle_seeds) {
+    const particle_count = particle_seeds.is_ambient.length;
+
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES * 3), 3));
-    geometry.setAttribute('a_opacity', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
-    geometry.setAttribute('a_color_mix', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
-    geometry.setAttribute('a_accent_mix', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
-    geometry.setAttribute('a_glow_mult', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
-    geometry.setAttribute('a_size_mult', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
-    geometry.setAttribute('a_shape_seed', new THREE.BufferAttribute(new Float32Array(SMOKE_MAX_PARTICLES), 1));
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(particle_count * 3), 3));
+    geometry.setAttribute('a_is_ambient', new THREE.BufferAttribute(particle_seeds.is_ambient, 1));
+    geometry.setAttribute('a_motion_seed', new THREE.BufferAttribute(particle_seeds.motion_seed, 4));
+    geometry.setAttribute('a_timing_seed', new THREE.BufferAttribute(particle_seeds.timing_seed, 2));
+    geometry.setAttribute('a_appearance', new THREE.BufferAttribute(particle_seeds.appearance, 3));
+    geometry.setAttribute('a_accent_base', new THREE.BufferAttribute(particle_seeds.accent_base, 1));
+    geometry.setAttribute('a_ambient_seed', new THREE.BufferAttribute(particle_seeds.ambient_seed, 4));
 
     const points = new THREE.Points(geometry, material);
     points.position.set(0, 0, 0);
+    // Positions are computed in smoke.vert, not from the (unused) `position` attribute, so THREE can't
+    // derive a bounding sphere - disable frustum culling instead of risking the whole plume vanishing.
+    points.frustumCulled = false;
     scene.add(points);
 
     return points;
 }
 
-export function updateSmokeGeometry(points, particles) {
-    const position_attribute = points.geometry.attributes.position;
-    const opacity_attribute = points.geometry.attributes.a_opacity;
-    const color_mix_attribute = points.geometry.attributes.a_color_mix;
-    const accent_mix_attribute = points.geometry.attributes.a_accent_mix;
-    const glow_mult_attribute = points.geometry.attributes.a_glow_mult;
-    const size_mult_attribute = points.geometry.attributes.a_size_mult;
-    const shape_seed_attribute = points.geometry.attributes.a_shape_seed;
-
-    for (let i = 0; i < particles.length; i++) {
-        const particle = particles[i];
-        position_attribute.setXYZ(i, particle.x, particle.y, particle.z);
-        opacity_attribute.setX(i, particle.opacity);
-        color_mix_attribute.setX(i, particle.colorMix);
-        accent_mix_attribute.setX(i, particle.accentMix);
-        glow_mult_attribute.setX(i, particle.glowMult);
-        size_mult_attribute.setX(i, particle.sizeMult);
-        shape_seed_attribute.setX(i, particle.shapeSeed);
-    }
-
-    position_attribute.needsUpdate = true;
-    opacity_attribute.needsUpdate = true;
-    color_mix_attribute.needsUpdate = true;
-    accent_mix_attribute.needsUpdate = true;
-    glow_mult_attribute.needsUpdate = true;
-    size_mult_attribute.needsUpdate = true;
-    shape_seed_attribute.needsUpdate = true;
-    points.geometry.setDrawRange(0, particles.length);
+export function setSmokeDrawRange(points, count) {
+    points.geometry.setDrawRange(0, count);
 }

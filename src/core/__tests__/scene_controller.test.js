@@ -1,10 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-// ─── Mock three (only Mesh/PlaneGeometry/MeshStandardMaterial are used directly
-//     by scene_controller.js — the ground mesh is built here, everything else
-//     comes from the (also mocked) geometry/animation/rendering layers) ──────
-
-vi.mock('three', () => {
+// vi.mock() factories are hoisted above the rest of the module, so anything they share - the color-mock
+// helper, the default settings each mock's initial state is seeded from - must be too; vi.hoisted() is
+// the mechanism for that.
+const { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => {
     function makeColor(hex = '000000') {
         return {
             _hex: hex,
@@ -13,6 +12,16 @@ vi.mock('three', () => {
             multiplyScalar() { return this; },
         };
     }
+    const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
+    const DEFAULT_SMOKE_SETTINGS = { count: 200, max_count: 400 };
+    return { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS };
+});
+
+// ─── Mock three (only Mesh/PlaneGeometry/MeshStandardMaterial are used directly
+//     by scene_controller.js — the ground mesh is built here, everything else
+//     comes from the (also mocked) geometry/animation/rendering layers) ──────
+
+vi.mock('three', () => {
     class Mesh {
         constructor(geometry, material) {
             this.geometry = geometry;
@@ -36,8 +45,6 @@ vi.mock('three', () => {
 //     is covered by the tests next to each module; here we only need fakes
 //     that let us observe how the facade drives them. ────────────────────────
 
-const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
-
 vi.mock('../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn(scene => {
         const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
@@ -48,7 +55,7 @@ vi.mock('../geometry/metaball_geometry.js', () => ({
 }));
 
 vi.mock('../animation/metaball_animation.js', () => {
-    const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
+    const settings = { ...DEFAULT_SETTINGS };
     return {
         settings,
         getActiveBalls: vi.fn(() => []),
@@ -57,27 +64,22 @@ vi.mock('../animation/metaball_animation.js', () => {
     };
 });
 
-vi.mock('../rendering/metaball_material.js', () => {
-    function makeColor(hex) {
-        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-    }
-    return {
-        createMetaballMaterial: vi.fn(() => ({
-            uniforms: {
-                u_color_hot: { value: makeColor('a01500') },
-                u_color_cool: { value: makeColor('7c3027') },
-                u_glow_color: { value: makeColor('ff3f00') },
-                u_noise_color_1: { value: makeColor('7c3027') },
-                u_noise_color_2: { value: makeColor('ea6927') },
-                u_glow_enabled: { value: 1.0 },
-                u_noise_enabled: { value: 1.0 },
-                u_bump_enabled: { value: 1.0 },
-                u_displacement: { value: 0.00005 },
-            },
-        })),
-        updateMetaballLight: vi.fn(),
-    };
-});
+vi.mock('../rendering/metaball_material.js', () => ({
+    createMetaballMaterial: vi.fn(() => ({
+        uniforms: {
+            u_color_hot: { value: makeColor('a01500') },
+            u_color_cool: { value: makeColor('7c3027') },
+            u_glow_color: { value: makeColor('ff3f00') },
+            u_noise_color_1: { value: makeColor('7c3027') },
+            u_noise_color_2: { value: makeColor('ea6927') },
+            u_glow_enabled: { value: 1.0 },
+            u_noise_enabled: { value: 1.0 },
+            u_bump_enabled: { value: 1.0 },
+            u_displacement: { value: 0.00005 },
+        },
+    })),
+    updateMetaballLight: vi.fn(),
+}));
 
 vi.mock('../geometry/volcano_geometry.js', () => ({
     createVolcanoGeometry: vi.fn(scene => {
@@ -87,25 +89,20 @@ vi.mock('../geometry/volcano_geometry.js', () => ({
     }),
 }));
 
-vi.mock('../rendering/volcano_material.js', () => {
-    function makeColor(hex) {
-        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-    }
-    return {
-        createVolcanoMaterial: vi.fn(() => ({
-            uniforms: {
-                u_disp_scale: { value: 2.5 },
-                u_disp_freq: { value: 0.5 },
-                u_rock_color: { value: makeColor('afafaf') },
-                u_crack_color: { value: makeColor('0a0a0a') },
-                u_sun_enabled: { value: 1.0 },
-                u_sun_strength: { value: 0.06 },
-                u_sun_focus: { value: 8.0 },
-            },
-        })),
-        updateVolcanoLight: vi.fn(),
-    };
-});
+vi.mock('../rendering/volcano_material.js', () => ({
+    createVolcanoMaterial: vi.fn(() => ({
+        uniforms: {
+            u_disp_scale: { value: 2.5 },
+            u_disp_freq: { value: 0.5 },
+            u_rock_color: { value: makeColor('afafaf') },
+            u_crack_color: { value: makeColor('0a0a0a') },
+            u_sun_enabled: { value: 1.0 },
+            u_sun_strength: { value: 0.06 },
+            u_sun_focus: { value: 8.0 },
+        },
+    })),
+    updateVolcanoLight: vi.fn(),
+}));
 
 vi.mock('../objects/sun_object.js', () => ({
     createSun: vi.fn(scene => {
@@ -123,41 +120,40 @@ vi.mock('../objects/sun_object.js', () => ({
     }),
 }));
 
-const DEFAULT_SMOKE_SETTINGS = { count: 200, spread: 1.0, rise_speed: 1.0, max_count: 400 };
-
 vi.mock('../geometry/smoke_geometry.js', () => ({
     createSmokeGeometry: vi.fn(scene => {
-        const points = { position: { x: 0, y: 0, z: 0 }, visible: true };
+        const points = { position: { x: 0, y: 0, z: 0 }, visible: true, geometry: { drawRange: { start: 0, count: 0 } } };
         scene.add(points);
         return points;
     }),
-    updateSmokeGeometry: vi.fn(),
+    setSmokeDrawRange: vi.fn((points, count) => { points.geometry.drawRange = { start: 0, count }; }),
 }));
 
-vi.mock('../rendering/smoke_material.js', () => {
-    function makeColor(hex) {
-        return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-    }
-    return {
-        createSmokeMaterial: vi.fn(() => ({
-            uniforms: {
-                u_color_1: { value: makeColor('5c4534') },
-                u_color_2: { value: makeColor('cac2b4') },
-                u_color_3: { value: makeColor('d9622a') },
-                u_size: { value: 22 },
-                u_sun_color: { value: makeColor('ff1a1a') },
-                u_sun_enabled: { value: 1.0 },
-                u_sun_strength: { value: 0.06 },
-            },
-        })),
-    };
-});
+vi.mock('../rendering/smoke_material.js', () => ({
+    createSmokeMaterial: vi.fn(() => ({
+        uniforms: {
+            u_color_1: { value: makeColor('5c4534') },
+            u_color_2: { value: makeColor('cac2b4') },
+            u_color_3: { value: makeColor('d9622a') },
+            u_size: { value: 22 },
+            u_sun_color: { value: makeColor('ff1a1a') },
+            u_sun_enabled: { value: 1.0 },
+            u_sun_strength: { value: 0.06 },
+            u_time: { value: 0.0 },
+            u_plume_opacity_factor: { value: 1.0 },
+            u_spread: { value: 1.0 },
+            u_rise_speed: { value: 1.0 },
+        },
+    })),
+    updateSmokeMaterial: vi.fn(),
+}));
 
-vi.mock('../animation/smoke_animation.js', () => {
-    const settings = { count: 200, spread: 1.0, rise_speed: 1.0, max_count: 400 };
+vi.mock('../animation/smoke_particles.js', () => {
+    const settings = { ...DEFAULT_SMOKE_SETTINGS };
     return {
         settings,
-        stepSmokeAnimation: vi.fn(() => []),
+        particle_seeds: { is_ambient: new Float32Array(400) },
+        computePlumeOpacityFactor: vi.fn(eruption_intensity => (eruption_intensity === undefined ? 1.0 : eruption_intensity)),
     };
 });
 
@@ -184,8 +180,8 @@ import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
 import { updateMetaballLight } from '../rendering/metaball_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
-import { settings as mock_smoke_settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
-import { createSmokeMaterial } from '../rendering/smoke_material.js';
+import { settings as mock_smoke_settings } from '../animation/smoke_particles.js';
+import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
 import { createSun } from '../objects/sun_object.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -387,7 +383,7 @@ describe('createSceneController – smoke', () => {
         expect(controller.getMaxSmokeCount()).toBe(400);
     });
 
-    test('setSmokeCount/setSmokeSpread/setSmokeRiseSpeed update the animation settings', () => {
+    test('setSmokeCount/setSmokeSpread/setSmokeRiseSpeed update the smoke settings/material', () => {
         const controller = makeController();
         controller.setSmokeCount(80);
         controller.setSmokeSpread(1.5);
@@ -439,7 +435,7 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
-        expect(stepSmokeAnimation).toHaveBeenCalledWith(12.5, 1.0);
+        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 12.5, 1.0);
         const sun = createSun.mock.results[0].value;
         expect(sun.update).toHaveBeenCalledWith(12.5);
     });

@@ -1,29 +1,30 @@
-import { createSmokeGeometry, updateSmokeGeometry } from '../geometry/smoke_geometry.js';
-import { createSmokeMaterial } from '../rendering/smoke_material.js';
-import { settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
+import { createSmokeGeometry, setSmokeDrawRange } from '../geometry/smoke_geometry.js';
+import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
+import { settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
 import { toHexColor } from './color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 
 export function createSmoke(scene) {
     const material = createSmokeMaterial();
-    const effect = createSmokeGeometry(scene, material);
+    const effect = createSmokeGeometry(scene, material, particle_seeds);
+    setSmokeDrawRange(effect, settings.count);
 
     return {
         effect,
-        update(time, eruption_intensity) {
-            updateSmokeGeometry(effect, stepSmokeAnimation(time, eruption_intensity));
+        update(time, eruption_intensity = 1.0) {
+            updateSmokeMaterial(material, time, computePlumeOpacityFactor(eruption_intensity));
         },
 
         getVisible: () => effect.visible,
         setVisible: value => { effect.visible = value; },
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; },
+        setCount: value => { settings.count = value; setSmokeDrawRange(effect, value); },
         getMaxCount: () => settings.max_count,
-        getSpread: () => settings.spread,
-        setSpread: value => { settings.spread = value; },
-        getRiseSpeed: () => settings.rise_speed,
-        setRiseSpeed: value => { settings.rise_speed = value; },
+        getSpread: () => material.uniforms.u_spread.value,
+        setSpread: value => { material.uniforms.u_spread.value = value; },
+        getRiseSpeed: () => material.uniforms.u_rise_speed.value,
+        setRiseSpeed: value => { material.uniforms.u_rise_speed.value = value; },
 
         getColor1: () => toHexColor(material.uniforms.u_color_1.value),
         setColor1: value => material.uniforms.u_color_1.value.set(value),
