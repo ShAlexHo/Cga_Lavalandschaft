@@ -95,3 +95,21 @@ float fractal_brownian_motion(vec3 position) {
     }
     return value;
 }
+
+// fractal_brownian_motion() output is in [-1, 1]; this remaps it to [0, 1] for direct use as a
+// mix/smoothstep factor - the normalization every caller needs, so it lives here once.
+float normalized_fractal_brownian_motion(vec3 position) {
+    return fractal_brownian_motion(position) * 0.5 + 0.5;
+}
+
+// Second fractal-brownian-motion pass over a copy of `position` displaced by an extra simplex layer,
+// so the result reads as churning, higher-frequency turbulence instead of one smooth layer. Shared by
+// the lava crust (metaball) and the sun's plasma surface, which pass their own warp_strength/scale/speed.
+float warped_fractal_brownian_motion(vec3 position, float warp_strength) {
+    vec3 warped = position + warp_strength * vec3(
+        simplex_noise(position + vec3(1.7, 9.2, 0.0)),
+        simplex_noise(position + vec3(8.3, 2.8, 0.0)),
+        simplex_noise(position + vec3(0.0, 5.1, 3.4))
+    );
+    return normalized_fractal_brownian_motion(warped);
+}

@@ -48,14 +48,8 @@ void main() {
     float heat;
     if (u_noise_enabled > 0.5) {
         vec3 noise_coord = v_world_position * 0.7 + vec3(0.0, -u_time * 0.12, u_time * 0.05);
-        float n = fractal_brownian_motion(noise_coord) * 0.5 + 0.5;
-
-        vec3 warped = noise_coord + 0.4 * vec3(
-            simplex_noise(noise_coord + vec3(1.7, 9.2, 0.0)),
-            simplex_noise(noise_coord + vec3(8.3, 2.8, 0.0)),
-            simplex_noise(noise_coord + vec3(0.0, 5.1, 3.4))
-        );
-        float n2 = fractal_brownian_motion(warped) * 0.5 + 0.5;
+        float n = normalized_fractal_brownian_motion(noise_coord);
+        float n2 = warped_fractal_brownian_motion(noise_coord, 0.4);
         // smoothstep for sharp crust/glow contrast
         heat = smoothstep(0.15, 0.65, mix(n, n2, 0.5));
     } else {
@@ -68,7 +62,7 @@ void main() {
     if (u_noise_enabled > 0.5) {
         // second noise layer at different scale/speed for orange hot spots
         vec3 orange_coord = v_world_position * 1.2 + vec3(u_time * 0.07, -u_time * 0.18, 0.0);
-        float orange_n = fractal_brownian_motion(orange_coord) * 0.5 + 0.5;
+        float orange_n = normalized_fractal_brownian_motion(orange_coord);
         float orange_mask = smoothstep(0.6, 0.85, orange_n);
         color = mix(color, u_noise_color_2, orange_mask * 0.40);
     }

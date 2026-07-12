@@ -39,7 +39,7 @@ void main() {
     float sun_rim = pow(1.0 - max(dot(N, view_dir), 0.0), u_sun_focus) * sun_facing;
     float sun_diffuse = sun_wash + sun_rim;
 
-    float ash_var  = fractal_brownian_motion(v_world_position * 2.5) * 0.5 + 0.5;
+    float ash_var  = normalized_fractal_brownian_motion(v_world_position * 2.5);
     vec3 ash_color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
 
     float n0 = crack_pattern(v_world_position, u_crack_freq);

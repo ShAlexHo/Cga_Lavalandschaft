@@ -2,6 +2,7 @@ import { createSmokeGeometry, updateSmokeGeometry } from '../geometry/smoke_geom
 import { createSmokeMaterial } from '../rendering/smoke_material.js';
 import { settings, stepSmokeAnimation } from '../animation/smoke_animation.js';
 import { toHexColor } from './color_utils.js';
+import { bindSunUniforms } from './sun_uniform_utils.js';
 
 export function createSmoke(scene) {
     const material = createSmokeMaterial();
@@ -33,9 +34,6 @@ export function createSmoke(scene) {
         getParticleSize: () => material.uniforms.u_size.value,
         setParticleSize: value => { material.uniforms.u_size.value = value; },
 
-        getSunEnabled: () => material.uniforms.u_sun_enabled.value === 1.0,
-        setSunEnabled: value => { material.uniforms.u_sun_enabled.value = value ? 1.0 : 0.0; },
-        getSunStrength: () => material.uniforms.u_sun_strength.value,
-        setSunStrength: value => { material.uniforms.u_sun_strength.value = value; },
+        ...bindSunUniforms(material),
     };
 }
