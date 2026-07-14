@@ -124,3 +124,10 @@ float crack_pattern(vec3 pos, float freq, float softness) {
     );
     return pow(abs(simplex_noise((pos + warp * 1.2) * freq)), softness);
 }
+
+// Blends towards a second crack color at a much lower frequency than the crack pattern itself, so
+// different crack regions read as more red or more yellow instead of one flat, uniform tone. Shared
+// by the ground and volcano terrain, which pass their own crack_color/crack_color_2 pair.
+vec3 blend_crack_colors(vec3 crack_color, vec3 crack_color_2, vec3 world_position) {
+    return mix(crack_color, crack_color_2, normalized_fractal_brownian_motion(world_position * 0.15));
+}

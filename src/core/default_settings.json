@@ -19,7 +19,7 @@
   "groundVisible": true,
   "groundColor": "#211616",
   "groundCrackColor": "#ff5b00",
-  "groundCrackColor2": "#e54400",
+  "groundCrackColor2": "#e5a400",
   "groundCrackSoftness": 0.25,
   "groundDisplacementScale": 1.26,
   "groundDisplacementFrequency": 0.1,

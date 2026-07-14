@@ -20,7 +20,7 @@ export function createGroundMaterial() {
             u_crack_softness: { value: GROUND_DEFAULT_CRACK_SOFTNESS },
             u_rock_color: { value: new THREE.Color(0x211616) },
             u_crack_color: { value: new THREE.Color(0xff5b00) },
-            u_crack_color_2: { value: new THREE.Color(0xe54400) },
+            u_crack_color_2: { value: new THREE.Color(0xe5a400) },
         },
         side: THREE.DoubleSide,
     });

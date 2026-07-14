@@ -36,9 +36,7 @@ void main() {
 
     float n0 = crack_pattern(v_world_position, u_crack_freq, 0.18);
     float crack_mask = smoothstep(0.0, 0.18, n0);
-    // Blend towards a second crack color at a much lower frequency than the crack pattern itself, so
-    // different crack regions read as more red or more yellow instead of one flat, uniform tone.
-    vec3 crack_color = mix(u_crack_color, u_crack_color_2, normalized_fractal_brownian_motion(v_world_position * 0.15));
+    vec3 crack_color = blend_crack_colors(u_crack_color, u_crack_color_2, v_world_position);
     vec3 color = mix(crack_color, ash_color, crack_mask);
 
     vec3 halfway_dir = normalize(normalize(u_light_position - v_view_position) + view_dir);
