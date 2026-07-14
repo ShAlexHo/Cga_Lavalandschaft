@@ -15,8 +15,8 @@ vi.mock('../../geometry/volcano_geometry.js', () => ({
 vi.mock('../../rendering/volcano_material.js', () => ({
     createVolcanoMaterial: vi.fn(() => ({
         uniforms: {
-            u_disp_scale: { value: 2.5 },
-            u_disp_freq: { value: 0.5 },
+            u_displacement_scale: { value: 2.5 },
+            u_displacement_frequency: { value: 0.5 },
             u_rock_color: { value: makeColor('afafaf') },
             u_crack_color: { value: makeColor('0a0a0a') },
             u_crack_color_2: { value: makeColor('050100') },

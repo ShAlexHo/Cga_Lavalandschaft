@@ -1,1 +1,3 @@
-export const toHexColor = color => '#' + color.getHexString();
+export function toHexColor(color) {
+    return '#' + color.getHexString();
+}

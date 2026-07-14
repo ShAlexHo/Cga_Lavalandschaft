@@ -49,9 +49,9 @@ describe('createGroundMaterial', () => {
             'u_sun_enabled',
             'u_sun_strength',
             'u_sun_focus',
-            'u_disp_scale',
-            'u_disp_freq',
-            'u_crack_freq',
+            'u_displacement_scale',
+            'u_displacement_frequency',
+            'u_crack_frequency',
             'u_crack_softness',
             'u_rock_color',
             'u_crack_color',
@@ -75,13 +75,13 @@ describe('createGroundMaterial', () => {
 
     test('displacement uniforms start at their config defaults', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_disp_scale.value).toBe(GROUND_DEFAULT_DISPLACEMENT_SCALE);
-        expect(material.uniforms.u_disp_freq.value).toBe(GROUND_DEFAULT_DISPLACEMENT_FREQUENCY);
+        expect(material.uniforms.u_displacement_scale.value).toBe(GROUND_DEFAULT_DISPLACEMENT_SCALE);
+        expect(material.uniforms.u_displacement_frequency.value).toBe(GROUND_DEFAULT_DISPLACEMENT_FREQUENCY);
     });
 
-    test('u_crack_freq starts at GROUND_CRACK_FREQUENCY', () => {
+    test('u_crack_frequency starts at GROUND_CRACK_FREQUENCY', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_crack_freq.value).toBe(GROUND_CRACK_FREQUENCY);
+        expect(material.uniforms.u_crack_frequency.value).toBe(GROUND_CRACK_FREQUENCY);
     });
 
     test('u_crack_softness starts at GROUND_DEFAULT_CRACK_SOFTNESS', () => {

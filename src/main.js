@@ -25,22 +25,22 @@ const camera = camera_controller.camera;
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const strength = 0.8;
-const radius = 0.5;
-const threshold = 0.3;
+const BLOOM_STRENGTH = 0.8;
+const BLOOM_RADIUS = 0.5;
+const BLOOM_THRESHOLD = 0.3;
 const bloom_pass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    strength,
-    radius,
-    threshold
+    BLOOM_STRENGTH,
+    BLOOM_RADIUS,
+    BLOOM_THRESHOLD
 );
-const orange = new THREE.Vector3(1.0, 0.45, 0.05);
-bloom_pass.bloomTintColors.fill(orange);
+const BLOOM_TINT_COLOR = new THREE.Vector3(1.0, 0.45, 0.05);
+bloom_pass.bloomTintColors.fill(BLOOM_TINT_COLOR);
 composer.addPass(bloom_pass);
 
 const clock = new THREE.Clock();
 
-const controller = createSceneController({ scene, camera, bloomPass: bloom_pass });
+const controller = createSceneController({ scene, camera, bloom_pass });
 
 setupGui(controller);
 

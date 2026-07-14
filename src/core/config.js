@@ -19,7 +19,7 @@ export const GROUND_SEGMENTS = 160; // resolution the displacement noise is samp
 export const GROUND_CRACK_FREQUENCY = 0.2; // crack-color frequency (tinting mask), not yet exposed in the GUI - lower than the volcano's since the ground spans a much larger area
 export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
-export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.25; // crack_pattern()'s pow() exponent - higher reads as a softer, more washed-out band instead of a crisp thin line
+export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.25; // crackPattern()'s pow() exponent - higher reads as a softer, more washed-out band instead of a crisp thin line
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 

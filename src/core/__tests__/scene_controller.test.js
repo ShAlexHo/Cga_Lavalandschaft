@@ -41,8 +41,8 @@ vi.mock('three', () => {
 vi.mock('../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({
         uniforms: {
-            u_disp_scale: { value: 0.6 },
-            u_disp_freq: { value: 0.08 },
+            u_displacement_scale: { value: 0.6 },
+            u_displacement_frequency: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
@@ -102,8 +102,8 @@ vi.mock('../geometry/volcano_geometry.js', () => ({
 vi.mock('../rendering/volcano_material.js', () => ({
     createVolcanoMaterial: vi.fn(() => ({
         uniforms: {
-            u_disp_scale: { value: 2.5 },
-            u_disp_freq: { value: 0.5 },
+            u_displacement_scale: { value: 2.5 },
+            u_displacement_frequency: { value: 0.5 },
             u_rock_color: { value: makeColor('afafaf') },
             u_crack_color: { value: makeColor('0a0a0a') },
             u_crack_color_2: { value: makeColor('050100') },
@@ -204,7 +204,7 @@ function makeCamera() { return { matrixWorldInverse: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
 function makeController() {
-    return createSceneController({ scene: makeScene(), camera: makeCamera(), bloomPass: makeBloomPass() });
+    return createSceneController({ scene: makeScene(), camera: makeCamera(), bloom_pass: makeBloomPass() });
 }
 
 beforeEach(() => {
@@ -464,7 +464,7 @@ describe('createSceneController – smoke', () => {
 
     test('setOffsetX/Z also move the smoke effect', () => {
         const scene = makeScene();
-        const controller = createSceneController({ scene, camera: makeCamera(), bloomPass: makeBloomPass() });
+        const controller = createSceneController({ scene, camera: makeCamera(), bloom_pass: makeBloomPass() });
         controller.setOffsetX(3);
         controller.setOffsetZ(-4);
         expect(controller.getOffsetX()).toBe(3);
@@ -478,8 +478,8 @@ describe('createSceneController – update()', () => {
     test('delegates to stepMetaballAnimation, updateMetaballLight and updateVolcanoLight with the right arguments', () => {
         const scene = makeScene();
         const camera = makeCamera();
-        const bloomPass = makeBloomPass();
-        const controller = createSceneController({ scene, camera, bloomPass });
+        const bloom_pass = makeBloomPass();
+        const controller = createSceneController({ scene, camera, bloom_pass });
 
         controller.update(12.5);
 

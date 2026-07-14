@@ -21,8 +21,8 @@ vi.mock('three', () => {
 vi.mock('../../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({
         uniforms: {
-            u_disp_scale: { value: 0.6 },
-            u_disp_freq: { value: 0.08 },
+            u_displacement_scale: { value: 0.6 },
+            u_displacement_frequency: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },

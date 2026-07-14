@@ -4,9 +4,9 @@ import { createMetaballField } from './objects/metaball_field_object.js';
 import { createSmoke } from './objects/smoke_object.js';
 import { createSun } from './objects/sun_object.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
-import default_settings from './default_settings.json';
+import DEFAULT_SETTINGS from './default_settings.json';
 
-export function createSceneController({ scene, camera, bloomPass }) {
+export function createSceneController({ scene, camera, bloom_pass }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
@@ -140,16 +140,16 @@ export function createSceneController({ scene, camera, bloomPass }) {
         setOffsetZ: value => { position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; smoke.effect.position.z = value; },
 
         getBloom: () => ({
-            enabled: bloomPass.enabled,
-            strength: bloomPass.strength,
-            radius: bloomPass.radius,
-            threshold: bloomPass.threshold,
+            enabled: bloom_pass.enabled,
+            strength: bloom_pass.strength,
+            radius: bloom_pass.radius,
+            threshold: bloom_pass.threshold,
         }),
-        setBloom: partial => Object.assign(bloomPass, partial),
+        setBloom: partial => Object.assign(bloom_pass, partial),
 
         getSnapshot,
         applySnapshot,
-        resetToDefaults: () => applySnapshot(default_settings),
+        resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
     };
 
     // Single source of truth for every persisted/snapshot-able setting - getSnapshot() and the

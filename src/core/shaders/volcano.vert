@@ -1,40 +1,40 @@
-uniform float u_disp_scale;
-uniform float u_disp_freq;
+uniform float u_displacement_scale;
+uniform float u_displacement_frequency;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
 varying vec3 v_normal;
 
-float crack_layer(vec3 pos, float freq) {
+float crackLayer(vec3 position, float frequency) {
     vec3 warp = vec3(
-        simplex_noise(pos * freq * 0.6 + vec3(1.7, 9.2, 0.0)),
-        simplex_noise(pos * freq * 0.6 + vec3(8.3, 2.8, 0.0)),
-        simplex_noise(pos * freq * 0.6 + vec3(3.1, 0.0, 5.4))
+        simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
+        simplexNoise(position * frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
+        simplexNoise(position * frequency * 0.6 + vec3(3.1, 0.0, 5.4))
     );
-    float n = abs(simplex_noise((pos + warp * 1.2) * freq));
-    return pow(n, 0.18);
+    float noise_value = abs(simplexNoise((position + warp * 1.2) * frequency));
+    return pow(noise_value, 0.18);
 }
 
-float crack_noise(vec3 pos, float freq) {
-    float v = 0.0, a = 1.0, w = 0.0;
+float crackNoise(vec3 position, float frequency) {
+    float accumulated_noise = 0.0, amplitude = 1.0, weight_total = 0.0;
     for (int i = 0; i < 3; i++) {
-        v += crack_layer(pos, freq) * a;
-        w += a;
-        pos  *= 2.1;
-        a    *= 0.45;
+        accumulated_noise += crackLayer(position, frequency) * amplitude;
+        weight_total += amplitude;
+        position  *= 2.1;
+        amplitude *= 0.45;
     }
-    return v / w;
+    return accumulated_noise / weight_total;
 }
 
 void main() {
-    vec3 world_pos = (modelMatrix * vec4(position, 1.0)).xyz;
+    vec3 world_position = (modelMatrix * vec4(position, 1.0)).xyz;
 
-    float disp = -max(0.0, 0.85 - crack_noise(world_pos, u_disp_freq));
-    vec3 displaced = position + normal * disp * u_disp_scale;
+    float displacement = -max(0.0, 0.85 - crackNoise(world_position, u_displacement_frequency));
+    vec3 displaced = position + normal * displacement * u_displacement_scale;
 
     v_world_position = (modelMatrix * vec4(displaced, 1.0)).xyz;
-    vec4 view_pos = modelViewMatrix * vec4(displaced, 1.0);
-    v_view_position = view_pos.xyz;
+    vec4 view_position = modelViewMatrix * vec4(displaced, 1.0);
+    v_view_position = view_position.xyz;
     v_normal = normalMatrix * normal;
-    gl_Position = projectionMatrix * view_pos;
+    gl_Position = projectionMatrix * view_position;
 }

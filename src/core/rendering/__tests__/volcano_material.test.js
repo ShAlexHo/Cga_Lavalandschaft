@@ -48,9 +48,9 @@ describe('createVolcanoMaterial', () => {
             'u_sun_enabled',
             'u_sun_strength',
             'u_sun_focus',
-            'u_disp_scale',
-            'u_disp_freq',
-            'u_crack_freq',
+            'u_displacement_scale',
+            'u_displacement_frequency',
+            'u_crack_frequency',
             'u_rock_color',
             'u_crack_color',
             'u_crack_color_2',
@@ -60,9 +60,9 @@ describe('createVolcanoMaterial', () => {
         });
     });
 
-    test('u_disp_scale starts at 2.5', () => {
+    test('u_displacement_scale starts at 2.5', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_disp_scale.value).toBe(2.5);
+        expect(material.uniforms.u_displacement_scale.value).toBe(2.5);
     });
 
     test('u_sun_strength starts at 0.06 and u_sun_focus starts at 8.0', () => {
