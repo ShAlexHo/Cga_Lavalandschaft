@@ -53,6 +53,7 @@ describe('createVolcanoMaterial', () => {
             'u_crack_freq',
             'u_rock_color',
             'u_crack_color',
+            'u_crack_color_2',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);

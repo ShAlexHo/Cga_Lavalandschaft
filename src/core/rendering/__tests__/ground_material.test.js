@@ -42,7 +42,7 @@ import { GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAU
 describe('createGroundMaterial', () => {
     test('contains all expected uniforms', () => {
         const material = createGroundMaterial();
-        const expected_keys = ['u_light_position', 'u_disp_scale', 'u_disp_freq', 'u_crack_freq', 'u_crack_softness', 'u_rock_color', 'u_crack_color'];
+        const expected_keys = ['u_light_position', 'u_disp_scale', 'u_disp_freq', 'u_crack_freq', 'u_crack_softness', 'u_rock_color', 'u_crack_color', 'u_crack_color_2'];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
         });

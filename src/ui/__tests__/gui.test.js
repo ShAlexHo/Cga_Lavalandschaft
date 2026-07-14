@@ -69,6 +69,8 @@ function makeFacade(overrides = {}) {
         setGroundColor: vi.fn(),
         getGroundCrackColor: vi.fn(() => '#050505'),
         setGroundCrackColor: vi.fn(),
+        getGroundCrackColor2: vi.fn(() => '#ffaa00'),
+        setGroundCrackColor2: vi.fn(),
         getGroundCrackSoftness: vi.fn(() => 0.25),
         setGroundCrackSoftness: vi.fn(),
         getGroundDisplacementScale: vi.fn(() => 0.6),
@@ -84,6 +86,8 @@ function makeFacade(overrides = {}) {
         setVolcanoRockColor: vi.fn(),
         getVolcanoCrackColor: vi.fn(() => '#0a0a0a'),
         setVolcanoCrackColor: vi.fn(),
+        getVolcanoCrackColor2: vi.fn(() => '#050100'),
+        setVolcanoCrackColor2: vi.fn(),
         getVolcanoDisplacementScale: vi.fn(() => 2.5),
         setVolcanoDisplacementScale: vi.fn(),
         getVolcanoDisplacementFrequency: vi.fn(() => 0.5),
@@ -292,6 +296,7 @@ describe('setupGui – Boden folder', () => {
         ['visible', 'setGroundVisible', false],
         ['color', 'setGroundColor', '#550000'],
         ['crack_color', 'setGroundCrackColor', '#000001'],
+        ['crack_color_2', 'setGroundCrackColor2', '#000002'],
         ['crack_softness', 'setGroundCrackSoftness', 0.6],
         ['displacement_scale', 'setGroundDisplacementScale', 1.2],
         ['displacement_frequency', 'setGroundDisplacementFrequency', 0.2],
@@ -314,6 +319,7 @@ describe('setupGui – Vulkan folder', () => {
         ['displacement_frequency', 'setVolcanoDisplacementFrequency', 0.9],
         ['rock_color', 'setVolcanoRockColor', '#999999'],
         ['crack_color', 'setVolcanoCrackColor', '#000001'],
+        ['crack_color_2', 'setVolcanoCrackColor2', '#000002'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();

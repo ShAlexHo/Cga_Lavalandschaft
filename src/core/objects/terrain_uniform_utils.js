@@ -9,9 +9,11 @@ export function bindDisplacementUniforms(material) {
     };
 }
 
-export function bindCrackColorUniform(material) {
+export function bindCrackColorUniforms(material) {
     return {
         getCrackColor: () => toHexColor(material.uniforms.u_crack_color.value),
         setCrackColor: value => material.uniforms.u_crack_color.value.set(value),
+        getCrackColor2: () => toHexColor(material.uniforms.u_crack_color_2.value),
+        setCrackColor2: value => material.uniforms.u_crack_color_2.value.set(value),
     };
 }

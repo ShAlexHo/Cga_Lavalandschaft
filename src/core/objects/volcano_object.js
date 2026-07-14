@@ -2,7 +2,7 @@ import { createVolcanoGeometry } from '../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { toHexColor } from './color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
-import { bindDisplacementUniforms, bindCrackColorUniform } from './terrain_uniform_utils.js';
+import { bindDisplacementUniforms, bindCrackColorUniforms } from './terrain_uniform_utils.js';
 
 export function createVolcano(scene) {
     const material = createVolcanoMaterial();
@@ -18,7 +18,7 @@ export function createVolcano(scene) {
         setVisible: value => { mesh.visible = value; },
         getRockColor: () => toHexColor(material.uniforms.u_rock_color.value),
         setRockColor: value => material.uniforms.u_rock_color.value.set(value),
-        ...bindCrackColorUniform(material),
+        ...bindCrackColorUniforms(material),
         ...bindDisplacementUniforms(material),
         ...bindSunUniforms(material),
         getSunFocus: () => material.uniforms.u_sun_focus.value,

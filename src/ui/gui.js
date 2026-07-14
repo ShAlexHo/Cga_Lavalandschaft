@@ -110,6 +110,7 @@ export function setupGui(facade) {
         visible: facade.getGroundVisible,
         color: facade.getGroundColor,
         crack_color: facade.getGroundCrackColor,
+        crack_color_2: facade.getGroundCrackColor2,
         crack_softness: facade.getGroundCrackSoftness,
         displacement_scale: facade.getGroundDisplacementScale,
         displacement_frequency: facade.getGroundDisplacementFrequency,
@@ -124,6 +125,9 @@ export function setupGui(facade) {
     bind(ground_folder.addColor(ground_parameters, 'crack_color'))
         .name('Rissfarbe')
         .onChange(value => facade.setGroundCrackColor(value));
+    bind(ground_folder.addColor(ground_parameters, 'crack_color_2'))
+        .name('Rissfarbe 2')
+        .onChange(value => facade.setGroundCrackColor2(value));
     bind(ground_folder.add(ground_parameters, 'crack_softness', 0.1, 1.0, 0.01))
         .name('Rissweichheit')
         .onChange(value => facade.setGroundCrackSoftness(value));
@@ -145,6 +149,7 @@ export function setupGui(facade) {
         displacement_frequency: facade.getVolcanoDisplacementFrequency,
         rock_color: facade.getVolcanoRockColor,
         crack_color: facade.getVolcanoCrackColor,
+        crack_color_2: facade.getVolcanoCrackColor2,
     });
     bind(volcano_folder.add(volcano_parameters, 'visible'))
         .name('Sichtbar')
@@ -161,6 +166,9 @@ export function setupGui(facade) {
     bind(volcano_folder.addColor(volcano_parameters, 'crack_color'))
         .name('Rissfarbe')
         .onChange(value => facade.setVolcanoCrackColor(value));
+    bind(volcano_folder.addColor(volcano_parameters, 'crack_color_2'))
+        .name('Rissfarbe 2')
+        .onChange(value => facade.setVolcanoCrackColor2(value));
     volcano_folder.open();
 
     const sun_folder = gui.addFolder('Sonne');

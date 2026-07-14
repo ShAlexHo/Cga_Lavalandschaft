@@ -45,6 +45,7 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_disp_freq: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
+            u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_softness: { value: 0.25 },
         },
     })),
@@ -102,6 +103,7 @@ vi.mock('../rendering/volcano_material.js', () => ({
             u_disp_freq: { value: 0.5 },
             u_rock_color: { value: makeColor('afafaf') },
             u_crack_color: { value: makeColor('0a0a0a') },
+            u_crack_color_2: { value: makeColor('050100') },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -171,9 +173,9 @@ vi.mock('../default_settings.json', () => ({
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
         displacementEnabled: false, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
-        groundCrackColor: '#333333', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
+        groundCrackColor: '#333333', groundCrackColor2: '#444400', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
-        volcanoRockColor: '#777777', volcanoCrackColor: '#888888',
+        volcanoRockColor: '#777777', volcanoCrackColor: '#888888', volcanoCrackColor2: '#999900',
         sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
         smokeVisible: false, smokeCount: 20, smokeSpread: 0.5, smokeRiseSpeed: 0.6,
         smokeColor1: '#999999', smokeColor2: '#dddddd', smokeColor3: '#eeeeee', smokeParticleSize: 30,
@@ -281,6 +283,9 @@ describe('createSceneController – ground', () => {
         controller.setGroundCrackColor('#321321');
         expect(controller.getGroundCrackColor()).toBe('#321321');
 
+        controller.setGroundCrackColor2('#456456');
+        expect(controller.getGroundCrackColor2()).toBe('#456456');
+
         controller.setGroundCrackSoftness(0.6);
         expect(controller.getGroundCrackSoftness()).toBe(0.6);
 
@@ -332,9 +337,9 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
-            groundCrackColor: '#050505', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
+            groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
-            volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101',
+            volcanoRockColor: '#b0b0b0', volcanoCrackColor: '#010101', volcanoCrackColor2: '#020200',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
             smokeVisible: false, smokeCount: 42, smokeSpread: 0.8, smokeRiseSpeed: 1.4,
             smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45,

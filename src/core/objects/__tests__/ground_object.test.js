@@ -25,6 +25,7 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_disp_freq: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
+            u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_softness: { value: 0.25 },
         },
     })),
@@ -74,6 +75,9 @@ describe('createGround', () => {
 
         ground.setCrackColor('#111111');
         expect(ground.getCrackColor()).toBe('#111111');
+
+        ground.setCrackColor2('#222222');
+        expect(ground.getCrackColor2()).toBe('#222222');
 
         ground.setCrackSoftness(0.6);
         expect(ground.getCrackSoftness()).toBe(0.6);

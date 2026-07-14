@@ -23,8 +23,9 @@ export function createVolcanoMaterial() {
             u_disp_scale: { value: 2.5 },
             u_disp_freq: { value: 0.5 },
             u_crack_freq: { value: VOLCANO_CRACK_FREQUENCY },
-            u_rock_color: { value: new THREE.Color(0xafafaf) },
+            u_rock_color: { value: new THREE.Color(0x9b9696) },
             u_crack_color: { value: new THREE.Color(0.003, 0.003, 0.003) },
+            u_crack_color_2: { value: new THREE.Color(0.02, 0.004, 0.0) },
         },
         side: THREE.DoubleSide,
     });

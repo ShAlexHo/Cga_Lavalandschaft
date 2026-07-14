@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
 import { toHexColor } from './color_utils.js';
-import { bindDisplacementUniforms, bindCrackColorUniform } from './terrain_uniform_utils.js';
+import { bindDisplacementUniforms, bindCrackColorUniforms } from './terrain_uniform_utils.js';
 import { GROUND_SIZE, GROUND_SEGMENTS } from '../config.js';
 
 export function createGround(scene) {
@@ -23,7 +23,7 @@ export function createGround(scene) {
         setColor: value => material.uniforms.u_rock_color.value.set(value),
         getCrackSoftness: () => material.uniforms.u_crack_softness.value,
         setCrackSoftness: value => { material.uniforms.u_crack_softness.value = value; },
-        ...bindCrackColorUniform(material),
+        ...bindCrackColorUniforms(material),
         ...bindDisplacementUniforms(material),
     };
 }
