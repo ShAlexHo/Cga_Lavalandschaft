@@ -27,6 +27,9 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_softness: { value: 0.25 },
+            u_sun_enabled: { value: 1.0 },
+            u_sun_strength: { value: 0.06 },
+            u_sun_focus: { value: 8.0 },
         },
     })),
     updateGroundLight: vi.fn(),
@@ -87,5 +90,20 @@ describe('createGround', () => {
 
         ground.setDisplacementFrequency(0.3);
         expect(ground.getDisplacementFrequency()).toBe(0.3);
+
+        ground.setSunStrength(0.08);
+        expect(ground.getSunStrength()).toBe(0.08);
+
+        ground.setSunFocus(7.0);
+        expect(ground.getSunFocus()).toBe(7.0);
+    });
+
+    test('getSunEnabled/setSunEnabled toggle the sun tint uniform', () => {
+        const ground = createGround(makeScene());
+        expect(ground.getSunEnabled()).toBe(true);
+        ground.setSunEnabled(false);
+        expect(ground.getSunEnabled()).toBe(false);
+        ground.setSunEnabled(true);
+        expect(ground.getSunEnabled()).toBe(true);
     });
 });

@@ -42,10 +42,35 @@ import { GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAU
 describe('createGroundMaterial', () => {
     test('contains all expected uniforms', () => {
         const material = createGroundMaterial();
-        const expected_keys = ['u_light_position', 'u_disp_scale', 'u_disp_freq', 'u_crack_freq', 'u_crack_softness', 'u_rock_color', 'u_crack_color', 'u_crack_color_2'];
+        const expected_keys = [
+            'u_light_position',
+            'u_sun_position',
+            'u_sun_color',
+            'u_sun_enabled',
+            'u_sun_strength',
+            'u_sun_focus',
+            'u_disp_scale',
+            'u_disp_freq',
+            'u_crack_freq',
+            'u_crack_softness',
+            'u_rock_color',
+            'u_crack_color',
+            'u_crack_color_2',
+        ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
         });
+    });
+
+    test('u_sun_strength starts at 0.06 and u_sun_focus starts at 8.0', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
+        expect(material.uniforms.u_sun_focus.value).toBe(8.0);
+    });
+
+    test('u_sun_enabled starts at 1.0', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
     });
 
     test('displacement uniforms start at their config defaults', () => {
@@ -67,7 +92,12 @@ describe('createGroundMaterial', () => {
 
 describe('updateGroundLight', () => {
     function makeMaterial() {
-        return { uniforms: { u_light_position: { value: { copy: vi.fn() } } } };
+        return {
+            uniforms: {
+                u_light_position: { value: { copy: vi.fn() } },
+                u_sun_position: { value: { copy: vi.fn() } },
+            },
+        };
     }
 
     const mock_camera = { matrixWorldInverse: {} };
@@ -76,5 +106,11 @@ describe('updateGroundLight', () => {
         const material = makeMaterial();
         updateGroundLight(material, mock_camera);
         expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
+    });
+
+    test('calls copy() on u_sun_position.value', () => {
+        const material = makeMaterial();
+        updateGroundLight(material, mock_camera);
+        expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
     });
 });

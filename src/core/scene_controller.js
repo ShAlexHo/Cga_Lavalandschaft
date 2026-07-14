@@ -108,11 +108,11 @@ export function createSceneController({ scene, camera, bloomPass }) {
         setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
 
         getSunVisible: () => sun.getVisible(),
-        setSunVisible: value => { sun.setVisible(value); volcano.setSunEnabled(value); smoke.setSunEnabled(value); },
+        setSunVisible: value => { sun.setVisible(value); ground.setSunEnabled(value); volcano.setSunEnabled(value); smoke.setSunEnabled(value); },
         getSunStrength: () => volcano.getSunStrength(),
-        setSunStrength: value => { volcano.setSunStrength(value); smoke.setSunStrength(value); },
+        setSunStrength: value => { ground.setSunStrength(value); volcano.setSunStrength(value); smoke.setSunStrength(value); },
         getSunFocus: () => volcano.getSunFocus(),
-        setSunFocus: value => volcano.setSunFocus(value),
+        setSunFocus: value => { ground.setSunFocus(value); volcano.setSunFocus(value); },
 
         getSmokeVisible: () => smoke.getVisible(),
         setSmokeVisible: value => smoke.setVisible(value),
