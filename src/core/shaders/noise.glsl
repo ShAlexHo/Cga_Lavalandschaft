@@ -114,15 +114,24 @@ float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     return normalizedFractalBrownianMotion(warped);
 }
 
-// abs() folds the noise around zero into a valley; `softness` (the pow() exponent) controls whether
-// that reads as a thin crisp line (low, e.g. the volcano's 0.18) or a wide washed-out band (high).
-float crackPattern(vec3 position, float frequency, float softness) {
+// `crack_width` is a flat, solid crack region around the noise's zero-crossing; only its outer 15%
+// blends into rock, so bigger cracks stay solid instead of blurring throughout. `frequency` is itself
+// modulated by a slow noise field so crack size varies across the terrain rather than being uniform.
+float crackPattern(vec3 position, float frequency, float crack_width) {
+    const float FREQUENCY_MODULATION_BASE  = 0.6;
+    const float FREQUENCY_MODULATION_RANGE = 0.8;
+    const float CRACK_EDGE_RATIO = 0.15;
+
+    float scale_variation = simplexNoise(position * 0.05) * 0.5 + 0.5;
+    float local_frequency = frequency * (FREQUENCY_MODULATION_BASE + FREQUENCY_MODULATION_RANGE * scale_variation);
     vec3 warp = vec3(
-        simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
-        simplexNoise(position * frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
-        simplexNoise(position * frequency * 0.6 + vec3(3.1, 0.0, 5.4))
+        simplexNoise(position * local_frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
+        simplexNoise(position * local_frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
+        simplexNoise(position * local_frequency * 0.6 + vec3(3.1, 0.0, 5.4))
     );
-    return pow(abs(simplexNoise((position + warp * 1.2) * frequency)), softness);
+    float distance_from_crack = abs(simplexNoise((position + warp * 1.2) * local_frequency));
+    float edge = crack_width * CRACK_EDGE_RATIO;
+    return smoothstep(crack_width - edge, crack_width + edge, distance_from_crack);
 }
 
 // Blends towards a second crack color at a much lower frequency than the crack pattern itself, so

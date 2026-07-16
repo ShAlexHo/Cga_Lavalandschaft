@@ -128,7 +128,7 @@ export function setupGui(facade) {
     bind(ground_folder.addColor(ground_parameters, 'crack_color_2'))
         .name('Rissfarbe 2')
         .onChange(value => facade.setGroundCrackColor2(value));
-    bind(ground_folder.add(ground_parameters, 'crack_softness', 0.1, 1.0, 0.01))
+    bind(ground_folder.add(ground_parameters, 'crack_softness', 0.001, 1.0, 0.001))
         .name('Rissweichheit')
         .onChange(value => facade.setGroundCrackSoftness(value));
     bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))

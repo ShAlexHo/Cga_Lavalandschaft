@@ -27,8 +27,7 @@ void main() {
     float ash_var  = normalizedFractalBrownianMotion(v_world_position * 2.5);
     vec3 ash_color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
 
-    float crack_noise_sample = crackPattern(v_world_position, u_crack_frequency, 0.18);
-    float crack_mask = smoothstep(0.0, 0.18, crack_noise_sample);
+    float crack_mask = crackPattern(v_world_position, u_crack_frequency, 0.05);
     vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, v_world_position);
     vec3 color = mix(crack_color, ash_color, crack_mask);
 
