@@ -18,8 +18,6 @@ vi.mock('../../rendering/volcano_material.js', () => ({
             u_displacement_scale: { value: 2.5 },
             u_displacement_frequency: { value: 0.5 },
             u_rock_color: { value: makeColor('afafaf') },
-            u_crack_color: { value: makeColor('0a0a0a') },
-            u_crack_color_2: { value: makeColor('050100') },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -65,12 +63,6 @@ describe('createVolcano', () => {
 
         volcano.setRockColor('#123456');
         expect(volcano.getRockColor()).toBe('#123456');
-
-        volcano.setCrackColor('#654321');
-        expect(volcano.getCrackColor()).toBe('#654321');
-
-        volcano.setCrackColor2('#111222');
-        expect(volcano.getCrackColor2()).toBe('#111222');
 
         volcano.setDisplacementScale(3.3);
         expect(volcano.getDisplacementScale()).toBe(3.3);

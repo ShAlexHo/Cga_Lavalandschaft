@@ -84,10 +84,6 @@ function makeFacade(overrides = {}) {
         setVolcanoVisible: vi.fn(),
         getVolcanoRockColor: vi.fn(() => '#afafaf'),
         setVolcanoRockColor: vi.fn(),
-        getVolcanoCrackColor: vi.fn(() => '#0a0a0a'),
-        setVolcanoCrackColor: vi.fn(),
-        getVolcanoCrackColor2: vi.fn(() => '#050100'),
-        setVolcanoCrackColor2: vi.fn(),
         getVolcanoDisplacementScale: vi.fn(() => 2.5),
         setVolcanoDisplacementScale: vi.fn(),
         getVolcanoDisplacementFrequency: vi.fn(() => 0.5),
@@ -318,8 +314,6 @@ describe('setupGui – Vulkan folder', () => {
         ['displacement_scale', 'setVolcanoDisplacementScale', 3.2],
         ['displacement_frequency', 'setVolcanoDisplacementFrequency', 0.9],
         ['rock_color', 'setVolcanoRockColor', '#999999'],
-        ['crack_color', 'setVolcanoCrackColor', '#000001'],
-        ['crack_color_2', 'setVolcanoCrackColor2', '#000002'],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();

@@ -16,7 +16,7 @@ export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
 
 export const GROUND_SIZE = 80;
 export const GROUND_SEGMENTS = 160; // resolution the displacement noise is sampled at - needs to be well above the default 1x1 plane for bumps to read as terrain rather than a tilted flat tile
-export const GROUND_CRACK_FREQUENCY = 0.1; // crack-color frequency, not yet exposed in the GUI
+export const GROUND_CRACK_FREQUENCY = 0.06; // crack-color frequency, not yet exposed in the GUI - lower means fewer, more spaced-out cracks
 export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
 export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.001; // crackPattern()'s crack_width
@@ -52,7 +52,6 @@ export const VOLCANO_PROFILE = [
 export const VOLCANO_PROFILE_SUBDIVISIONS = 24;
 export const VOLCANO_LATHE_SEGMENTS = 96;
 export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
-export const VOLCANO_CRACK_FREQUENCY = 1.0; // crack-color frequency (tinting mask), not yet exposed in the GUI
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────
 

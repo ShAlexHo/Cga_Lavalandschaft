@@ -148,8 +148,6 @@ export function setupGui(facade) {
         displacement_scale: facade.getVolcanoDisplacementScale,
         displacement_frequency: facade.getVolcanoDisplacementFrequency,
         rock_color: facade.getVolcanoRockColor,
-        crack_color: facade.getVolcanoCrackColor,
-        crack_color_2: facade.getVolcanoCrackColor2,
     });
     bind(volcano_folder.add(volcano_parameters, 'visible'))
         .name('Sichtbar')
@@ -163,12 +161,6 @@ export function setupGui(facade) {
     bind(volcano_folder.addColor(volcano_parameters, 'rock_color'))
         .name('Felsfarbe')
         .onChange(value => facade.setVolcanoRockColor(value));
-    bind(volcano_folder.addColor(volcano_parameters, 'crack_color'))
-        .name('Rissfarbe')
-        .onChange(value => facade.setVolcanoCrackColor(value));
-    bind(volcano_folder.addColor(volcano_parameters, 'crack_color_2'))
-        .name('Rissfarbe 2')
-        .onChange(value => facade.setVolcanoCrackColor2(value));
     volcano_folder.open();
 
     const sun_folder = gui.addFolder('Sonne');
