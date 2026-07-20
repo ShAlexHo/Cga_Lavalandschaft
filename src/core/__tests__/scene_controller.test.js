@@ -107,7 +107,7 @@ vi.mock('../rendering/volcano_material.js', () => ({
 vi.mock('../objects/sun_object.js', () => ({
     createSun: vi.fn(scene => {
         const state = { visible: true };
-        const light = { visible: true };
+        const light = { visible: true, position: { x: 12, y: 10, z: -30 } };
         const mesh = { visible: true };
         scene.add(light, mesh);
         return {
@@ -435,8 +435,9 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
-        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 12.5, 1.0);
         const sun = createSun.mock.results[0].value;
+        expect(updateVolcanoLight.mock.calls[0][2]).toBe(sun.light.position);
+        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 12.5, 1.0);
         expect(sun.update).toHaveBeenCalledWith(12.5);
     });
 

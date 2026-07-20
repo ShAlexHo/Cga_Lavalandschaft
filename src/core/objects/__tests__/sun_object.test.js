@@ -42,7 +42,10 @@ vi.mock('../../rendering/sun_material.js', () => ({
 
 import { createSun } from '../sun_object.js';
 import { createSunMaterial, updateSunMaterial } from '../../rendering/sun_material.js';
-import { SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS } from '../../config.js';
+import {
+    SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS,
+    SUN_ORBIT_RADIUS, SUN_ORBIT_HEIGHT, SUN_ORBIT_START_ANGLE, SUN_ORBIT_SPEED,
+} from '../../config.js';
 
 function makeScene() { return { add: vi.fn() }; }
 
@@ -75,6 +78,25 @@ describe('createSun', () => {
         const sun = createSun(makeScene());
         sun.update(12.5);
         expect(updateSunMaterial).toHaveBeenCalledWith(sun.mesh.material, 12.5);
+    });
+
+    test('update() moves the light and mesh along the configured orbit and keeps them in sync', () => {
+        const sun = createSun(makeScene());
+        sun.update(37.0);
+
+        const expected_angle = SUN_ORBIT_START_ANGLE + 37.0 * SUN_ORBIT_SPEED;
+        expect(sun.light.position.x).toBeCloseTo(SUN_ORBIT_RADIUS * Math.cos(expected_angle), 9);
+        expect(sun.light.position.y).toBeCloseTo(SUN_ORBIT_HEIGHT, 9);
+        expect(sun.light.position.z).toBeCloseTo(SUN_ORBIT_RADIUS * Math.sin(expected_angle), 9);
+        expect(sun.mesh.position).toEqual(sun.light.position);
+    });
+
+    test('update() with different times places the sun at different positions', () => {
+        const sun = createSun(makeScene());
+        sun.update(0);
+        const first_position = { ...sun.light.position };
+        sun.update(15);
+        expect(sun.light.position).not.toEqual(first_position);
     });
 
     test('getVisible/setVisible toggle both the light and the mesh together', () => {

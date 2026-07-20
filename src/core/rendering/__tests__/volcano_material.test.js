@@ -87,16 +87,17 @@ describe('updateVolcanoLight', () => {
     }
 
     const mock_camera = { matrixWorldInverse: {} };
+    const mock_sun_position = { x: 1, y: 2, z: 3 };
 
     test('calls copy() on u_light_position.value', () => {
         const material = makeMaterial();
-        updateVolcanoLight(material, mock_camera);
+        updateVolcanoLight(material, mock_camera, mock_sun_position);
         expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
     });
 
-    test('calls copy() on u_sun_position.value', () => {
+    test('calls copy() on u_sun_position.value using the given sun world position', () => {
         const material = makeMaterial();
-        updateVolcanoLight(material, mock_camera);
+        updateVolcanoLight(material, mock_camera, mock_sun_position);
         expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
     });
 });

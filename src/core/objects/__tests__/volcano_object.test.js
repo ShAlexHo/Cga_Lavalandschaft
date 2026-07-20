@@ -44,11 +44,12 @@ describe('createVolcano', () => {
         expect(scene.add).toHaveBeenCalledWith(volcano.mesh);
     });
 
-    test('update() forwards to updateVolcanoLight with the material and camera', () => {
+    test('update() forwards to updateVolcanoLight with the material, camera and sun world position', () => {
         const volcano = createVolcano(makeScene());
         const camera = {};
-        volcano.update(camera);
-        expect(updateVolcanoLight).toHaveBeenCalledWith(expect.any(Object), camera);
+        const sun_position = { x: 1, y: 2, z: 3 };
+        volcano.update(camera, sun_position);
+        expect(updateVolcanoLight).toHaveBeenCalledWith(expect.any(Object), camera, sun_position);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {

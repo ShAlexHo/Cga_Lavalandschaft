@@ -46,6 +46,14 @@ export const SUN_LIGHT_INTENSITY = 4.0;
 export const SUN_LIGHT_DISTANCE = 60;
 export const SUN_VISUAL_RADIUS = 2.5; // radius of the sun disc - large enough to read clearly as a sun rather than a distant dot
 
+// Orbit: the sun slowly circles the volcano at a fixed height/radius (both derived from
+// SUN_LIGHT_POSITION, so the starting frame looks exactly as before) instead of sitting still.
+export const SUN_ORBIT_RADIUS = Math.sqrt(SUN_LIGHT_POSITION.x ** 2 + SUN_LIGHT_POSITION.z ** 2);
+export const SUN_ORBIT_HEIGHT = SUN_LIGHT_POSITION.y;
+export const SUN_ORBIT_START_ANGLE = Math.atan2(SUN_LIGHT_POSITION.z, SUN_LIGHT_POSITION.x);
+export const SUN_ORBIT_PERIOD = 600; // seconds for one full revolution - slow enough to read as ambient drift, not a spinning light
+export const SUN_ORBIT_SPEED = (2 * Math.PI) / SUN_ORBIT_PERIOD;
+
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────
 
 export const SMOKE_MAX_PARTICLES = 1400;

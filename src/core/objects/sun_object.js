@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS } from '../config.js';
+import {
+    SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS,
+    SUN_ORBIT_RADIUS, SUN_ORBIT_HEIGHT, SUN_ORBIT_START_ANGLE, SUN_ORBIT_SPEED,
+} from '../config.js';
 import { createSunMaterial, updateSunMaterial } from '../rendering/sun_material.js';
 
 export function createSun(scene) {
@@ -16,6 +19,9 @@ export function createSun(scene) {
         light,
         mesh,
         update(time) {
+            const angle = SUN_ORBIT_START_ANGLE + time * SUN_ORBIT_SPEED;
+            light.position.set(SUN_ORBIT_RADIUS * Math.cos(angle), SUN_ORBIT_HEIGHT, SUN_ORBIT_RADIUS * Math.sin(angle));
+            mesh.position.copy(light.position);
             updateSunMaterial(material, time);
         },
         getVisible: () => light.visible,
