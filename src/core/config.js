@@ -2,6 +2,17 @@
 // Unlike default_settings.json (initial values of the GUI-adjustable
 // controls), these are values that can only be changed by editing the code.
 
+// ─── Camera (perspective camera + OrbitControls) ────────────────────────────
+
+export const CAMERA_FOV = 75;
+export const CAMERA_NEAR = 0.1;
+export const CAMERA_FAR = 1000;
+export const CAMERA_INITIAL_POSITION = { x: 0, y: 1.7, z: 7.5 };
+export const CAMERA_MIN_DISTANCE = 16;
+export const CAMERA_MAX_DISTANCE = 36;
+export const CAMERA_MIN_POLAR_ANGLE = 1;
+export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
+
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 
 export const METABALL_SCALE_XY = 30.0;
