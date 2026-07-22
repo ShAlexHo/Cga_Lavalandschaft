@@ -24,7 +24,7 @@ void main() {
         simplexNoise(v_world_position * 3.0 + vec3(1.3, 0.0, 0.0)),
         simplexNoise(v_world_position * 3.0 + vec3(0.0, 2.1, 0.0))
     );
-    normal = normalize(normal + bump * 0.35);
+    normal = normalize(normal + bump * 0.1);
 
     vec3 view_direction = normalize(-v_view_position);
     vec3 sun_direction  = normalize(u_sun_position - v_view_position);
