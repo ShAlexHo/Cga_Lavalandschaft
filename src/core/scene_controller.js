@@ -3,6 +3,7 @@ import { createVolcano } from './objects/volcano_object.js';
 import { createMetaballField } from './objects/metaball_field_object.js';
 import { createSmoke } from './objects/smoke_object.js';
 import { createSun } from './objects/sun_object.js';
+import { createSky } from './objects/sky_object.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
@@ -12,6 +13,7 @@ export function createSceneController({ scene, camera, bloom_pass }) {
     const metaball_field = createMetaballField(scene);
     const smoke = createSmoke(scene);
     const sun = createSun(scene);
+    const sky = createSky(scene);
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -143,6 +145,9 @@ export function createSceneController({ scene, camera, bloom_pass }) {
         }),
         setBloom: partial => Object.assign(bloom_pass, partial),
 
+        getSkyColor: () => sky.getColor(),
+        setSkyColor: value => sky.setColor(value),
+
         getSnapshot,
         applySnapshot,
         resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
@@ -198,6 +203,7 @@ export function createSceneController({ scene, camera, bloom_pass }) {
         { key: 'bloomStrength', get: () => controller.getBloom().strength, set: value => controller.setBloom({ strength: value }) },
         { key: 'bloomRadius', get: () => controller.getBloom().radius, set: value => controller.setBloom({ radius: value }) },
         { key: 'bloomThreshold', get: () => controller.getBloom().threshold, set: value => controller.setBloom({ threshold: value }) },
+        { key: 'skyColor', get: () => controller.getSkyColor(), set: value => controller.setSkyColor(value) },
     ];
 
     const SETTERS = Object.fromEntries(SETTINGS.map(({ key, set }) => [key, set]));

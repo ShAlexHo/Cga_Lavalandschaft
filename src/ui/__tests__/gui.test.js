@@ -124,6 +124,9 @@ function makeFacade(overrides = {}) {
         getBloom: vi.fn(() => ({ enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 })),
         setBloom: vi.fn(),
 
+        getSkyColor: vi.fn(() => '#6b2f1a'),
+        setSkyColor: vi.fn(),
+
         getSnapshot: vi.fn(() => ({ paused: false })),
         applySnapshot: vi.fn(),
         resetToDefaults: vi.fn(),
@@ -206,7 +209,7 @@ describe('setupGui – structure', () => {
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
             'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
-            'Position (Vulkan + Lava)', 'Bloom', 'Speichern / Laden',
+            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Speichern / Laden',
         ]);
     });
 
@@ -400,6 +403,18 @@ describe('setupGui – Bloom folder', () => {
         const value = Object.values(patch)[0];
         fire(registry, 'Bloom', key, value);
         expect(facade.setBloom).toHaveBeenCalledWith(patch);
+    });
+});
+
+// ─── Himmel folder ───────────────────────────────────────────────────────────
+
+describe('setupGui – Himmel folder', () => {
+    test('color onChange calls facade.setSkyColor', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Himmel', 'color', '#123456');
+        expect(facade.setSkyColor).toHaveBeenCalledWith('#123456');
     });
 });
 

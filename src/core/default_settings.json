@@ -45,5 +45,6 @@
   "bloomEnabled": true,
   "bloomStrength": 0.8,
   "bloomRadius": 0.5,
-  "bloomThreshold": 0.3
+  "bloomThreshold": 0.3,
+  "skyColor": "#510000"
 }

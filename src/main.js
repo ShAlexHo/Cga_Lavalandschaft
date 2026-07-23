@@ -7,7 +7,7 @@ import { createCameraController } from './core/objects/camera_object.js';
 import { setupGui } from './ui/gui.js';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0505);
+scene.background = new THREE.Color(0x510000);
 
 const ambient_light = new THREE.AmbientLight(0x550000, 0.9);
 const key_light = new THREE.DirectionalLight(0xff7733, 1.3);

@@ -197,7 +197,7 @@ import { createSun } from '../objects/sun_object.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function makeScene() { return { add: vi.fn() }; }
+function makeScene() { return { add: vi.fn(), background: makeColor('6b2f1a') }; }
 function makeCamera() { return { matrixWorldInverse: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
@@ -346,6 +346,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45,
             offsetX: 5, offsetY: -1, offsetZ: 2,
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
+            skyColor: '#112233',
         };
 
         controller.applySnapshot(snapshot);

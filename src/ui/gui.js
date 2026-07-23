@@ -242,6 +242,12 @@ export function setupGui(facade) {
         .name('Schwellenwert')
         .onChange(value => facade.setBloom({ threshold: value }));
 
+    const sky_folder = gui.addFolder('Himmel');
+    const sky_parameters = makeParameters({ color: facade.getSkyColor });
+    bind(sky_folder.addColor(sky_parameters, 'color'))
+        .name('Farbe')
+        .onChange(value => facade.setSkyColor(value));
+
     function refreshDisplay() {
         refresh_bindings.forEach(update => update());
         all_controllers.forEach(controller => controller.updateDisplay());
