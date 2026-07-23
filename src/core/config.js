@@ -19,7 +19,7 @@ export const GROUND_SEGMENTS = 160; // resolution the displacement noise is samp
 export const GROUND_CRACK_FREQUENCY = 0.06; // crack-color frequency, not yet exposed in the GUI - lower means fewer, more spaced-out cracks
 export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
-export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.001; // crackPattern()'s crack_width
+export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.015; // crackPattern()'s crack_width
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 

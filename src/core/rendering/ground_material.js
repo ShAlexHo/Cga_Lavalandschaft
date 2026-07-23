@@ -25,7 +25,7 @@ export function createGroundMaterial() {
             u_displacement_frequency: { value: GROUND_DEFAULT_DISPLACEMENT_FREQUENCY },
             u_crack_frequency: { value: GROUND_CRACK_FREQUENCY },
             u_crack_softness: { value: GROUND_DEFAULT_CRACK_SOFTNESS },
-            u_rock_color: { value: new THREE.Color(0x211616) },
+            u_rock_color: { value: new THREE.Color(0x0a0000) },
             u_crack_color: { value: new THREE.Color(0xff5b00) },
             u_crack_color_2: { value: new THREE.Color(0xe5a400) },
         },

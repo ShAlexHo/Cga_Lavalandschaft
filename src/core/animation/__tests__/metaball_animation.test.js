@@ -24,7 +24,7 @@ describe('settings (default values)', () => {
     test('speed_factor is 0.003', () => expect(animation_module.settings.speed_factor).toBe(0.003));
     test('paused is false', () => expect(animation_module.settings.paused).toBe(false));
     test('max_count is 500', () => expect(animation_module.settings.max_count).toBe(500));
-    test('flow_z_radius is 11', () => expect(animation_module.settings.flow_z_radius).toBe(11));
+    test('flow_z_radius is 10.3', () => expect(animation_module.settings.flow_z_radius).toBe(10.3));
 });
 
 // ─── getActiveBalls ──────────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ export const MAX_BALLS = METABALL_MAX_BALLS;
 
 const BALL_STRENGTH = (METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY) ** 2;
 
-export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 11 };
+export const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: MAX_BALLS, flow_z_radius: 10.3 };
 
 const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 
