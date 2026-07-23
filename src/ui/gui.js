@@ -50,7 +50,6 @@ export function setupGui(facade) {
     bind(metaballs_folder.add(metaballs_parameters, 'flow_z_radius', 0, 20, 0.1))
         .name('Steigung')
         .onChange(value => facade.setFlowRadius(value));
-    metaballs_folder.open();
 
     const colors_folder = gui.addFolder('Lavafarbe');
     const color_parameters = makeParameters({
@@ -71,7 +70,6 @@ export function setupGui(facade) {
     bind(colors_folder.addColor(color_parameters, 'glow_color'))
         .name('Glühfarbe')
         .onChange(value => facade.setGlowColor(value));
-    colors_folder.open();
 
     const noise_folder = gui.addFolder('Noise');
     const noise_parameters = makeParameters({
@@ -103,7 +101,6 @@ export function setupGui(facade) {
     bind(noise_folder.add(displacement_parameters, 'strength', 0.0, 0.004, 0.0001))
         .name('Displacement Stärke')
         .onChange(value => facade.setDisplacementStrength(value));
-    noise_folder.open();
 
     const ground_folder = gui.addFolder('Boden');
     const ground_parameters = makeParameters({
@@ -140,7 +137,6 @@ export function setupGui(facade) {
     bind(ground_folder.add(ground_parameters, 'height', -10, 0, 0.01))
         .name('Höhe')
         .onChange(value => facade.setGroundHeight(value));
-    ground_folder.open();
 
     const volcano_folder = gui.addFolder('Vulkan');
     const volcano_parameters = makeParameters({
@@ -161,7 +157,6 @@ export function setupGui(facade) {
     bind(volcano_folder.addColor(volcano_parameters, 'rock_color'))
         .name('Felsfarbe')
         .onChange(value => facade.setVolcanoRockColor(value));
-    volcano_folder.open();
 
     const sun_folder = gui.addFolder('Sonne');
     const sun_parameters = makeParameters({
@@ -178,7 +173,6 @@ export function setupGui(facade) {
     bind(sun_folder.add(sun_parameters, 'focus', 1.0, 12.0, 0.1))
         .name('Sonnenfokus')
         .onChange(value => facade.setSunFocus(value));
-    sun_folder.open();
 
     const smoke_folder = gui.addFolder('Rauch & Asche');
     const smoke_parameters = makeParameters({
@@ -215,7 +209,6 @@ export function setupGui(facade) {
     bind(smoke_folder.add(smoke_parameters, 'particle_size', 0.1, 200, 0.1))
         .name('Partikelgröße')
         .onChange(value => facade.setSmokeParticleSize(value));
-    smoke_folder.open();
 
     const position_folder = gui.addFolder('Position (Vulkan + Lava)');
     const position_parameters = makeParameters({
@@ -232,7 +225,6 @@ export function setupGui(facade) {
     bind(position_folder.add(position_parameters, 'z', -10, 10, 0.1))
         .name('Z')
         .onChange(value => facade.setOffsetZ(value));
-    position_folder.open();
 
     const bloom_folder = gui.addFolder('Bloom');
     const bloom_parameters = facade.getBloom();
@@ -249,7 +241,6 @@ export function setupGui(facade) {
     bind(bloom_folder.add(bloom_parameters, 'threshold', 0.0, 1.0, 0.01))
         .name('Schwellenwert')
         .onChange(value => facade.setBloom({ threshold: value }));
-    bloom_folder.open();
 
     function refreshDisplay() {
         refresh_bindings.forEach(update => update());
@@ -270,7 +261,6 @@ export function setupGui(facade) {
     persistence_folder.add(persistence_actions, 'save').name('💾 Speichern');
     persistence_folder.add(persistence_actions, 'load').name('📂 Laden');
     persistence_folder.add(persistence_actions, 'reset').name('🔄 Standard');
-    persistence_folder.open();
 
     const saved = loadFromLocalStorage();
     if (saved) { facade.applySnapshot(saved); refreshDisplay(); }
