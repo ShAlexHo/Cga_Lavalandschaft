@@ -4,20 +4,21 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { createSceneController } from './core/scene_controller.js';
 import { createCameraController } from './core/objects/camera_object.js';
+import { createKeyLight } from './core/objects/key_light_object.js';
 import { setupGui } from './ui/gui.js';
+import { BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD, BLOOM_TINT_COLOR } from './core/config.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x510000);
 
-const ambient_light = new THREE.AmbientLight(0x550000, 0.9);
-const key_light = new THREE.DirectionalLight(0xff7733, 1.3);
-key_light.position.set(5, 8, 5);
-scene.add(ambient_light, key_light);
+createKeyLight(scene);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const camera_controller = createCameraController(renderer);
@@ -25,17 +26,13 @@ const camera = camera_controller.camera;
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const BLOOM_STRENGTH = 0.8;
-const BLOOM_RADIUS = 0.5;
-const BLOOM_THRESHOLD = 0.3;
 const bloom_pass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     BLOOM_STRENGTH,
     BLOOM_RADIUS,
     BLOOM_THRESHOLD
 );
-const BLOOM_TINT_COLOR = new THREE.Vector3(1.0, 0.45, 0.05);
-bloom_pass.bloomTintColors.fill(BLOOM_TINT_COLOR);
+bloom_pass.bloomTintColors.fill(new THREE.Vector3(BLOOM_TINT_COLOR.x, BLOOM_TINT_COLOR.y, BLOOM_TINT_COLOR.z));
 composer.addPass(bloom_pass);
 
 const clock = new THREE.Clock();

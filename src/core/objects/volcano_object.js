@@ -7,6 +7,7 @@ import { bindDisplacementUniforms } from './terrain_uniform_utils.js';
 export function createVolcano(scene) {
     const material = createVolcanoMaterial();
     const mesh = createVolcanoGeometry(scene, material);
+    mesh.castShadow = true;
 
     return {
         mesh,

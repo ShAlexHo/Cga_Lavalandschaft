@@ -152,3 +152,10 @@ float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float
     float sun_rim = pow(1.0 - max(dot(normal, view_direction), 0.0), sun_focus) * sun_facing;
     return sun_wash + sun_rim;
 }
+
+// `height` is roughly [-1, 1]; smoothstep (not a linear mix) since the noise driving it clusters near 0.
+float heightAmbientOcclusion(float height) {
+    const float MIN_OCCLUSION = 0.6;
+    const float CONTRAST_BAND = 0.35;
+    return mix(MIN_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
+}

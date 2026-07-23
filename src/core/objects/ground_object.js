@@ -10,6 +10,7 @@ export function createGround(scene) {
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS, GROUND_SEGMENTS), material);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = -6;
+    mesh.receiveShadow = true;
     scene.add(mesh);
 
     return {

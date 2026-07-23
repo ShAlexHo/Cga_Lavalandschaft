@@ -1,3 +1,10 @@
+uniform bool receiveShadow;
+
+#include <common>
+#include <packing>
+#include <shadowmap_pars_fragment>
+#include <shadowmask_pars_fragment>
+
 uniform vec3  u_light_position;
 uniform vec3  u_sun_position;
 uniform vec3  u_sun_color;
@@ -13,6 +20,7 @@ uniform vec3  u_crack_color_2;
 varying vec3 v_world_position;
 varying vec3 v_view_position;
 varying vec3 v_normal;
+varying float v_bump;
 
 void main() {
     vec3 normal = normalize(v_normal);
@@ -26,9 +34,11 @@ void main() {
     );
     normal = normalize(normal + bump * 0.1);
 
+    float shadow_mask = getShadowMask();
+
     vec3 view_direction = normalize(-v_view_position);
     vec3 sun_direction  = normalize(u_sun_position - v_view_position);
-    float diffuse = max(dot(normal, normalize(u_light_position - v_view_position)), 0.0);
+    float diffuse = max(dot(normal, normalize(u_light_position - v_view_position)), 0.0) * shadow_mask;
     float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, u_sun_focus);
 
     float color_var = normalizedFractalBrownianMotion(v_world_position * 1.5);
@@ -40,12 +50,14 @@ void main() {
 
     // Barely-there specular - it's ground, not polished rock, so only the faintest highlight should show.
     vec3 halfway_direction = normalize(normalize(u_light_position - v_view_position) + view_direction);
-    float specular = pow(max(dot(halfway_direction, normal), 0.0), 24.0) * 0.002;
+    float specular = pow(max(dot(halfway_direction, normal), 0.0), 24.0) * 0.002 * shadow_mask;
 
     // Ambient term matching the scene's AmbientLight (main.js) - not self-emission, just the same
     // ambient fill every other lit object gets, without which the ground reads as near-black.
-    color = color * (1.0 + diffuse * 0.55) + vec3(specular);
+    color = color * (1.8 + diffuse * 0.55) + vec3(specular);
     color += u_sun_color * sun_diffuse * u_sun_strength * u_sun_enabled;
+
+    color *= heightAmbientOcclusion(v_bump);
 
     gl_FragColor = vec4(color, 1.0);
 }

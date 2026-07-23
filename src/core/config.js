@@ -106,3 +106,24 @@ export const SMOKE_AMBIENT_RADIUS = 22.0; // horizontal reach of the ambient haz
 export const SMOKE_AMBIENT_HEIGHT_MIN = -3.0; // lowest ambient ash height (local space, relative to the crater opening)
 export const SMOKE_AMBIENT_HEIGHT_MAX = 14.0; // highest ambient ash height
 export const SMOKE_AMBIENT_OPACITY = 0.35; // opacity cap for ambient ash - a subtle haze that never competes with the dense plume at the crater
+
+// ─── Key light + ambient (scene lighting set up in main.js) ─────────────────
+
+export const KEY_LIGHT_COLOR = 0xff7733;
+export const KEY_LIGHT_INTENSITY = 1.3;
+export const AMBIENT_LIGHT_COLOR = 0x550000;
+export const AMBIENT_LIGHT_INTENSITY = 0.9;
+
+export const KEY_LIGHT_SHADOW_MAP_SIZE = 2048;
+export const KEY_LIGHT_SHADOW_MARGIN = 10;
+export const KEY_LIGHT_SHADOW_FRUSTUM = GROUND_SIZE / 2 + KEY_LIGHT_SHADOW_MARGIN;
+export const KEY_LIGHT_SHADOW_NEAR = 1;
+export const KEY_LIGHT_SHADOW_FAR = 100;
+export const KEY_LIGHT_SHADOW_BIAS = -0.0015; // avoids shadow acne
+
+// ─── Bloom (post-processing) ─────────────────────────────────────────────────
+
+export const BLOOM_STRENGTH = 0.8;
+export const BLOOM_RADIUS = 0.5;
+export const BLOOM_THRESHOLD = 0.3;
+export const BLOOM_TINT_COLOR = { x: 1.0, y: 0.45, z: 0.05 };
