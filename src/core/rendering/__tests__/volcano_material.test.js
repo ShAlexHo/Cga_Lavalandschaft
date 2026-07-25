@@ -1,42 +1,16 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockVector3, MockRgbColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => {
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) {
-            this.x = x; this.y = y; this.z = z;
-        }
-        copy(other) {
-            this.x = other.x; this.y = other.y; this.z = other.z;
-            return this;
-        }
-        applyMatrix4(_matrix) {
-            return this; // identity transform in tests
-        }
-    }
-
-    class Color {
-        constructor(r = 0, g = 0, b = 0) {
-            this.r = r; this.g = g; this.b = b;
-        }
-    }
-
-    class ShaderMaterial {
-        constructor(parameters = {}) {
-            this.uniforms = parameters.uniforms ?? {};
-            this.vertexShader = parameters.vertexShader ?? '';
-            this.fragmentShader = parameters.fragmentShader ?? '';
-            this.side = parameters.side ?? 0;
-        }
-    }
-
-    return { Vector3, Color, ShaderMaterial, DoubleSide: 2 };
-});
+vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, DoubleSide: 2 }));
 
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/volcano.vert?raw', () => ({ default: '// vertex shader' }));
 vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createVolcanoMaterial, updateVolcanoLight } from '../volcano_material.js';
+import {
+    SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
+} from '../../config.js';
 
 describe('createVolcanoMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -57,15 +31,16 @@ describe('createVolcanoMaterial', () => {
         });
     });
 
-    test('u_displacement_scale starts at 2.5', () => {
+    test('u_displacement_scale/frequency start at the volcano defaults', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_displacement_scale.value).toBe(2.5);
+        expect(material.uniforms.u_displacement_scale.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_SCALE);
+        expect(material.uniforms.u_displacement_frequency.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY);
     });
 
-    test('u_sun_strength starts at 0.06 and u_sun_focus starts at 8.0', () => {
+    test('u_sun_strength/focus start at the shared sun defaults', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
-        expect(material.uniforms.u_sun_focus.value).toBe(8.0);
+        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
+        expect(material.uniforms.u_sun_focus.value).toBe(SUN_DEFAULT_FOCUS);
     });
 
     test('u_sun_enabled starts at 1.0', () => {

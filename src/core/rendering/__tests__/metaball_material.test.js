@@ -1,36 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockVector3, MockRgbColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => {
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) {
-            this.x = x; this.y = y; this.z = z;
-        }
-        copy(other) {
-            this.x = other.x; this.y = other.y; this.z = other.z;
-            return this;
-        }
-        applyMatrix4(_matrix) {
-            return this; // identity transform in tests
-        }
-    }
-
-    class Color {
-        constructor(r = 0, g = 0, b = 0) {
-            this.r = r; this.g = g; this.b = b;
-        }
-    }
-
-    class ShaderMaterial {
-        constructor(parameters = {}) {
-            this.uniforms = parameters.uniforms ?? {};
-            this.vertexShader = parameters.vertexShader ?? '';
-            this.fragmentShader = parameters.fragmentShader ?? '';
-            this.side = parameters.side ?? 0;
-        }
-    }
-
-    return { Vector3, Color, ShaderMaterial, DoubleSide: 2 };
-});
+vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, DoubleSide: 2 }));
 
 vi.mock('../../shaders/metaball.vert?raw', () => ({ default: '// vertex shader' }));
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));

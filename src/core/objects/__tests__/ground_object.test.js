@@ -1,22 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { makeColor, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
 
-function makeColor(hex) {
-    return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-}
-
-vi.mock('three', () => {
-    class Mesh {
-        constructor(geometry, material) {
-            this.geometry = geometry;
-            this.material = material;
-            this.position = { x: 0, y: 0, z: 0 };
-            this.rotation = { x: 0, y: 0, z: 0 };
-            this.visible = true;
-        }
-    }
-    class PlaneGeometry { constructor(width, height, width_segments, height_segments) { this.width = width; this.height = height; this.width_segments = width_segments; this.height_segments = height_segments; } }
-    return { Mesh, PlaneGeometry };
-});
+vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 
 vi.mock('../../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({

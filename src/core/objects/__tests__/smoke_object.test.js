@@ -1,8 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-
-function makeColor(hex) {
-    return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-}
+import { makeColor } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/smoke_geometry.js', () => ({
     createSmokeGeometry: vi.fn((scene, material) => {

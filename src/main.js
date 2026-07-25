@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { createSceneController } from './core/scene_controller.js';
 import { createCameraController } from './core/objects/camera_object.js';
 import { createKeyLight } from './core/objects/key_light_object.js';
+import { createPostProcessing } from './core/rendering/post_processing.js';
 import { setupGui } from './ui/gui.js';
-import { BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD, BLOOM_TINT_COLOR } from './core/config.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x510000);
@@ -24,27 +21,23 @@ document.body.appendChild(renderer.domElement);
 const camera_controller = createCameraController(renderer);
 const camera = camera_controller.camera;
 
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloom_pass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    BLOOM_STRENGTH,
-    BLOOM_RADIUS,
-    BLOOM_THRESHOLD
-);
-bloom_pass.bloomTintColors.fill(new THREE.Vector3(BLOOM_TINT_COLOR.x, BLOOM_TINT_COLOR.y, BLOOM_TINT_COLOR.z));
-composer.addPass(bloom_pass);
+const post_processing = createPostProcessing({ renderer, scene, camera });
 
 const clock = new THREE.Clock();
 
-const controller = createSceneController({ scene, camera, bloom_pass });
+const controller = createSceneController({ scene, camera, bloom_pass: post_processing.bloom_pass, god_rays_pass: post_processing.god_rays_pass });
+
+post_processing.setOccluders({
+    sun_mesh: controller.getSunMesh(),
+    occluder_meshes: [controller.getGroundMesh(), controller.getVolcanoMesh()],
+});
 
 setupGui(controller);
 
 window.addEventListener('resize', () => {
     camera_controller.handleResize(window.innerWidth, window.innerHeight);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
+    post_processing.resize(window.innerWidth, window.innerHeight);
 });
 
 let elapsed_time = 0;
@@ -54,7 +47,7 @@ const animate = () => {
     if (!controller.isPaused()) elapsed_time += delta;
     camera_controller.update(controller.getVolcanoPosition());
     controller.update(elapsed_time);
-    composer.render();
+    post_processing.render();
 };
 
 animate();

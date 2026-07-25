@@ -46,5 +46,10 @@
   "bloomStrength": 0.8,
   "bloomRadius": 0.5,
   "bloomThreshold": 0.3,
-  "skyColor": "#510000"
+  "skyColor": "#510000",
+  "godRaysWeight": 0.24,
+  "godRaysExposure": 0.64,
+  "godRaysDecay": 0.898,
+  "godRaysDensity": 1.2,
+  "godRaysTintColor": "#ff0000"
 }

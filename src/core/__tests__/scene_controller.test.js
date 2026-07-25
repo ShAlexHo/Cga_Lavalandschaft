@@ -1,38 +1,18 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { makeColor, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
 
-// vi.mock() factories are hoisted above the rest of the module, so anything they share - the color-mock
-// helper, the default settings each mock's initial state is seeded from - must be too; vi.hoisted() is
-// the mechanism for that.
-const { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => {
-    function makeColor(hex = '000000') {
-        return {
-            _hex: hex,
-            set(value) { this._hex = String(value).replace('#', ''); return this; },
-            getHexString() { return this._hex; },
-        };
-    }
-    const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
-    const DEFAULT_SMOKE_SETTINGS = { count: 200, max_count: 400 };
-    return { makeColor, DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS };
-});
+// vi.mock() factories are hoisted above the rest of the module, so the default settings each
+// mock's initial state is seeded from must be too; vi.hoisted() is the mechanism for that.
+const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
+    DEFAULT_SETTINGS: { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 },
+    DEFAULT_SMOKE_SETTINGS: { count: 200, max_count: 400 },
+}));
 
 // ─── Mock three (only Mesh/PlaneGeometry are used directly by scene_controller.js
 //     — the ground mesh is built here, everything else comes from the (also
 //     mocked) geometry/animation/rendering layers) ───────────────────────────
 
-vi.mock('three', () => {
-    class Mesh {
-        constructor(geometry, material) {
-            this.geometry = geometry;
-            this.material = material;
-            this.position = { x: 0, y: 0, z: 0 };
-            this.rotation = { x: 0, y: 0, z: 0 };
-            this.visible = true;
-        }
-    }
-    class PlaneGeometry { constructor(width, height) { this.width = width; this.height = height; } }
-    return { Mesh, PlaneGeometry };
-});
+vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 
 // ─── Mock the geometry/animation/rendering layers wholesale — their own logic
 //     is covered by the tests next to each module; here we only need fakes
@@ -201,8 +181,26 @@ function makeScene() { return { add: vi.fn(), background: makeColor('6b2f1a') };
 function makeCamera() { return { matrixWorldInverse: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
+function makeGodRaysPass() {
+    const state = { weight: 0.25, exposure: 0.5, decay: 0.96, density: 0.93, tintColor: '#ff2211' };
+    return {
+        getWeight: () => state.weight,
+        setWeight: value => { state.weight = value; },
+        getExposure: () => state.exposure,
+        setExposure: value => { state.exposure = value; },
+        getDecay: () => state.decay,
+        setDecay: value => { state.decay = value; },
+        getDensity: () => state.density,
+        setDensity: value => { state.density = value; },
+        getTintColor: () => state.tintColor,
+        setTintColor: value => { state.tintColor = value; },
+    };
+}
+
 function makeController() {
-    return createSceneController({ scene: makeScene(), camera: makeCamera(), bloom_pass: makeBloomPass() });
+    return createSceneController({
+        scene: makeScene(), camera: makeCamera(), bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+    });
 }
 
 beforeEach(() => {
@@ -347,6 +345,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             offsetX: 5, offsetY: -1, offsetZ: 2,
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
             skyColor: '#112233',
+            godRaysWeight: 0.4, godRaysExposure: 0.7, godRaysDecay: 0.9, godRaysDensity: 1.0, godRaysTintColor: '#654321',
         };
 
         controller.applySnapshot(snapshot);
@@ -463,7 +462,9 @@ describe('createSceneController – smoke', () => {
 
     test('setOffsetX/Z also move the smoke effect', () => {
         const scene = makeScene();
-        const controller = createSceneController({ scene, camera: makeCamera(), bloom_pass: makeBloomPass() });
+        const controller = createSceneController({
+            scene, camera: makeCamera(), bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+        });
         controller.setOffsetX(3);
         controller.setOffsetZ(-4);
         expect(controller.getOffsetX()).toBe(3);
@@ -478,7 +479,8 @@ describe('createSceneController – update()', () => {
         const scene = makeScene();
         const camera = makeCamera();
         const bloom_pass = makeBloomPass();
-        const controller = createSceneController({ scene, camera, bloom_pass });
+        const god_rays_pass = makeGodRaysPass();
+        const controller = createSceneController({ scene, camera, bloom_pass, god_rays_pass });
 
         controller.update(12.5);
 

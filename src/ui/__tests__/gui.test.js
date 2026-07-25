@@ -127,6 +127,17 @@ function makeFacade(overrides = {}) {
         getSkyColor: vi.fn(() => '#6b2f1a'),
         setSkyColor: vi.fn(),
 
+        getGodRaysWeight: vi.fn(() => 0.25),
+        setGodRaysWeight: vi.fn(),
+        getGodRaysExposure: vi.fn(() => 0.5),
+        setGodRaysExposure: vi.fn(),
+        getGodRaysDecay: vi.fn(() => 0.96),
+        setGodRaysDecay: vi.fn(),
+        getGodRaysDensity: vi.fn(() => 0.93),
+        setGodRaysDensity: vi.fn(),
+        getGodRaysTintColor: vi.fn(() => '#ff2211'),
+        setGodRaysTintColor: vi.fn(),
+
         getSnapshot: vi.fn(() => ({ paused: false })),
         applySnapshot: vi.fn(),
         resetToDefaults: vi.fn(),
@@ -209,7 +220,7 @@ describe('setupGui – structure', () => {
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
             'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
-            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Speichern / Laden',
+            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Lichtstrahlen', 'Speichern / Laden',
         ]);
     });
 
@@ -415,6 +426,24 @@ describe('setupGui – Himmel folder', () => {
         setupGui(facade);
         fire(registry, 'Himmel', 'color', '#123456');
         expect(facade.setSkyColor).toHaveBeenCalledWith('#123456');
+    });
+});
+
+// ─── Lichtstrahlen folder ────────────────────────────────────────────────────
+
+describe('setupGui – Lichtstrahlen folder', () => {
+    test.each([
+        ['weight', 0.6, 'setGodRaysWeight'],
+        ['exposure', 0.9, 'setGodRaysExposure'],
+        ['decay', 0.88, 'setGodRaysDecay'],
+        ['density', 1.1, 'setGodRaysDensity'],
+        ['tint_color', '#abcdef', 'setGodRaysTintColor'],
+    ])('%s onChange calls facade.%s', (key, value, setter) => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Lichtstrahlen', key, value);
+        expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
 

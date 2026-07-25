@@ -6,11 +6,7 @@ varying vec3 v_view_position;
 varying vec3 v_normal;
 
 float crackLayer(vec3 position, float frequency) {
-    vec3 warp = vec3(
-        simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
-        simplexNoise(position * frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
-        simplexNoise(position * frequency * 0.6 + vec3(3.1, 0.0, 5.4))
-    );
+    vec3 warp = crackWarpOffset(position, frequency);
     float noise_value = abs(simplexNoise((position + warp * 1.2) * frequency));
     return pow(noise_value, 0.18);
 }

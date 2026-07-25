@@ -1,9 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { createSky } from '../sky_object.js';
-
-function makeColor(hex) {
-    return { _hex: hex, set(value) { this._hex = String(value).replace('#', ''); return this; }, getHexString() { return this._hex; } };
-}
+import { makeColor } from '../../test-utils/three_mocks.js';
 
 function makeScene(hex) { return { background: makeColor(hex) }; }
 

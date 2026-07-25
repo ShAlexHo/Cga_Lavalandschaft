@@ -6,7 +6,7 @@ import {
     SMOKE_COLOR_1, SMOKE_COLOR_2, SMOKE_COLOR_3, SMOKE_PARTICLE_SIZE, SMOKE_EMBER_GLOW_STRENGTH, SUN_ASH_TINT_COLOR,
     SMOKE_DEFAULT_SPREAD, SMOKE_DEFAULT_RISE_SPEED, SMOKE_LIFETIME, SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT,
     SMOKE_FADE_IN_END, SMOKE_FADE_OUT_START, SMOKE_AMBIENT_RADIUS, SMOKE_AMBIENT_HEIGHT_MIN, SMOKE_AMBIENT_HEIGHT_MAX,
-    SMOKE_AMBIENT_OPACITY,
+    SMOKE_AMBIENT_OPACITY, SUN_DEFAULT_STRENGTH,
 } from '../config.js';
 
 export function createSmokeMaterial() {
@@ -21,7 +21,7 @@ export function createSmokeMaterial() {
             u_ember_glow_strength: { value: SMOKE_EMBER_GLOW_STRENGTH },
             u_sun_color: { value: new THREE.Color(SUN_ASH_TINT_COLOR) },
             u_sun_enabled: { value: 1.0 },
-            u_sun_strength: { value: 0.06 },
+            u_sun_strength: { value: SUN_DEFAULT_STRENGTH },
             u_time: { value: 0.0 },
             u_plume_opacity_factor: { value: 1.0 },
             u_spread: { value: SMOKE_DEFAULT_SPREAD },

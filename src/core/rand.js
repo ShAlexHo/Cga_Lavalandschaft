@@ -14,10 +14,6 @@ export function random(min, max) {
     return min + random_raw() * (max - min);
 }
 
-export function random3(min, max) {
-    return [random(min, max), random(min, max), random(min, max)];
-}
-
 export function randomGauss(mean, standard_deviation) {
     const uniform_sample_1 = random_raw() + 1e-10;
     const uniform_sample_2 = random_raw();

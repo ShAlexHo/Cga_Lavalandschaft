@@ -1,20 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockHexColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => {
-    class Color {
-        constructor(hex = 0) { this.hex = hex; }
-        getHexString() { return this.hex.toString(16).padStart(6, '0'); }
-        set(value) { this.hex = value; return this; }
-    }
-    class ShaderMaterial {
-        constructor(parameters = {}) {
-            this.uniforms = parameters.uniforms ?? {};
-            this.vertexShader = parameters.vertexShader ?? '';
-            this.fragmentShader = parameters.fragmentShader ?? '';
-        }
-    }
-    return { Color, ShaderMaterial };
-});
+vi.mock('three', () => ({ Color: MockHexColor, ShaderMaterial: MockShaderMaterial }));
 
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/sun.vert?raw', () => ({ default: '// vertex shader' }));

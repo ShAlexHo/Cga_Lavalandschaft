@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { makeSeededRand, random, random3 } from '../rand.js';
+import { makeSeededRand, random } from '../rand.js';
 
 // ─── makeSeededRand ──────────────────────────────────────────────────────────
 
@@ -111,52 +111,5 @@ describe('random (module-level instance, seed 42)', () => {
         const values = Array.from({ length: 20 }, () => random(0, 1000));
         const unique = new Set(values);
         expect(unique.size).toBeGreaterThan(1);
-    });
-});
-
-// ─── random3 ─────────────────────────────────────────────────────────────────
-
-describe('random3', () => {
-    test('returns an array of exactly 3 elements', () => {
-        const result = random3(0, 1);
-        expect(Array.isArray(result)).toBe(true);
-        expect(result).toHaveLength(3);
-    });
-
-    test('all elements are numbers', () => {
-        const result = random3(0, 1);
-        result.forEach(value => expect(typeof value).toBe('number'));
-    });
-
-    test('all elements are within the specified range', () => {
-        for (let i = 0; i < 30; i++) {
-            const result = random3(2, 9);
-            result.forEach(value => {
-                expect(value).toBeGreaterThanOrEqual(2);
-                expect(value).toBeLessThan(9);
-            });
-        }
-    });
-
-    test('elements are generated independently', () => {
-        // Over 30 calls, the three components should not always be identical
-        const results = Array.from({ length: 30 }, () => random3(0, 100));
-        const all_same = results.every(([a, b, c]) => a === b && b === c);
-        expect(all_same).toBe(false);
-    });
-
-    test('min === max returns array of three equal values', () => {
-        const result = random3(5, 5);
-        expect(result).toEqual([5, 5, 5]);
-    });
-
-    test('works with negative range', () => {
-        for (let i = 0; i < 20; i++) {
-            const result = random3(-5, -1);
-            result.forEach(value => {
-                expect(value).toBeGreaterThanOrEqual(-5);
-                expect(value).toBeLessThan(-1);
-            });
-        }
     });
 });

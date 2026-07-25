@@ -7,7 +7,7 @@ import { createSky } from './objects/sky_object.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
-export function createSceneController({ scene, camera, bloom_pass }) {
+export function createSceneController({ scene, camera, bloom_pass, god_rays_pass }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
@@ -93,8 +93,11 @@ export function createSceneController({ scene, camera, bloom_pass }) {
         setGroundDisplacementFrequency: value => ground.setDisplacementFrequency(value),
         getGroundHeight: () => ground.mesh.position.y,
         setGroundHeight: value => applyY(value),
+        getGroundMesh: () => ground.mesh,
 
         getVolcanoPosition: () => volcano.mesh.position,
+        getVolcanoMesh: () => volcano.mesh,
+        getSunMesh: () => sun.mesh,
 
         getVolcanoVisible: () => volcano.getVisible(),
         setVolcanoVisible: value => volcano.setVisible(value),
@@ -147,6 +150,17 @@ export function createSceneController({ scene, camera, bloom_pass }) {
 
         getSkyColor: () => sky.getColor(),
         setSkyColor: value => sky.setColor(value),
+
+        getGodRaysWeight: () => god_rays_pass.getWeight(),
+        setGodRaysWeight: value => god_rays_pass.setWeight(value),
+        getGodRaysExposure: () => god_rays_pass.getExposure(),
+        setGodRaysExposure: value => god_rays_pass.setExposure(value),
+        getGodRaysDecay: () => god_rays_pass.getDecay(),
+        setGodRaysDecay: value => god_rays_pass.setDecay(value),
+        getGodRaysDensity: () => god_rays_pass.getDensity(),
+        setGodRaysDensity: value => god_rays_pass.setDensity(value),
+        getGodRaysTintColor: () => god_rays_pass.getTintColor(),
+        setGodRaysTintColor: value => god_rays_pass.setTintColor(value),
 
         getSnapshot,
         applySnapshot,
@@ -204,6 +218,11 @@ export function createSceneController({ scene, camera, bloom_pass }) {
         { key: 'bloomRadius', get: () => controller.getBloom().radius, set: value => controller.setBloom({ radius: value }) },
         { key: 'bloomThreshold', get: () => controller.getBloom().threshold, set: value => controller.setBloom({ threshold: value }) },
         { key: 'skyColor', get: () => controller.getSkyColor(), set: value => controller.setSkyColor(value) },
+        { key: 'godRaysWeight', get: () => controller.getGodRaysWeight(), set: value => controller.setGodRaysWeight(value) },
+        { key: 'godRaysExposure', get: () => controller.getGodRaysExposure(), set: value => controller.setGodRaysExposure(value) },
+        { key: 'godRaysDecay', get: () => controller.getGodRaysDecay(), set: value => controller.setGodRaysDecay(value) },
+        { key: 'godRaysDensity', get: () => controller.getGodRaysDensity(), set: value => controller.setGodRaysDensity(value) },
+        { key: 'godRaysTintColor', get: () => controller.getGodRaysTintColor(), set: value => controller.setGodRaysTintColor(value) },
     ];
 
     const SETTERS = Object.fromEntries(SETTINGS.map(({ key, set }) => [key, set]));

@@ -52,6 +52,8 @@ export const VOLCANO_PROFILE = [
 export const VOLCANO_PROFILE_SUBDIVISIONS = 24;
 export const VOLCANO_LATHE_SEGMENTS = 96;
 export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
+export const VOLCANO_DEFAULT_DISPLACEMENT_SCALE = 2.5;
+export const VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY = 0.5;
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────
 
@@ -63,6 +65,8 @@ export const SUN_ASH_TINT_COLOR = 0xdd1100; // separate, blue-free red for tinti
 export const SUN_LIGHT_INTENSITY = 4.0;
 export const SUN_LIGHT_DISTANCE = 60;
 export const SUN_VISUAL_RADIUS = 2.5; // radius of the sun disc - large enough to read clearly as a sun rather than a distant dot
+export const SUN_DEFAULT_STRENGTH = 0.06; // shared default for ground/volcano/smoke's u_sun_strength
+export const SUN_DEFAULT_FOCUS = 8.0; // shared default for ground/volcano's u_sun_focus
 
 // Orbit: the sun slowly circles the volcano at a fixed height/radius (both derived from
 // SUN_LIGHT_POSITION, so the starting frame looks exactly as before) instead of sitting still.
@@ -88,8 +92,8 @@ export const SMOKE_PARTICLE_SIZE = 36; // base point size in pixels, before pers
 export const SMOKE_SIZE_MULT_MIN = 0.3; // per-particle random size multiplier range, so points vary in size instead of all looking identical
 export const SMOKE_SIZE_MULT_MAX = 1.3;
 export const SMOKE_COLOR_1 = 0x000000; // black ash near the crater - deliberately not reddish/brownish
-export const SMOKE_COLOR_2 = 0xbfbfbb; // pale, neutral grey steam higher up - kept close to true grey (not warm/reddish) while still distinct in brightness from color 1
-export const SMOKE_COLOR_3 = 0x2d1507; // sparse ember accent on a minority of freshly spawned particles - a dark reddish-brown tone, still well short of a red/orange glow
+export const SMOKE_COLOR_2 = 0x515150; // darker neutral grey steam higher up - kept close to true grey (not warm/reddish) while still distinct in brightness from color 1
+export const SMOKE_COLOR_3 = 0xff5b00; // sparse bright ember accent on a minority of freshly spawned particles
 export const SMOKE_ACCENT_STRENGTH = 0.6; // caps how strongly the ember accent can ever tint a particle, keeping it a faint hint rather than a red highlight
 export const SMOKE_ACCENT_THRESHOLD = 0.8; // only the top (1 - threshold) share of particles show any ember accent/glow, keeping it a rare highlight rather than a uniform tint
 export const SMOKE_EMBER_GLOW_STRENGTH = 6.0; // HDR multiplier added on top of the ember accent so freshly spawned, high-accent particles push past the bloom pass's threshold and read as a small light source, not yet exposed in the GUI
@@ -120,6 +124,16 @@ export const KEY_LIGHT_SHADOW_FRUSTUM = GROUND_SIZE / 2 + KEY_LIGHT_SHADOW_MARGI
 export const KEY_LIGHT_SHADOW_NEAR = 1;
 export const KEY_LIGHT_SHADOW_FAR = 100;
 export const KEY_LIGHT_SHADOW_BIAS = -0.0015; // avoids shadow acne
+
+// ─── God rays (screen-space light shafts from the sun, post-processing) ─────
+
+export const GOD_RAYS_RESOLUTION_SCALE = 0.5; // occlusion/generation buffers render at half resolution
+export const GOD_RAYS_NUM_SAMPLES = 60;
+export const GOD_RAYS_DENSITY = 1.2;
+export const GOD_RAYS_DECAY = 0.898;
+export const GOD_RAYS_WEIGHT = 0.24;
+export const GOD_RAYS_EXPOSURE = 0.64;
+export const GOD_RAYS_TINT_COLOR = 0xff0000;
 
 // ─── Bloom (post-processing) ─────────────────────────────────────────────────
 

@@ -248,6 +248,30 @@ export function setupGui(facade) {
         .name('Farbe')
         .onChange(value => facade.setSkyColor(value));
 
+    const god_rays_folder = gui.addFolder('Lichtstrahlen');
+    const god_rays_parameters = makeParameters({
+        weight: facade.getGodRaysWeight,
+        exposure: facade.getGodRaysExposure,
+        decay: facade.getGodRaysDecay,
+        density: facade.getGodRaysDensity,
+        tint_color: facade.getGodRaysTintColor,
+    });
+    bind(god_rays_folder.add(god_rays_parameters, 'weight', 0.0, 1.0, 0.01))
+        .name('Stärke')
+        .onChange(value => facade.setGodRaysWeight(value));
+    bind(god_rays_folder.add(god_rays_parameters, 'exposure', 0.0, 1.5, 0.01))
+        .name('Belichtung')
+        .onChange(value => facade.setGodRaysExposure(value));
+    bind(god_rays_folder.add(god_rays_parameters, 'decay', 0.8, 0.99, 0.001))
+        .name('Abklingrate')
+        .onChange(value => facade.setGodRaysDecay(value));
+    bind(god_rays_folder.add(god_rays_parameters, 'density', 0.5, 1.2, 0.01))
+        .name('Dichte')
+        .onChange(value => facade.setGodRaysDensity(value));
+    bind(god_rays_folder.addColor(god_rays_parameters, 'tint_color'))
+        .name('Farbe')
+        .onChange(value => facade.setGodRaysTintColor(value));
+
     function refreshDisplay() {
         refresh_bindings.forEach(update => update());
         all_controllers.forEach(controller => controller.updateDisplay());

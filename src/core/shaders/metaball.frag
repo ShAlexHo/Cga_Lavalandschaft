@@ -18,12 +18,7 @@ void main() {
     if (!gl_FrontFacing) normal = -normal;
 
     if (u_bump_enabled > 0.5) {
-        vec3 bump_coordinate = v_world_position * 3.5;
-        vec3 bump = vec3(
-            simplexNoise(bump_coordinate + vec3(0.0, 0.0, 1.7)),
-            simplexNoise(bump_coordinate + vec3(1.3, 0.0, 0.0)),
-            simplexNoise(bump_coordinate + vec3(0.0, 2.1, 0.0))
-        );
+        vec3 bump = bumpOffset(v_world_position, 3.5);
         vec3 bump_coordinate_2 = v_world_position * 8.5;
         vec3 bump2 = vec3(
             simplexNoise(bump_coordinate_2 + vec3(0.0, 0.0, 2.3)),

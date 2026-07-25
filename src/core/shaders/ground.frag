@@ -27,12 +27,7 @@ void main() {
     if (!gl_FrontFacing) normal = -normal;
 
     // Perturb the otherwise-flat shading normal, so the displaced terrain's bumps actually show under lighting.
-    vec3 bump = vec3(
-        simplexNoise(v_world_position * 3.0 + vec3(0.0, 0.0, 1.7)),
-        simplexNoise(v_world_position * 3.0 + vec3(1.3, 0.0, 0.0)),
-        simplexNoise(v_world_position * 3.0 + vec3(0.0, 2.1, 0.0))
-    );
-    normal = normalize(normal + bump * 0.1);
+    normal = normalize(normal + bumpOffset(v_world_position, 3.0) * 0.1);
 
     float shadow_mask = getShadowMask();
 

@@ -1,43 +1,17 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockVector3, MockRgbColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => {
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) {
-            this.x = x; this.y = y; this.z = z;
-        }
-        copy(other) {
-            this.x = other.x; this.y = other.y; this.z = other.z;
-            return this;
-        }
-        applyMatrix4(_matrix) {
-            return this; // identity transform in tests
-        }
-    }
-
-    class Color {
-        constructor(r = 0, g = 0, b = 0) {
-            this.r = r; this.g = g; this.b = b;
-        }
-    }
-
-    class ShaderMaterial {
-        constructor(parameters = {}) {
-            this.uniforms = parameters.uniforms ?? {};
-            this.vertexShader = parameters.vertexShader ?? '';
-            this.fragmentShader = parameters.fragmentShader ?? '';
-            this.side = parameters.side ?? 0;
-        }
-    }
-
-    return { Vector3, Color, ShaderMaterial, DoubleSide: 2 };
-});
+vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, DoubleSide: 2 }));
 
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/ground.vert?raw', () => ({ default: '// vertex shader' }));
 vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
-import { GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY, GROUND_DEFAULT_CRACK_SOFTNESS } from '../../config.js';
+import {
+    GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY, GROUND_DEFAULT_CRACK_SOFTNESS,
+    SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS,
+} from '../../config.js';
 
 describe('createGroundMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -62,10 +36,10 @@ describe('createGroundMaterial', () => {
         });
     });
 
-    test('u_sun_strength starts at 0.06 and u_sun_focus starts at 8.0', () => {
+    test('u_sun_strength/focus start at the shared sun defaults', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
-        expect(material.uniforms.u_sun_focus.value).toBe(8.0);
+        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
+        expect(material.uniforms.u_sun_focus.value).toBe(SUN_DEFAULT_FOCUS);
     });
 
     test('u_sun_enabled starts at 1.0', () => {

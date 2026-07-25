@@ -114,6 +114,17 @@ float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     return normalizedFractalBrownianMotion(warped);
 }
 
+// Displaces `position` (already scaled by `frequency`) so the crack pattern reads as jagged veins
+// instead of perfectly straight lines. Shared by the ground/metaball crack pattern and the volcano's
+// own crack layer, which each sample simplexNoise at the same three offsets but pass their own frequency.
+vec3 crackWarpOffset(vec3 position, float frequency) {
+    return vec3(
+        simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
+        simplexNoise(position * frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
+        simplexNoise(position * frequency * 0.6 + vec3(3.1, 0.0, 5.4))
+    );
+}
+
 // `crack_width` is a flat, solid crack region around the noise's zero-crossing; only its outer 15%
 // blends into rock, so bigger cracks stay solid instead of blurring throughout. `frequency` is itself
 // modulated by a slow noise field so crack size varies across the terrain rather than being uniform.
@@ -124,11 +135,7 @@ float crackPattern(vec3 position, float frequency, float crack_width) {
 
     float scale_variation = simplexNoise(position * 0.05) * 0.5 + 0.5;
     float local_frequency = frequency * (FREQUENCY_MODULATION_BASE + FREQUENCY_MODULATION_RANGE * scale_variation);
-    vec3 warp = vec3(
-        simplexNoise(position * local_frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
-        simplexNoise(position * local_frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
-        simplexNoise(position * local_frequency * 0.6 + vec3(3.1, 0.0, 5.4))
-    );
+    vec3 warp = crackWarpOffset(position, local_frequency);
     float distance_from_crack = abs(simplexNoise((position + warp * 1.2) * local_frequency));
     float edge = crack_width * CRACK_EDGE_RATIO;
     return smoothstep(crack_width - edge, crack_width + edge, distance_from_crack);
@@ -158,4 +165,16 @@ float heightAmbientOcclusion(float height) {
     const float MIN_OCCLUSION = 0.6;
     const float CONTRAST_BAND = 0.35;
     return mix(MIN_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
+}
+
+// Independent simplex sample per axis (rather than reusing one noise value three times), scaled by
+// `scale`, for use as a shading-normal perturbation. Shared by the ground and lava crust bump mapping,
+// which each mix in their own strength on top of the returned offset.
+vec3 bumpOffset(vec3 world_position, float scale) {
+    vec3 coordinate = world_position * scale;
+    return vec3(
+        simplexNoise(coordinate + vec3(0.0, 0.0, 1.7)),
+        simplexNoise(coordinate + vec3(1.3, 0.0, 0.0)),
+        simplexNoise(coordinate + vec3(0.0, 2.1, 0.0))
+    );
 }

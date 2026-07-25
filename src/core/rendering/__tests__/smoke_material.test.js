@@ -1,22 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockHexColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => {
-    class Color {
-        constructor(hex = 0) { this.hex = hex; }
-        getHexString() { return this.hex.toString(16).padStart(6, '0'); }
-        set(value) { this.hex = value; return this; }
-    }
-    class ShaderMaterial {
-        constructor(parameters = {}) {
-            this.uniforms = parameters.uniforms ?? {};
-            this.vertexShader = parameters.vertexShader ?? '';
-            this.fragmentShader = parameters.fragmentShader ?? '';
-            this.transparent = parameters.transparent ?? false;
-            this.depthWrite = parameters.depthWrite ?? true;
-        }
-    }
-    return { Color, ShaderMaterial };
-});
+vi.mock('three', () => ({ Color: MockHexColor, ShaderMaterial: MockShaderMaterial }));
 
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/smoke.vert?raw', () => ({ default: '// vertex shader' }));
@@ -25,7 +10,7 @@ vi.mock('../../shaders/smoke.frag?raw', () => ({ default: '// fragment shader' }
 import { createSmokeMaterial, updateSmokeMaterial } from '../smoke_material.js';
 import {
     SMOKE_PARTICLE_SIZE, SUN_ASH_TINT_COLOR, SMOKE_DEFAULT_SPREAD, SMOKE_DEFAULT_RISE_SPEED, SMOKE_LIFETIME,
-    SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS,
+    SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS, SUN_DEFAULT_STRENGTH,
 } from '../../config.js';
 
 describe('createSmokeMaterial', () => {
@@ -53,10 +38,10 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms.u_size.value).toBe(SMOKE_PARTICLE_SIZE);
     });
 
-    test('u_sun_enabled starts at 1.0 and u_sun_strength starts at 0.06', () => {
+    test('u_sun_enabled starts at 1.0 and u_sun_strength starts at the shared sun default', () => {
         const material = createSmokeMaterial();
         expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
-        expect(material.uniforms.u_sun_strength.value).toBe(0.06);
+        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
     });
 
     test('u_sun_color starts at the dedicated ash tint color (not the shared sun light color)', () => {
