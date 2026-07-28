@@ -8,6 +8,8 @@ import {
     SMOKE_ACCENT_STRENGTH,
     SMOKE_EMBER_GLOW_MULT_MIN,
     SMOKE_EMBER_GLOW_MULT_MAX,
+    SMOKE_EMBER_COOLING_MULT_MIN,
+    SMOKE_EMBER_COOLING_MULT_MAX,
     SMOKE_AMBIENT_FRACTION,
     SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../../config.js';
@@ -38,6 +40,7 @@ describe('particle_seeds', () => {
         expect(particle_seeds.timing_seed).toHaveLength(SMOKE_MAX_PARTICLES * 2);
         expect(particle_seeds.appearance).toHaveLength(SMOKE_MAX_PARTICLES * 3);
         expect(particle_seeds.accent_base).toHaveLength(SMOKE_MAX_PARTICLES);
+        expect(particle_seeds.ember_cooling_mult).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(particle_seeds.ambient_seed).toHaveLength(SMOKE_MAX_PARTICLES * 4);
     });
 
@@ -89,6 +92,20 @@ describe('particle_seeds', () => {
         }
         expect(with_accent.length).toBeGreaterThan(0);
         expect(with_accent.length).toBeLessThan(accent_base.length);
+    });
+
+    test('ember_cooling_mult follows a bell curve centered on 1.0, within its configured range', () => {
+        const { ember_cooling_mult } = particles_module.particle_seeds;
+        const mean = (SMOKE_EMBER_COOLING_MULT_MIN + SMOKE_EMBER_COOLING_MULT_MAX) / 2;
+        expect(mean).toBeCloseTo(1.0, 9);
+
+        let sum = 0;
+        for (let i = 0; i < ember_cooling_mult.length; i++) {
+            expect(ember_cooling_mult[i]).toBeGreaterThanOrEqual(SMOKE_EMBER_COOLING_MULT_MIN);
+            expect(ember_cooling_mult[i]).toBeLessThanOrEqual(SMOKE_EMBER_COOLING_MULT_MAX);
+            sum += ember_cooling_mult[i];
+        }
+        expect(sum / ember_cooling_mult.length).toBeCloseTo(mean, 1);
     });
 
     test('timing_seed keeps phase_offset within [0, SMOKE_LIFETIME] and color_seed within [0, 1]', () => {

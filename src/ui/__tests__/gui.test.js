@@ -113,6 +113,8 @@ function makeFacade(overrides = {}) {
         setSmokeColor3: vi.fn(),
         getSmokeParticleSize: vi.fn(() => 22),
         setSmokeParticleSize: vi.fn(),
+        getSmokeEmberCoolingTime: vi.fn(() => 2.5),
+        setSmokeEmberCoolingTime: vi.fn(),
 
         getOffsetX: vi.fn(() => 0),
         setOffsetX: vi.fn(),
@@ -374,6 +376,7 @@ describe('setupGui – Rauch & Asche folder', () => {
         ['color_2', 'setSmokeColor2', '#aabbcc'],
         ['color_3', 'setSmokeColor3', '#ff8800'],
         ['particle_size', 'setSmokeParticleSize', 120],
+        ['ember_cooling_time', 'setSmokeEmberCoolingTime', 4.5],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();

@@ -184,6 +184,7 @@ export function setupGui(facade) {
         color_2: facade.getSmokeColor2,
         color_3: facade.getSmokeColor3,
         particle_size: facade.getSmokeParticleSize,
+        ember_cooling_time: facade.getSmokeEmberCoolingTime,
     });
     bind(smoke_folder.add(smoke_parameters, 'visible'))
         .name('Sichtbar')
@@ -209,6 +210,9 @@ export function setupGui(facade) {
     bind(smoke_folder.add(smoke_parameters, 'particle_size', 0.1, 200, 0.1))
         .name('Partikelgröße')
         .onChange(value => facade.setSmokeParticleSize(value));
+    bind(smoke_folder.add(smoke_parameters, 'ember_cooling_time', 0.1, 30.0, 0.1))
+        .name('Abkühlzeit (Glut)')
+        .onChange(value => facade.setSmokeEmberCoolingTime(value));
 
     const position_folder = gui.addFolder('Position (Vulkan + Lava)');
     const position_parameters = makeParameters({

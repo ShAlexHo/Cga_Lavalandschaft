@@ -3,6 +3,7 @@ attribute vec4  a_motion_seed;  // base_angle, base_radius, drift_angle, lifetim
 attribute vec2  a_timing_seed;  // phase_offset, color_seed
 attribute vec3  a_appearance;   // size_mult, glow_mult, shape_seed
 attribute float a_accent_base;
+attribute float a_ember_cooling_mult;
 attribute vec4  a_ambient_seed; // ambient_angle, ambient_radius_seed, ambient_height_seed, ambient_opacity_seed
 
 uniform float u_time;
@@ -19,6 +20,7 @@ uniform float u_ambient_radius;
 uniform float u_ambient_height_min;
 uniform float u_ambient_height_max;
 uniform float u_ambient_opacity;
+uniform float u_ember_cooling_time;
 
 varying float v_opacity;
 varying float v_color_mix;
@@ -38,7 +40,8 @@ void main() {
     float shape_seed = a_appearance.z;
 
     float lifetime = (u_lifetime * lifetime_mult) / u_rise_speed;
-    float age_fraction = mod(u_time + phase_offset, lifetime) / lifetime;
+    float age_seconds = mod(u_time + phase_offset, lifetime);
+    float age_fraction = age_seconds / lifetime;
 
     // Age still dominates the mix so young particles stay close to u_color_1, but color_seed carries
     // more weight for a mottled, varied cloud instead of a too-uniform gradient.
@@ -85,7 +88,10 @@ void main() {
 
         local_position = vec3(radius * cos(angle), age_fraction * u_rise_height, radius * sin(angle));
         opacity = life_envelope * distance_falloff * u_plume_opacity_factor;
-        accent_mix = a_accent_base * (1.0 - age_fraction);
+
+        float cooling_time = u_ember_cooling_time * a_ember_cooling_mult;
+        float ember_cooling = 1.0 - smoothstep(0.0, cooling_time, age_seconds);
+        accent_mix = a_accent_base * ember_cooling;
     }
 
     v_opacity = opacity;

@@ -132,6 +132,7 @@ vi.mock('../rendering/smoke_material.js', () => ({
             u_plume_opacity_factor: { value: 1.0 },
             u_spread: { value: 1.0 },
             u_rise_speed: { value: 1.0 },
+            u_ember_cooling_time: { value: 2.5 },
         },
     })),
     updateSmokeMaterial: vi.fn(),
@@ -159,7 +160,7 @@ vi.mock('../default_settings.json', () => ({
         volcanoRockColor: '#777777',
         sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
         smokeVisible: false, smokeCount: 20, smokeSpread: 0.5, smokeRiseSpeed: 0.6,
-        smokeColor1: '#999999', smokeColor2: '#dddddd', smokeColor3: '#eeeeee', smokeParticleSize: 30,
+        smokeColor1: '#999999', smokeColor2: '#dddddd', smokeColor3: '#eeeeee', smokeParticleSize: 30, smokeEmberCoolingTime: 1.1,
         offsetX: 1, offsetY: 2, offsetZ: 3,
         bloomEnabled: false, bloomStrength: 0.1, bloomRadius: 0.2, bloomThreshold: 0.9,
     },
@@ -341,7 +342,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             volcanoRockColor: '#b0b0b0',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
             smokeVisible: false, smokeCount: 42, smokeSpread: 0.8, smokeRiseSpeed: 1.4,
-            smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45,
+            smokeColor1: '#abcdef', smokeColor2: '#fedcba', smokeColor3: '#123456', smokeParticleSize: 45, smokeEmberCoolingTime: 4.2,
             offsetX: 5, offsetY: -1, offsetZ: 2,
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
             skyColor: '#112233',
@@ -366,6 +367,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
         expect(controller.isPaused()).toBe(true);
         expect(controller.getGroundHeight()).toBe(-3);
         expect(controller.getSmokeCount()).toBe(20);
+        expect(controller.getSmokeEmberCoolingTime()).toBe(1.1);
     });
 });
 
@@ -456,6 +458,8 @@ describe('createSceneController – smoke', () => {
         expect(controller.getSmokeColor3()).toBe('#456456');
         controller.setSmokeParticleSize(99);
         expect(controller.getSmokeParticleSize()).toBe(99);
+        controller.setSmokeEmberCoolingTime(1.9);
+        expect(controller.getSmokeEmberCoolingTime()).toBe(1.9);
         controller.setSmokeVisible(false);
         expect(controller.getSmokeVisible()).toBe(false);
     });

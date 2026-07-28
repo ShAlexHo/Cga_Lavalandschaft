@@ -6,7 +6,7 @@ import {
     SMOKE_COLOR_1, SMOKE_COLOR_2, SMOKE_COLOR_3, SMOKE_PARTICLE_SIZE, SMOKE_EMBER_GLOW_STRENGTH, SUN_ASH_TINT_COLOR,
     SMOKE_DEFAULT_SPREAD, SMOKE_DEFAULT_RISE_SPEED, SMOKE_LIFETIME, SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT,
     SMOKE_FADE_IN_END, SMOKE_FADE_OUT_START, SMOKE_AMBIENT_RADIUS, SMOKE_AMBIENT_HEIGHT_MIN, SMOKE_AMBIENT_HEIGHT_MAX,
-    SMOKE_AMBIENT_OPACITY, SUN_DEFAULT_STRENGTH,
+    SMOKE_AMBIENT_OPACITY, SUN_DEFAULT_STRENGTH, SMOKE_EMBER_COOLING_TIME,
 } from '../config.js';
 
 export function createSmokeMaterial() {
@@ -35,6 +35,7 @@ export function createSmokeMaterial() {
             u_ambient_height_min: { value: SMOKE_AMBIENT_HEIGHT_MIN },
             u_ambient_height_max: { value: SMOKE_AMBIENT_HEIGHT_MAX },
             u_ambient_opacity: { value: SMOKE_AMBIENT_OPACITY },
+            u_ember_cooling_time: { value: SMOKE_EMBER_COOLING_TIME },
         },
         transparent: true,
         depthWrite: false,

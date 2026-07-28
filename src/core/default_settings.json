@@ -39,6 +39,7 @@
   "smokeColor2": "#515150",
   "smokeColor3": "#ff5b00",
   "smokeParticleSize": 36,
+  "smokeEmberCoolingTime": 20,
   "offsetX": 0,
   "offsetY": 0,
   "offsetZ": 0,

@@ -10,7 +10,7 @@ vi.mock('../../shaders/smoke.frag?raw', () => ({ default: '// fragment shader' }
 import { createSmokeMaterial, updateSmokeMaterial } from '../smoke_material.js';
 import {
     SMOKE_PARTICLE_SIZE, SUN_ASH_TINT_COLOR, SMOKE_DEFAULT_SPREAD, SMOKE_DEFAULT_RISE_SPEED, SMOKE_LIFETIME,
-    SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS, SUN_DEFAULT_STRENGTH,
+    SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS, SUN_DEFAULT_STRENGTH, SMOKE_EMBER_COOLING_TIME,
 } from '../../config.js';
 
 describe('createSmokeMaterial', () => {
@@ -61,6 +61,11 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms.u_core_spread.value).toBe(SMOKE_CORE_SPREAD);
         expect(material.uniforms.u_rise_height.value).toBe(SMOKE_RISE_HEIGHT);
         expect(material.uniforms.u_ambient_radius.value).toBe(SMOKE_AMBIENT_RADIUS);
+    });
+
+    test('u_ember_cooling_time starts at SMOKE_EMBER_COOLING_TIME', () => {
+        const material = createSmokeMaterial();
+        expect(material.uniforms.u_ember_cooling_time.value).toBe(SMOKE_EMBER_COOLING_TIME);
     });
 
     test('u_time and u_plume_opacity_factor start at 0.0/1.0 (no time elapsed, no dimming)', () => {

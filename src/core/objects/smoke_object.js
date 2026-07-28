@@ -34,6 +34,8 @@ export function createSmoke(scene) {
         setColor3: value => material.uniforms.u_color_3.value.set(value),
         getParticleSize: () => material.uniforms.u_size.value,
         setParticleSize: value => { material.uniforms.u_size.value = value; },
+        getEmberCoolingTime: () => material.uniforms.u_ember_cooling_time.value,
+        setEmberCoolingTime: value => { material.uniforms.u_ember_cooling_time.value = value; },
 
         ...bindSunUniforms(material),
     };

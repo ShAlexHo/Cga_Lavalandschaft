@@ -24,6 +24,7 @@ vi.mock('../../rendering/smoke_material.js', () => ({
             u_plume_opacity_factor: { value: 1.0 },
             u_spread: { value: 1.0 },
             u_rise_speed: { value: 1.0 },
+            u_ember_cooling_time: { value: 2.5 },
         },
     })),
     updateSmokeMaterial: vi.fn(),
@@ -124,6 +125,13 @@ describe('createSmoke', () => {
 
         smoke.setParticleSize(90);
         expect(smoke.getParticleSize()).toBe(90);
+    });
+
+    test('getEmberCoolingTime/setEmberCoolingTime forward to the material uniform', () => {
+        const smoke = createSmoke(makeScene());
+        expect(smoke.getEmberCoolingTime()).toBe(2.5);
+        smoke.setEmberCoolingTime(1.8);
+        expect(smoke.getEmberCoolingTime()).toBe(1.8);
     });
 
     test('getSunEnabled/setSunEnabled and getSunStrength/setSunStrength forward to the material uniforms', () => {

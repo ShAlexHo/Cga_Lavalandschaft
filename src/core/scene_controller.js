@@ -132,6 +132,8 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setSmokeColor3: value => smoke.setColor3(value),
         getSmokeParticleSize: () => smoke.getParticleSize(),
         setSmokeParticleSize: value => smoke.setParticleSize(value),
+        getSmokeEmberCoolingTime: () => smoke.getEmberCoolingTime(),
+        setSmokeEmberCoolingTime: value => smoke.setEmberCoolingTime(value),
 
         getOffsetX: () => position.x,
         setOffsetX: value => { position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; smoke.effect.position.x = value; },
@@ -210,6 +212,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'smokeColor2', get: () => controller.getSmokeColor2(), set: value => controller.setSmokeColor2(value) },
         { key: 'smokeColor3', get: () => controller.getSmokeColor3(), set: value => controller.setSmokeColor3(value) },
         { key: 'smokeParticleSize', get: () => controller.getSmokeParticleSize(), set: value => controller.setSmokeParticleSize(value) },
+        { key: 'smokeEmberCoolingTime', get: () => controller.getSmokeEmberCoolingTime(), set: value => controller.setSmokeEmberCoolingTime(value) },
         { key: 'offsetX', get: () => controller.getOffsetX(), set: value => controller.setOffsetX(value) },
         { key: 'offsetY', get: () => controller.getOffsetY(), set: value => controller.setOffsetY(value) },
         { key: 'offsetZ', get: () => controller.getOffsetZ(), set: value => controller.setOffsetZ(value) },

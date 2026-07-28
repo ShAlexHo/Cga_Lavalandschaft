@@ -44,6 +44,7 @@ function makeParticleSeeds(particle_count) {
         timing_seed: new Float32Array(particle_count * 2),
         appearance: new Float32Array(particle_count * 3),
         accent_base: new Float32Array(particle_count),
+        ember_cooling_mult: new Float32Array(particle_count),
         ambient_seed: new Float32Array(particle_count * 4),
     };
 }
@@ -82,6 +83,7 @@ describe('createSmokeGeometry', () => {
         expect(points.geometry.attributes.a_appearance.array).toBe(particle_seeds.appearance);
         expect(points.geometry.attributes.a_appearance.itemSize).toBe(3);
         expect(points.geometry.attributes.a_accent_base.array).toBe(particle_seeds.accent_base);
+        expect(points.geometry.attributes.a_ember_cooling_mult.array).toBe(particle_seeds.ember_cooling_mult);
         expect(points.geometry.attributes.a_ambient_seed.array).toBe(particle_seeds.ambient_seed);
         expect(points.geometry.attributes.a_ambient_seed.itemSize).toBe(4);
     });
