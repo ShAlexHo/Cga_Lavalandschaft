@@ -11,6 +11,7 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
+            u_crack_color_3: { value: makeColor('ffd700') },
             u_crack_softness: { value: 0.25 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
@@ -64,6 +65,9 @@ describe('createGround', () => {
 
         ground.setCrackColor2('#222222');
         expect(ground.getCrackColor2()).toBe('#222222');
+
+        ground.setCrackColor3('#333333');
+        expect(ground.getCrackColor3()).toBe('#333333');
 
         ground.setCrackSoftness(0.6);
         expect(ground.getCrackSoftness()).toBe(0.6);

@@ -16,6 +16,7 @@ uniform float u_crack_softness;
 uniform vec3  u_rock_color;
 uniform vec3  u_crack_color;
 uniform vec3  u_crack_color_2;
+uniform vec3  u_crack_color_3;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -40,7 +41,7 @@ void main() {
     vec3 varied_color = mix(u_rock_color * 0.6, u_rock_color, color_variation);
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
-    vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, v_world_position);
+    vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, u_crack_color_3, v_world_position);
     vec3 color = mix(crack_color, varied_color, crack_mask);
 
     // Barely-there specular - it's ground, not polished rock, so only the faintest highlight should show.

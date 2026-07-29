@@ -30,6 +30,7 @@ describe('createGroundMaterial', () => {
             'u_rock_color',
             'u_crack_color',
             'u_crack_color_2',
+            'u_crack_color_3',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);

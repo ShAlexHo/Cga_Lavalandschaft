@@ -26,6 +26,7 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_rock_color: { value: makeColor('220500') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
+            u_crack_color_3: { value: makeColor('ffd700') },
             u_crack_softness: { value: 0.25 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
@@ -155,7 +156,7 @@ vi.mock('../default_settings.json', () => ({
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
         displacementEnabled: false, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
-        groundCrackColor: '#333333', groundCrackColor2: '#444400', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
+        groundCrackColor: '#333333', groundCrackColor2: '#444400', groundCrackColor3: '#555500', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777',
         sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
@@ -286,6 +287,9 @@ describe('createSceneController – ground', () => {
         controller.setGroundCrackColor2('#456456');
         expect(controller.getGroundCrackColor2()).toBe('#456456');
 
+        controller.setGroundCrackColor3('#789789');
+        expect(controller.getGroundCrackColor3()).toBe('#789789');
+
         controller.setGroundCrackSoftness(0.6);
         expect(controller.getGroundCrackSoftness()).toBe(0.6);
 
@@ -340,7 +344,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
-            groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
+            groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,

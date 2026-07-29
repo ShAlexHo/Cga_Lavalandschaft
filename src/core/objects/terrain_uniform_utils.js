@@ -15,6 +15,8 @@ export function bindCrackColorUniforms(material) {
         setCrackColor: value => material.uniforms.u_crack_color.value.set(value),
         getCrackColor2: () => toHexColor(material.uniforms.u_crack_color_2.value),
         setCrackColor2: value => material.uniforms.u_crack_color_2.value.set(value),
+        getCrackColor3: () => toHexColor(material.uniforms.u_crack_color_3.value),
+        setCrackColor3: value => material.uniforms.u_crack_color_3.value.set(value),
     };
 }
 

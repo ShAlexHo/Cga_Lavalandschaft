@@ -141,11 +141,17 @@ float crackPattern(vec3 position, float frequency, float crack_width) {
     return smoothstep(crack_width - edge, crack_width + edge, distance_from_crack);
 }
 
-// Blends towards a second crack color at a much lower frequency than the crack pattern itself, so
-// different crack regions read as more red or more yellow instead of one flat, uniform tone. Shared
-// by the ground and volcano terrain, which pass their own crack_color/crack_color_2 pair.
-vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 world_position) {
-    return mix(crack_color, crack_color_2, normalizedFractalBrownianMotion(world_position * 0.15));
+// Blends across three crack colors using two independent noise fields at different frequencies
+// and offsets, rather than one smoothstep gradient over a single color pair: the base color mixes
+// between crack_color/crack_color_2 at a low frequency, then crack_color_3 is folded in as patches
+// (squared noise, so it appears in isolated spots rather than sliding in linearly) at a different
+// frequency and offset, so its regions don't line up with the base blend's.
+vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, vec3 world_position) {
+    float base_blend = normalizedFractalBrownianMotion(world_position * 0.15);
+    vec3 base_color = mix(crack_color, crack_color_2, base_blend);
+
+    float accent_blend = normalizedFractalBrownianMotion(world_position * 0.37 + vec3(52.1, 14.7, 8.3));
+    return mix(base_color, crack_color_3, accent_blend * accent_blend);
 }
 
 // Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and

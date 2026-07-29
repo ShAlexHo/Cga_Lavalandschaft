@@ -28,9 +28,10 @@ export function createGroundMaterial() {
             u_displacement_frequency: { value: GROUND_DEFAULT_DISPLACEMENT_FREQUENCY },
             u_crack_frequency: { value: GROUND_CRACK_FREQUENCY },
             u_crack_softness: { value: GROUND_DEFAULT_CRACK_SOFTNESS },
-            u_rock_color: { value: new THREE.Color(0x0a0000) },
-            u_crack_color: { value: new THREE.Color(0xff5d00) },
-            u_crack_color_2: { value: new THREE.Color(0x874941) },
+            u_rock_color: { value: new THREE.Color(0x110f0f) },
+            u_crack_color: { value: new THREE.Color(0xe03008) },
+            u_crack_color_2: { value: new THREE.Color(0x872412) },
+            u_crack_color_3: { value: new THREE.Color(0xdb9e49) },
         },
         side: THREE.DoubleSide,
     });
