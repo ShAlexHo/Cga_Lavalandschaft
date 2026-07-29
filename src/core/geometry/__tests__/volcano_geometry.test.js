@@ -18,11 +18,12 @@ vi.mock('three', () => {
 });
 
 import { createVolcanoGeometry } from '../volcano_geometry.js';
+import { makeScene } from '../../test-utils/three_mocks.js';
 
 describe('createVolcanoGeometry', () => {
     let mock_scene, material;
     beforeEach(() => {
-        mock_scene = { add: vi.fn() };
+        mock_scene = makeScene();
         material = {};
     });
 

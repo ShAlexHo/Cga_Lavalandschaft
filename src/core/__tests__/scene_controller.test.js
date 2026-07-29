@@ -318,10 +318,13 @@ describe('createSceneController – displacement toggle', () => {
 // ─── bloom ────────────────────────────────────────────────────────────────────
 
 describe('createSceneController – bloom', () => {
-    test('setBloom only touches the given fields', () => {
+    test('getBloomX/setBloomX forward to the bloom pass, one field at a time', () => {
         const controller = makeController();
-        controller.setBloom({ strength: 1.5 });
-        expect(controller.getBloom()).toEqual({ enabled: true, strength: 1.5, radius: 0.5, threshold: 0.3 });
+        controller.setBloomStrength(1.5);
+        expect(controller.getBloomEnabled()).toBe(true);
+        expect(controller.getBloomStrength()).toBe(1.5);
+        expect(controller.getBloomRadius()).toBe(0.5);
+        expect(controller.getBloomThreshold()).toBe(0.3);
     });
 });
 

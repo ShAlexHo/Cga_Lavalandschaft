@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
+import { makeColor, makeScene, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
 
 vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 
@@ -22,8 +22,6 @@ vi.mock('../../rendering/ground_material.js', () => ({
 
 import { createGround } from '../ground_object.js';
 import { createGroundMaterial, updateGroundLight } from '../../rendering/ground_material.js';
-
-function makeScene() { return { add: vi.fn() }; }
 
 beforeEach(() => vi.clearAllMocks());
 

@@ -1,6 +1,12 @@
 // Shared `vi.mock('three', ...)` fakes, referenced from test files via plain imports (Vitest
 // resolves those before a mock factory ever runs, so this is safe despite vi.mock() hoisting).
 
+import { vi } from 'vitest';
+
+export function makeScene() {
+    return { add: vi.fn() };
+}
+
 export function makeColor(hex = '000000') {
     return {
         _hex: hex,

@@ -72,8 +72,7 @@ function createParticleSeeds() {
 
 export const particle_seeds = createParticleSeeds();
 
-// Between lava waves (no fresh metaballs spawning) the crater plume itself thins out - eases via
-// eruption_intensity rather than snapping, so the plume dims/recovers smoothly instead of popping.
+// Thins the plume between lava waves; eruption_intensity already eases (see getEruptionIntensity).
 export function computePlumeOpacityFactor(eruption_intensity = 1.0) {
     return SMOKE_PAUSED_ERUPTION_OPACITY + (1 - SMOKE_PAUSED_ERUPTION_OPACITY) * clamp(eruption_intensity, 0, 1);
 }

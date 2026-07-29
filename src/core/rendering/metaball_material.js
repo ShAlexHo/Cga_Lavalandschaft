@@ -5,16 +5,13 @@ import fragment_glsl from '../shaders/metaball.frag?raw';
 import { METABALL_LIGHT_POSITION } from '../config.js';
 import { computeLightViewPosition } from './light_utils.js';
 
-const vertex_shader = noise_glsl + vertex_glsl;
-const fragment_shader = noise_glsl + fragment_glsl;
-
 const LIGHT_WORLD_POSITION = new THREE.Vector3(METABALL_LIGHT_POSITION.x, METABALL_LIGHT_POSITION.y, METABALL_LIGHT_POSITION.z);
 const _light_view_position = new THREE.Vector3();
 
 export function createMetaballMaterial() {
     return new THREE.ShaderMaterial({
-        vertexShader: vertex_shader,
-        fragmentShader: fragment_shader,
+        vertexShader: noise_glsl + vertex_glsl,
+        fragmentShader: noise_glsl + fragment_glsl,
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
             u_time: { value: 0.0 },

@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor } from '../../test-utils/three_mocks.js';
+import { makeColor, makeScene } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/smoke_geometry.js', () => ({
     createSmokeGeometry: vi.fn((scene, material) => {
@@ -45,8 +45,6 @@ import { createSmokeMaterial, updateSmokeMaterial } from '../../rendering/smoke_
 import { settings as mock_settings, particle_seeds, computePlumeOpacityFactor } from '../../animation/smoke_particles.js';
 
 const DEFAULT_SETTINGS = { count: 200, max_count: 400 };
-
-function makeScene() { return { add: vi.fn() }; }
 
 beforeEach(() => {
     vi.clearAllMocks();

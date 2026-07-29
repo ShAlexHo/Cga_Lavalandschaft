@@ -1,4 +1,5 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
+import { importFreshModule } from '../../test-utils/reimport.js';
 import {
     SMOKE_MAX_PARTICLES,
     SMOKE_DEFAULT_COUNT,
@@ -14,17 +15,9 @@ import {
     SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../../config.js';
 
-// ─── Fresh module instance per test ──────────────────────────────────────────
-//
-// smoke_particles.js bakes the particle seed arrays at import time from the
-// shared seeded RNG (rand.js) - tests must not share one import across cases,
-// and re-importing after vi.resetModules() restarts the RNG from the same
-// seed, keeping the seeds deterministic.
-
 let particles_module;
 beforeEach(async () => {
-    vi.resetModules();
-    particles_module = await import('../smoke_particles.js');
+    particles_module = await importFreshModule(() => import('../smoke_particles.js'));
 });
 
 describe('settings (default values)', () => {
@@ -131,8 +124,7 @@ describe('particle_seeds', () => {
     test('seeds are deterministic across fresh module instances', async () => {
         const first = particles_module.particle_seeds;
 
-        vi.resetModules();
-        const second_particles_module = await import('../smoke_particles.js');
+        const second_particles_module = await importFreshModule(() => import('../smoke_particles.js'));
         const second = second_particles_module.particle_seeds;
 
         expect(Array.from(first.motion_seed)).toEqual(Array.from(second.motion_seed));

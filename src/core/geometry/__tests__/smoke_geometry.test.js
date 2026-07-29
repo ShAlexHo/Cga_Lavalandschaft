@@ -34,8 +34,7 @@ vi.mock('three', () => {
 });
 
 import { createSmokeGeometry, setSmokeDrawRange } from '../smoke_geometry.js';
-
-function makeScene() { return { add: vi.fn() }; }
+import { makeScene } from '../../test-utils/three_mocks.js';
 
 function makeParticleSeeds(particle_count) {
     return {

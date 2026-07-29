@@ -1,22 +1,11 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { METABALL_WAVE_TRANSITION } from '../../config.js';
-
-// ─── Fresh module instance per test ──────────────────────────────────────────
-//
-// metaball_animation.js keeps its wave/pool state (pool_head, current_wave_count,
-// pausing, ...) in module-level variables, so tests must not share one import
-// across cases - otherwise call order between tests would leak into the results.
-// Re-importing after vi.resetModules() also clears rand.js's cache, so the
-// seeded RNG restarts from the same seed every time - ball parameters stay
-// deterministic.
+import { importFreshModule } from '../../test-utils/reimport.js';
 
 let animation_module;
 beforeEach(async () => {
-    vi.resetModules();
-    animation_module = await import('../metaball_animation.js');
+    animation_module = await importFreshModule(() => import('../metaball_animation.js'));
 });
-
-// ─── settings (default values) ───────────────────────────────────────────────
 
 describe('settings (default values)', () => {
     test('count is 100', () => expect(animation_module.settings.count).toBe(100));
@@ -27,15 +16,11 @@ describe('settings (default values)', () => {
     test('flow_z_radius is 10.3', () => expect(animation_module.settings.flow_z_radius).toBe(10.3));
 });
 
-// ─── getActiveBalls ──────────────────────────────────────────────────────────
-
 describe('getActiveBalls', () => {
     test('is empty before the simulation has run', () => {
         expect(animation_module.getActiveBalls()).toHaveLength(0);
     });
 });
-
-// ─── stepMetaballAnimation ────────────────────────────────────────────────────
 
 describe('stepMetaballAnimation', () => {
     test('returns null while paused', () => {
@@ -88,16 +73,13 @@ describe('stepMetaballAnimation', () => {
         animation_module.stepMetaballAnimation(0);
         const balls_first_run = animation_module.stepMetaballAnimation(2000).map(ball => ({ ...ball }));
 
-        vi.resetModules();
-        const second_animation_module = await import('../metaball_animation.js');
+        const second_animation_module = await importFreshModule(() => import('../metaball_animation.js'));
         second_animation_module.stepMetaballAnimation(0);
         const balls_second_run = second_animation_module.stepMetaballAnimation(2000).map(ball => ({ ...ball }));
 
         expect(balls_first_run).toEqual(balls_second_run);
     });
 });
-
-// ─── getEruptionIntensity ───────────────────────────────────────────────────
 
 describe('getEruptionIntensity', () => {
     test('is 1.0 while a wave is actively spawning', () => {

@@ -104,11 +104,7 @@ export const SMOKE_EMBER_GLOW_MULT_MIN = 0.4; // per-particle random multiplier 
 export const SMOKE_EMBER_GLOW_MULT_MAX = 1.8;
 export const SMOKE_PAUSED_ERUPTION_OPACITY = 0.35; // crater-plume opacity floor while no metaballs are being spawned (between lava waves) - thins the plume without hiding it entirely; the ambient haze is unaffected
 
-// A share of particles act as ambient background ash, scattered evenly
-// across a wide volume around the volcano instead of following the crater
-// plume - so the whole space carries a faint haze of ash, not just the
-// column directly above the opening.
-export const SMOKE_AMBIENT_FRACTION = 0.3; // share of the particle pool that is ambient rather than part of the crater plume
+export const SMOKE_AMBIENT_FRACTION = 0.3; // share of particles scattered around the volcano as background haze, rather than following the crater plume
 export const SMOKE_AMBIENT_RADIUS = 22.0; // horizontal reach of the ambient haze - covers most of the visible space around the volcano
 export const SMOKE_AMBIENT_HEIGHT_MIN = -3.0; // lowest ambient ash height (local space, relative to the crater opening)
 export const SMOKE_AMBIENT_HEIGHT_MAX = 14.0; // highest ambient ash height

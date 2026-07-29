@@ -123,8 +123,14 @@ function makeFacade(overrides = {}) {
         getOffsetZ: vi.fn(() => 0),
         setOffsetZ: vi.fn(),
 
-        getBloom: vi.fn(() => ({ enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 })),
-        setBloom: vi.fn(),
+        getBloomEnabled: vi.fn(() => true),
+        setBloomEnabled: vi.fn(),
+        getBloomStrength: vi.fn(() => 0.8),
+        setBloomStrength: vi.fn(),
+        getBloomRadius: vi.fn(() => 0.5),
+        setBloomRadius: vi.fn(),
+        getBloomThreshold: vi.fn(() => 0.3),
+        setBloomThreshold: vi.fn(),
 
         getSkyColor: vi.fn(() => '#6b2f1a'),
         setSkyColor: vi.fn(),
@@ -406,17 +412,16 @@ describe('setupGui – Position folder', () => {
 
 describe('setupGui – Bloom folder', () => {
     test.each([
-        ['enabled', { enabled: false }],
-        ['strength', { strength: 1.2 }],
-        ['radius', { radius: 0.9 }],
-        ['threshold', { threshold: 0.6 }],
-    ])('%s onChange calls facade.setBloom with a partial patch', (key, patch) => {
+        ['enabled', 'setBloomEnabled', false],
+        ['strength', 'setBloomStrength', 1.2],
+        ['radius', 'setBloomRadius', 0.9],
+        ['threshold', 'setBloomThreshold', 0.6],
+    ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
         setupGui(facade);
-        const value = Object.values(patch)[0];
         fire(registry, 'Bloom', key, value);
-        expect(facade.setBloom).toHaveBeenCalledWith(patch);
+        expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
 

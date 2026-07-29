@@ -50,8 +50,7 @@ export function getActiveBalls() {
     return active_balls;
 }
 
-// 1.0 while a wave is actively spawning; eases down/up around a wave pause (no new balls being
-// initialized) instead of snapping, so dependents like the smoke plume can fade smoothly.
+// 1.0 while a wave spawns; eases toward 0 around a pause instead of snapping.
 export function getEruptionIntensity(time) {
     if (!pausing) return 1.0;
     const fading_out = 1 - smoothstep(pause_start, pause_start + METABALL_WAVE_TRANSITION, time);
@@ -59,8 +58,7 @@ export function getEruptionIntensity(time) {
     return Math.max(fading_out, fading_in);
 }
 
-// Returns the active balls after advancing the simulation by one frame,
-// or null while paused (nothing changed, callers should skip a rebuild).
+// Advances the simulation by one frame and returns the active balls, or null while paused.
 export function stepMetaballAnimation(time) {
     if (settings.paused) return null;
 
@@ -72,7 +70,6 @@ export function stepMetaballAnimation(time) {
             current_wave_count = 0;
             last_spawn_time = -1.0;
 
-            // Delete balls from 2 iterations ago
             if (iteration_count >= 2) {
                 const delete_iteration = iteration_count - 2;
                 const delete_start = wave_starts[delete_iteration];

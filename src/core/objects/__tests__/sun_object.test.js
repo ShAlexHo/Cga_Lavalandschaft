@@ -46,8 +46,7 @@ import {
     SUN_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_LIGHT_INTENSITY, SUN_LIGHT_DISTANCE, SUN_VISUAL_RADIUS,
     SUN_ORBIT_RADIUS, SUN_ORBIT_HEIGHT, SUN_ORBIT_START_ANGLE, SUN_ORBIT_SPEED,
 } from '../../config.js';
-
-function makeScene() { return { add: vi.fn() }; }
+import { makeScene } from '../../test-utils/three_mocks.js';
 
 beforeEach(() => vi.clearAllMocks());
 

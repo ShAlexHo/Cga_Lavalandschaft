@@ -34,8 +34,7 @@ import {
     AMBIENT_LIGHT_COLOR, AMBIENT_LIGHT_INTENSITY,
     KEY_LIGHT_SHADOW_MAP_SIZE, KEY_LIGHT_SHADOW_FRUSTUM, KEY_LIGHT_SHADOW_NEAR, KEY_LIGHT_SHADOW_FAR, KEY_LIGHT_SHADOW_BIAS,
 } from '../../config.js';
-
-function makeScene() { return { add: vi.fn() }; }
+import { makeScene } from '../../test-utils/three_mocks.js';
 
 describe('createKeyLight', () => {
     test('adds both the ambient and key light to the scene', () => {

@@ -36,8 +36,8 @@ void main() {
     float diffuse = max(dot(normal, normalize(u_light_position - v_view_position)), 0.0) * shadow_mask;
     float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, u_sun_focus);
 
-    float color_var = normalizedFractalBrownianMotion(v_world_position * 1.5);
-    vec3 varied_color = mix(u_rock_color * 0.6, u_rock_color, color_var);
+    float color_variation = normalizedFractalBrownianMotion(v_world_position * 1.5);
+    vec3 varied_color = mix(u_rock_color * 0.6, u_rock_color, color_variation);
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
     vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, v_world_position);

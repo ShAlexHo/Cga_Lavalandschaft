@@ -148,11 +148,8 @@ vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 world_position)
     return mix(crack_color, crack_color_2, normalizedFractalBrownianMotion(world_position * 0.15));
 }
 
-// Soft wash across the whole sun-facing side, boosted by a rim/fresnel highlight right
-// at the silhouette - reads as "this side is lit by the sun", with the grazing edge
-// popping brighter like a sunset rim light, instead of either a flat wash alone or an
-// easy-to-miss thin edge line alone. Shared by the ground and volcano terrain, which pass
-// their own normal/view/sun directions and focus.
+// Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and
+// volcano terrain, which pass their own normal/view/sun directions and focus.
 float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float sun_focus) {
     float sun_facing = max(dot(normal, sun_direction), 0.0);
     float sun_wash = pow(sun_facing, 1.5) * 0.4;

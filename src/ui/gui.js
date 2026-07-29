@@ -231,20 +231,24 @@ export function setupGui(facade) {
         .onChange(value => facade.setOffsetZ(value));
 
     const bloom_folder = gui.addFolder('Bloom');
-    const bloom_parameters = facade.getBloom();
-    refresh_bindings.push(() => Object.assign(bloom_parameters, facade.getBloom()));
+    const bloom_parameters = makeParameters({
+        enabled: facade.getBloomEnabled,
+        strength: facade.getBloomStrength,
+        radius: facade.getBloomRadius,
+        threshold: facade.getBloomThreshold,
+    });
     bind(bloom_folder.add(bloom_parameters, 'enabled'))
         .name('Aktiviert')
-        .onChange(value => facade.setBloom({ enabled: value }));
+        .onChange(value => facade.setBloomEnabled(value));
     bind(bloom_folder.add(bloom_parameters, 'strength', 0.0, 4.0, 0.05))
         .name('Stärke')
-        .onChange(value => facade.setBloom({ strength: value }));
+        .onChange(value => facade.setBloomStrength(value));
     bind(bloom_folder.add(bloom_parameters, 'radius', 0.0, 1.5, 0.01))
         .name('Radius')
-        .onChange(value => facade.setBloom({ radius: value }));
+        .onChange(value => facade.setBloomRadius(value));
     bind(bloom_folder.add(bloom_parameters, 'threshold', 0.0, 1.0, 0.01))
         .name('Schwellenwert')
-        .onChange(value => facade.setBloom({ threshold: value }));
+        .onChange(value => facade.setBloomThreshold(value));
 
     const sky_folder = gui.addFolder('Himmel');
     const sky_parameters = makeParameters({ color: facade.getSkyColor });

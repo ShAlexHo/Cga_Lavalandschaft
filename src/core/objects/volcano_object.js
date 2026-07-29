@@ -2,7 +2,7 @@ import { createVolcanoGeometry } from '../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { toHexColor } from './color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
-import { bindDisplacementUniforms } from './terrain_uniform_utils.js';
+import { bindDisplacementUniforms, bindSunFocusUniform } from './terrain_uniform_utils.js';
 
 export function createVolcano(scene) {
     const material = createVolcanoMaterial();
@@ -21,7 +21,6 @@ export function createVolcano(scene) {
         setRockColor: value => material.uniforms.u_rock_color.value.set(value),
         ...bindDisplacementUniforms(material),
         ...bindSunUniforms(material),
-        getSunFocus: () => material.uniforms.u_sun_focus.value,
-        setSunFocus: value => { material.uniforms.u_sun_focus.value = value; },
+        ...bindSunFocusUniform(material),
     };
 }

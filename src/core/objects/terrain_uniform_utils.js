@@ -17,3 +17,10 @@ export function bindCrackColorUniforms(material) {
         setCrackColor2: value => material.uniforms.u_crack_color_2.value.set(value),
     };
 }
+
+export function bindSunFocusUniform(material) {
+    return {
+        getSunFocus: () => material.uniforms.u_sun_focus.value,
+        setSunFocus: value => { material.uniforms.u_sun_focus.value = value; },
+    };
+}

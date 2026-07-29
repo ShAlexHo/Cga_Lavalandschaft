@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor } from '../../test-utils/three_mocks.js';
+import { makeColor, makeScene } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn((scene, material) => {
@@ -43,8 +43,6 @@ import { createMetaballMaterial, updateMetaballLight } from '../../rendering/met
 import { settings as mock_settings, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
-
-function makeScene() { return { add: vi.fn() }; }
 
 beforeEach(() => {
     vi.clearAllMocks();

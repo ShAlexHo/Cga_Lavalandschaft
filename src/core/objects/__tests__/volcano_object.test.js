@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor } from '../../test-utils/three_mocks.js';
+import { makeColor, makeScene } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/volcano_geometry.js', () => ({
     createVolcanoGeometry: vi.fn((scene, material) => {
@@ -26,8 +26,6 @@ vi.mock('../../rendering/volcano_material.js', () => ({
 import { createVolcano } from '../volcano_object.js';
 import { createVolcanoGeometry } from '../../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../../rendering/volcano_material.js';
-
-function makeScene() { return { add: vi.fn() }; }
 
 beforeEach(() => vi.clearAllMocks());
 

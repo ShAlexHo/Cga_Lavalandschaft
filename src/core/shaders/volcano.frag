@@ -21,8 +21,8 @@ void main() {
 
     float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, u_sun_focus);
 
-    float ash_var  = normalizedFractalBrownianMotion(v_world_position * 2.5);
-    vec3 color = mix(vec3(0.0), u_rock_color, ash_var * 0.15);
+    float ash_variation = normalizedFractalBrownianMotion(v_world_position * 2.5);
+    vec3 color = mix(vec3(0.0), u_rock_color, ash_variation * 0.15);
 
     vec3 halfway_direction = normalize(normalize(u_light_position - v_view_position) + view_direction);
     float specular   = pow(max(dot(halfway_direction, normal), 0.0), 32.0) * 0.01;
