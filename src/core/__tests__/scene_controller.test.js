@@ -28,6 +28,9 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
             u_crack_softness: { value: 0.25 },
+            u_proximity_color: { value: makeColor('9b9696') },
+            u_proximity_noise_color: { value: makeColor('8a3a1a') },
+            u_proximity_radius: { value: 18.0 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -157,6 +160,7 @@ vi.mock('../default_settings.json', () => ({
         displacementEnabled: false, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
         groundCrackColor: '#333333', groundCrackColor2: '#444400', groundCrackColor3: '#555500', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
+        groundProximityColor: '#888888', groundProximityNoiseColor: '#663311', groundProximityRadius: 12,
         volcanoVisible: false, volcanoDisplacementScale: 1.0, volcanoDisplacementFrequency: 0.2,
         volcanoRockColor: '#777777',
         sunVisible: false, sunStrength: 0.03, sunFocus: 6.0,
@@ -298,6 +302,15 @@ describe('createSceneController – ground', () => {
 
         controller.setGroundDisplacementFrequency(0.3);
         expect(controller.getGroundDisplacementFrequency()).toBe(0.3);
+
+        controller.setGroundProximityColor('#654321');
+        expect(controller.getGroundProximityColor()).toBe('#654321');
+
+        controller.setGroundProximityNoiseColor('#123abc');
+        expect(controller.getGroundProximityNoiseColor()).toBe('#123abc');
+
+        controller.setGroundProximityRadius(15.0);
+        expect(controller.getGroundProximityRadius()).toBe(15.0);
     });
 });
 
@@ -345,6 +358,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
             groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
+            groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
@@ -495,7 +509,7 @@ describe('createSceneController – update()', () => {
 
         controller.update(12.5);
 
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object));
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);

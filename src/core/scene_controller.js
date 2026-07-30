@@ -31,7 +31,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
 
     const controller = {
         update(time) {
-            ground.update(camera);
+            ground.update(camera, volcano.mesh.position);
             metaball_field.update(time, camera);
             sun.update(time);
             volcano.update(camera, sun.light.position);
@@ -89,6 +89,12 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setGroundCrackColor3: value => ground.setCrackColor3(value),
         getGroundCrackSoftness: () => ground.getCrackSoftness(),
         setGroundCrackSoftness: value => ground.setCrackSoftness(value),
+        getGroundProximityColor: () => ground.getProximityColor(),
+        setGroundProximityColor: value => ground.setProximityColor(value),
+        getGroundProximityNoiseColor: () => ground.getProximityNoiseColor(),
+        setGroundProximityNoiseColor: value => ground.setProximityNoiseColor(value),
+        getGroundProximityRadius: () => ground.getProximityRadius(),
+        setGroundProximityRadius: value => ground.setProximityRadius(value),
         getGroundDisplacementScale: () => ground.getDisplacementScale(),
         setGroundDisplacementScale: value => ground.setDisplacementScale(value),
         getGroundDisplacementFrequency: () => ground.getDisplacementFrequency(),
@@ -198,6 +204,9 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'groundCrackColor2', get: () => controller.getGroundCrackColor2(), set: value => controller.setGroundCrackColor2(value) },
         { key: 'groundCrackColor3', get: () => controller.getGroundCrackColor3(), set: value => controller.setGroundCrackColor3(value) },
         { key: 'groundCrackSoftness', get: () => controller.getGroundCrackSoftness(), set: value => controller.setGroundCrackSoftness(value) },
+        { key: 'groundProximityColor', get: () => controller.getGroundProximityColor(), set: value => controller.setGroundProximityColor(value) },
+        { key: 'groundProximityNoiseColor', get: () => controller.getGroundProximityNoiseColor(), set: value => controller.setGroundProximityNoiseColor(value) },
+        { key: 'groundProximityRadius', get: () => controller.getGroundProximityRadius(), set: value => controller.setGroundProximityRadius(value) },
         { key: 'groundDisplacementScale', get: () => controller.getGroundDisplacementScale(), set: value => controller.setGroundDisplacementScale(value) },
         { key: 'groundDisplacementFrequency', get: () => controller.getGroundDisplacementFrequency(), set: value => controller.setGroundDisplacementFrequency(value) },
         { key: 'groundHeight', get: () => controller.getGroundHeight(), set: value => controller.setGroundHeight(value) },

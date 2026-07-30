@@ -125,6 +125,27 @@ vec3 crackWarpOffset(vec3 position, float frequency) {
     );
 }
 
+// One-sided crack-vein displacement (always <= 0, deep dents around the noise's zero-crossing,
+// near-flat elsewhere) driving the volcano's jagged rock geometry. Shared with the ground vertex
+// shader, which blends this in near the volcano's foot so the terrain shape - not just its color -
+// reads as a continuation of the volcano instead of cutting to a smoother pattern at the seam.
+float crackDisplacementLayer(vec3 position, float frequency) {
+    vec3 warp = crackWarpOffset(position, frequency);
+    float noise_value = abs(simplexNoise((position + warp * 1.2) * frequency));
+    return pow(noise_value, 0.18);
+}
+
+float crackDisplacementNoise(vec3 position, float frequency) {
+    float accumulated_noise = 0.0, amplitude = 1.0, weight_total = 0.0;
+    for (int i = 0; i < 3; i++) {
+        accumulated_noise += crackDisplacementLayer(position, frequency) * amplitude;
+        weight_total += amplitude;
+        position  *= 2.1;
+        amplitude *= 0.45;
+    }
+    return accumulated_noise / weight_total;
+}
+
 // `crack_width` is a flat, solid crack region around the noise's zero-crossing; only its outer 15%
 // blends into rock, so bigger cracks stay solid instead of blurring throughout. `frequency` is itself
 // modulated by a slow noise field so crack size varies across the terrain rather than being uniform.

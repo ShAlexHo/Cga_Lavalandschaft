@@ -110,6 +110,9 @@ export function setupGui(facade) {
         crack_color_2: facade.getGroundCrackColor2,
         crack_color_3: facade.getGroundCrackColor3,
         crack_softness: facade.getGroundCrackSoftness,
+        proximity_color: facade.getGroundProximityColor,
+        proximity_noise_color: facade.getGroundProximityNoiseColor,
+        proximity_radius: facade.getGroundProximityRadius,
         displacement_scale: facade.getGroundDisplacementScale,
         displacement_frequency: facade.getGroundDisplacementFrequency,
         height: facade.getGroundHeight,
@@ -132,6 +135,15 @@ export function setupGui(facade) {
     bind(ground_folder.add(ground_parameters, 'crack_softness', 0.001, 1.0, 0.001))
         .name('Rissweichheit')
         .onChange(value => facade.setGroundCrackSoftness(value));
+    bind(ground_folder.addColor(ground_parameters, 'proximity_color'))
+        .name('Farbe nahe Vulkan')
+        .onChange(value => facade.setGroundProximityColor(value));
+    bind(ground_folder.addColor(ground_parameters, 'proximity_noise_color'))
+        .name('Farbrauschen nahe Vulkan')
+        .onChange(value => facade.setGroundProximityNoiseColor(value));
+    bind(ground_folder.add(ground_parameters, 'proximity_radius', 0.0, 40.0, 0.5))
+        .name('Reichweite (Vulkannähe)')
+        .onChange(value => facade.setGroundProximityRadius(value));
     bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))
         .name('Unebenheit')
         .onChange(value => facade.setGroundDisplacementScale(value));

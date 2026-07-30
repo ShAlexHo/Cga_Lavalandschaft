@@ -20,6 +20,7 @@ export const GROUND_CRACK_FREQUENCY = 0.06; // crack-color frequency, not yet ex
 export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
 export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.015; // crackPattern()'s crack_width
+export const GROUND_DEFAULT_PROXIMITY_RADIUS = 30.0; // world-unit falloff distance for the volcano-proximity tint, well past the ~14-unit volcano foot radius so the blend reads as a wide apron rather than a hard ring
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 

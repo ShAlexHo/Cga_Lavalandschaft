@@ -15,8 +15,8 @@ export function createGround(scene) {
 
     return {
         mesh,
-        update(camera) {
-            updateGroundLight(material, camera);
+        update(camera, volcano_world_position) {
+            updateGroundLight(material, camera, volcano_world_position);
         },
 
         getVisible: () => mesh.visible,
@@ -25,6 +25,12 @@ export function createGround(scene) {
         setColor: value => material.uniforms.u_rock_color.value.set(value),
         getCrackSoftness: () => material.uniforms.u_crack_softness.value,
         setCrackSoftness: value => { material.uniforms.u_crack_softness.value = value; },
+        getProximityColor: () => toHexColor(material.uniforms.u_proximity_color.value),
+        setProximityColor: value => material.uniforms.u_proximity_color.value.set(value),
+        getProximityNoiseColor: () => toHexColor(material.uniforms.u_proximity_noise_color.value),
+        setProximityNoiseColor: value => material.uniforms.u_proximity_noise_color.value.set(value),
+        getProximityRadius: () => material.uniforms.u_proximity_radius.value,
+        setProximityRadius: value => { material.uniforms.u_proximity_radius.value = value; },
         ...bindCrackColorUniforms(material),
         ...bindDisplacementUniforms(material),
         ...bindSunUniforms(material),

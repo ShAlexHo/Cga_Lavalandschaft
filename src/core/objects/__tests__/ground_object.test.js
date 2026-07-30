@@ -13,6 +13,9 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
             u_crack_softness: { value: 0.25 },
+            u_proximity_color: { value: makeColor('9b9696') },
+            u_proximity_noise_color: { value: makeColor('8a3a1a') },
+            u_proximity_radius: { value: 18.0 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -40,11 +43,12 @@ describe('createGround', () => {
         expect(ground.mesh.position.y).toBe(-6);
     });
 
-    test('update() forwards to updateGroundLight with the material and camera', () => {
+    test('update() forwards to updateGroundLight with the material, camera and volcano position', () => {
         const ground = createGround(makeScene());
         const camera = {};
-        ground.update(camera);
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera);
+        const volcano_position = {};
+        ground.update(camera, volcano_position);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {
@@ -71,6 +75,15 @@ describe('createGround', () => {
 
         ground.setCrackSoftness(0.6);
         expect(ground.getCrackSoftness()).toBe(0.6);
+
+        ground.setProximityColor('#444444');
+        expect(ground.getProximityColor()).toBe('#444444');
+
+        ground.setProximityNoiseColor('#555555');
+        expect(ground.getProximityNoiseColor()).toBe('#555555');
+
+        ground.setProximityRadius(25.0);
+        expect(ground.getProximityRadius()).toBe(25.0);
 
         ground.setDisplacementScale(1.2);
         expect(ground.getDisplacementScale()).toBe(1.2);
