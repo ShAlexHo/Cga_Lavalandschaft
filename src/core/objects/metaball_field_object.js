@@ -1,12 +1,11 @@
-import { createMetaballGeometry, rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
-import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
-import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
+import { createMetaballGeometry } from '../geometry/metaball_geometry.js';
+import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls } from '../rendering/metaball_material.js';
+import { settings, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from './color_utils.js';
 
 export function createMetaballField(scene) {
     const material = createMetaballMaterial();
     const effect = createMetaballGeometry(scene, material);
-    rebuildMetaballGeometry(effect, getActiveBalls());
 
     let displacement_enabled = true;
     let displacement_last = material.uniforms.u_displacement.value;
@@ -15,7 +14,7 @@ export function createMetaballField(scene) {
         effect,
         update(time, camera) {
             const balls = stepMetaballAnimation(time);
-            if (balls) rebuildMetaballGeometry(effect, balls);
+            if (balls) updateMetaballBalls(material, effect, balls, camera);
             updateMetaballLight(material, camera, time);
         },
 
@@ -24,10 +23,10 @@ export function createMetaballField(scene) {
         getEruptionIntensity: time => getEruptionIntensity(time),
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        setCount: value => { settings.count = value; },
         getMaxCount: () => settings.max_count,
-        getIsolation: () => effect.isolation,
-        setIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        getIsolation: () => material.uniforms.u_isolation.value,
+        setIsolation: value => { material.uniforms.u_isolation.value = value; },
         getSpread: () => settings.spread,
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,

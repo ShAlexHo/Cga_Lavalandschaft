@@ -47,7 +47,7 @@ export function setupGui(facade) {
     bind(metaballs_folder.add(metaballs_parameters, 'height', 0, 5, 0.05))
         .name('Höhe')
         .onChange(value => facade.setMetaballHeight(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'flow_z_radius', 0, 20, 0.1))
+    bind(metaballs_folder.add(metaballs_parameters, 'flow_z_radius', 0, 14, 0.1))
         .name('Steigung')
         .onChange(value => facade.setFlowRadius(value));
 

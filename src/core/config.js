@@ -26,9 +26,13 @@ export const GROUND_DEFAULT_PROXIMITY_RADIUS = 30.0; // world-unit falloff dista
 
 export const METABALL_SCALE_XY = 30.0;
 export const METABALL_SCALE_Z = 30.0;
-export const METABALL_RESOLUTION = 180;
-export const METABALL_MAX_POLYGON_COUNT = 250_000;
 export const METABALL_DEFAULT_ISOLATION = 50;
+// GPU raymarch (replaces CPU marching cubes): shader-side cap on balls considered per pixel, so
+// cost stays independent of how many balls the simulation has active at once - see metaball.frag.
+export const METABALL_RAYMARCH_BALL_CAP = 24;
+// Local-space (pre effect.scale) bounding sphere radius the raymarcher marches within - must stay
+// >= the ball travel path's max reach, including at the GUI's highest flow-radius setting.
+export const METABALL_RAYMARCH_BOUNDING_RADIUS = 1.2;
 export const METABALL_LIGHT_POSITION = { x: 6, y: 8, z: 6 };
 
 // ─── Metaball animation (lava flow simulation) ───────────────────────────────

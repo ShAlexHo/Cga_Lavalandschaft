@@ -3,11 +3,10 @@ import { makeColor, makeScene } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn((scene, material) => {
-        const effect = { material, position: { x: 0, y: 0, z: 0 }, isolation: 50 };
+        const effect = { material, position: { x: 0, y: 0, z: 0 }, matrixWorld: {} };
         scene.add(effect);
         return effect;
     }),
-    rebuildMetaballGeometry: vi.fn(),
 }));
 
 vi.mock('../../rendering/metaball_material.js', () => ({
@@ -22,9 +21,11 @@ vi.mock('../../rendering/metaball_material.js', () => ({
             u_noise_enabled: { value: 1.0 },
             u_bump_enabled: { value: 1.0 },
             u_displacement: { value: 0.00005 },
+            u_isolation: { value: 50 },
         },
     })),
     updateMetaballLight: vi.fn(),
+    updateMetaballBalls: vi.fn(),
 }));
 
 vi.mock('../../animation/metaball_animation.js', () => {
@@ -38,8 +39,8 @@ vi.mock('../../animation/metaball_animation.js', () => {
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
-import { createMetaballGeometry, rebuildMetaballGeometry } from '../../geometry/metaball_geometry.js';
-import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
+import { createMetaballGeometry } from '../../geometry/metaball_geometry.js';
+import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls } from '../../rendering/metaball_material.js';
 import { settings as mock_settings, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
@@ -50,28 +51,26 @@ beforeEach(() => {
 });
 
 describe('createMetaballField', () => {
-    test('builds the geometry with a freshly created material and an initial (empty) rebuild', () => {
+    test('builds the geometry with a freshly created material', () => {
         const scene = makeScene();
         const field = createMetaballField(scene);
         expect(createMetaballMaterial).toHaveBeenCalledTimes(1);
         expect(createMetaballGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
         expect(scene.add).toHaveBeenCalledWith(field.effect);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, []);
     });
 
-    test('update() rebuilds only when the animation step returns balls', () => {
+    test('update() uploads balls to the shader only when the animation step returns balls', () => {
         const field = createMetaballField(makeScene());
-        rebuildMetaballGeometry.mockClear();
         const camera = {};
 
         stepMetaballAnimation.mockReturnValueOnce(null);
         field.update(0, camera);
-        expect(rebuildMetaballGeometry).not.toHaveBeenCalled();
+        expect(updateMetaballBalls).not.toHaveBeenCalled();
 
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         field.update(1, camera);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls);
+        expect(updateMetaballBalls).toHaveBeenCalledWith(expect.any(Object), field.effect, balls, camera);
         expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), camera, 1);
     });
 
@@ -90,17 +89,14 @@ describe('createMetaballField', () => {
         expect(getEruptionIntensity).toHaveBeenCalledWith(7);
     });
 
-    test('setCount/setIsolation rebuild the geometry with the currently active balls', () => {
+    test('setCount/setIsolation update state and the isolation uniform directly', () => {
         const field = createMetaballField(makeScene());
-        rebuildMetaballGeometry.mockClear();
 
         field.setCount(250);
         expect(field.getCount()).toBe(250);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(1);
 
         field.setIsolation(77);
         expect(field.getIsolation()).toBe(77);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(2);
     });
 
     test('displacement toggle remembers the strength while disabled', () => {

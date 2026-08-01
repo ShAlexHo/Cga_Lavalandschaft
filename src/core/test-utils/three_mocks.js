@@ -31,12 +31,20 @@ export class MockVector3 {
     constructor(x = 0, y = 0, z = 0) {
         this.x = x; this.y = y; this.z = z;
     }
+    set(x, y, z) {
+        this.x = x; this.y = y; this.z = z;
+        return this;
+    }
     copy(other) {
         this.x = other.x; this.y = other.y; this.z = other.z;
         return this;
     }
     applyMatrix4(_matrix) {
         return this; // identity transform in tests
+    }
+    distanceToSquared(other) {
+        const dx = this.x - other.x, dy = this.y - other.y, dz = this.z - other.z;
+        return dx * dx + dy * dy + dz * dz;
     }
 }
 
@@ -57,7 +65,9 @@ export class MockMesh {
         this.material = material;
         this.position = { x: 0, y: 0, z: 0 };
         this.rotation = { x: 0, y: 0, z: 0 };
+        this.scale = { set: vi.fn() };
         this.visible = true;
+        this.matrixWorld = {};
     }
 }
 
@@ -66,4 +76,16 @@ export class MockPlaneGeometry {
         this.width = width; this.height = height;
         this.width_segments = width_segments; this.height_segments = height_segments;
     }
+}
+
+export class MockSphereGeometry {
+    constructor(radius, width_segments, height_segments) {
+        this.radius = radius;
+        this.width_segments = width_segments; this.height_segments = height_segments;
+    }
+}
+
+export class MockMatrix4 {
+    copy(_other) { return this; }
+    invert() { return this; }
 }
