@@ -10,7 +10,9 @@ beforeEach(async () => {
 describe('settings (default values)', () => {
     test('count is 100', () => expect(animation_module.settings.count).toBe(100));
     test('spread is 1.0', () => expect(animation_module.settings.spread).toBe(1.0));
-    test('speed_factor is 0.003', () => expect(animation_module.settings.speed_factor).toBe(0.003));
+    test('speed_factor is 0.0011', () => expect(animation_module.settings.speed_factor).toBe(0.0011));
+    test('sink_speed is 0.25', () => expect(animation_module.settings.sink_speed).toBe(0.25));
+    test('disappear_y is 0.33', () => expect(animation_module.settings.disappear_y).toBe(0.33));
     test('paused is false', () => expect(animation_module.settings.paused).toBe(false));
     test('max_count is 500', () => expect(animation_module.settings.max_count).toBe(500));
     test('flow_z_radius is 10.3', () => expect(animation_module.settings.flow_z_radius).toBe(10.3));
@@ -53,18 +55,20 @@ describe('stepMetaballAnimation', () => {
         expect(balls).toHaveLength(2); // both active balls
     });
 
-    test('a ball flows from the crater towards the ground over its lifetime', () => {
+    test('a ball moves down from the crater towards the ground mid-flight', () => {
         animation_module.stepMetaballAnimation(0); // ball #0 spawns at the crater
-        const balls = animation_module.stepMetaballAnimation(2000); // far past BALL_LIFETIME -> ball #0 fully descended, ball #1 spawns fresh
-        expect(balls).toHaveLength(2);
+        const [ball0] = animation_module.stepMetaballAnimation(20); // early enough to stay well above the disappear threshold for any speed_mult
+        expect(ball0.y).toBeLessThan(0.45); // moved down from the crater...
+        expect(ball0.y).toBeGreaterThan(animation_module.settings.disappear_y); // ...but not yet at the disappear threshold
+    });
 
-        const [ball0, ball1] = balls; // ball #0: landed (life_fraction clamped to 1.0 regardless of its random speed_mult)
-        expect(ball0.y).toBeCloseTo(0.45 + (0.288 - 0.45) * 0.95, 9);
-        const radius = (11 / 30) * 0.95;
-        expect(ball0.x).toBeGreaterThanOrEqual(0.5 - radius - 1e-9);
-        expect(ball0.x).toBeLessThanOrEqual(0.5 + radius + 1e-9);
+    test('a ball disappears once it has fully sunk below the ground', () => {
+        animation_module.stepMetaballAnimation(0); // ball #0 spawns at the crater
+        const balls = animation_module.stepMetaballAnimation(20000); // far past BALL_LIFETIME for any speed_mult -> ball #0 has sunk past disappear_y and been removed, ball #1 spawns fresh
+        expect(balls).toHaveLength(1); // only the freshly-spawned ball #1 remains active
 
-        expect(ball1.x).toBeCloseTo(0.5, 9); // ball #1: freshly spawned this same call
+        const [ball1] = balls;
+        expect(ball1.x).toBeCloseTo(0.5, 9);
         expect(ball1.y).toBeCloseTo(0.45, 9);
         expect(ball1.z).toBeCloseTo(0.5, 9);
     });

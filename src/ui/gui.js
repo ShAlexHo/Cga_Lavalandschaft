@@ -29,6 +29,8 @@ export function setupGui(facade) {
         isolation: facade.getMetaballIsolation,
         spread: facade.getMetaballSpread,
         speed_factor: facade.getMetaballSpeed,
+        sink_speed: facade.getMetaballSinkSpeed,
+        disappear_y: facade.getMetaballDisappearY,
         height: facade.getMetaballHeight,
         flow_z_radius: facade.getFlowRadius,
     });
@@ -44,6 +46,12 @@ export function setupGui(facade) {
     bind(metaballs_folder.add(metaballs_parameters, 'speed_factor', 0.0, 0.01, 0.0001))
         .name('Geschwindigkeit')
         .onChange(value => facade.setMetaballSpeed(value));
+    bind(metaballs_folder.add(metaballs_parameters, 'sink_speed', 0.05, 2.0, 0.01))
+        .name('Versinken')
+        .onChange(value => facade.setMetaballSinkSpeed(value));
+    bind(metaballs_folder.add(metaballs_parameters, 'disappear_y', 0.15, 0.4, 0.005))
+        .name('Verschwindehöhe')
+        .onChange(value => facade.setMetaballDisappearY(value));
     bind(metaballs_folder.add(metaballs_parameters, 'height', 0, 5, 0.05))
         .name('Höhe')
         .onChange(value => facade.setMetaballHeight(value));

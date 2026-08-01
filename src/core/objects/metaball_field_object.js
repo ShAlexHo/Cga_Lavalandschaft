@@ -32,6 +32,10 @@ export function createMetaballField(scene) {
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,
         setSpeed: value => { settings.speed_factor = value; },
+        getSinkSpeed: () => settings.sink_speed,
+        setSinkSpeed: value => { settings.sink_speed = value; },
+        getDisappearY: () => settings.disappear_y,
+        setDisappearY: value => { settings.disappear_y = value; },
         getFlowRadius: () => settings.flow_z_radius,
         setFlowRadius: value => { settings.flow_z_radius = value; },
 

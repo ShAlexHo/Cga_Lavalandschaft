@@ -4,7 +4,7 @@ import { makeColor, MockMesh, MockPlaneGeometry } from '../test-utils/three_mock
 // vi.mock() factories are hoisted above the rest of the module, so the default settings each
 // mock's initial state is seeded from must be too; vi.hoisted() is the mechanism for that.
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
-    DEFAULT_SETTINGS: { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 },
+    DEFAULT_SETTINGS: { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 },
     DEFAULT_SMOKE_SETTINGS: { count: 200, max_count: 400 },
 }));
 
@@ -351,7 +351,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
         const controller = makeController();
         const snapshot = {
-            paused: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021,
+            paused: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
             metaballHeight: 3.3, flowRadius: 7,
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,

@@ -23,7 +23,7 @@ export function createMetaballMaterial() {
             u_noise_color_1: { value: new THREE.Color(0x7c3027) },
             u_noise_color_2: { value: new THREE.Color(0xea6927) },
             u_bump_enabled: { value: 1.0 },
-            u_displacement: { value: 0.00005 },
+            u_displacement: { value: 0.0001 },
         },
         side: THREE.DoubleSide,
     });

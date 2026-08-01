@@ -28,7 +28,7 @@ vi.mock('../../rendering/metaball_material.js', () => ({
 }));
 
 vi.mock('../../animation/metaball_animation.js', () => {
-    const settings = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
+    const settings = { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 };
     return {
         settings,
         getActiveBalls: vi.fn(() => []),
@@ -42,7 +42,7 @@ import { createMetaballGeometry, rebuildMetaballGeometry } from '../../geometry/
 import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
 import { settings as mock_settings, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
 
-const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, paused: false, max_count: 500, flow_z_radius: 11 };
+const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 };
 
 beforeEach(() => {
     vi.clearAllMocks();
