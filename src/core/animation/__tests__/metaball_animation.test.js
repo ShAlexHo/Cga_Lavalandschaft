@@ -12,10 +12,10 @@ describe('settings (default values)', () => {
     test('spread is 1.0', () => expect(animation_module.settings.spread).toBe(1.0));
     test('speed_factor is 0.0011', () => expect(animation_module.settings.speed_factor).toBe(0.0011));
     test('sink_speed is 0.25', () => expect(animation_module.settings.sink_speed).toBe(0.25));
-    test('disappear_y is 0.33', () => expect(animation_module.settings.disappear_y).toBe(0.33));
+    test('disappear_y is 0.34', () => expect(animation_module.settings.disappear_y).toBe(0.34));
     test('paused is false', () => expect(animation_module.settings.paused).toBe(false));
     test('max_count is 500', () => expect(animation_module.settings.max_count).toBe(500));
-    test('flow_z_radius is 10.3', () => expect(animation_module.settings.flow_z_radius).toBe(10.3));
+    test('flow_z_radius is 10.8', () => expect(animation_module.settings.flow_z_radius).toBe(10.8));
 });
 
 describe('getActiveBalls', () => {

@@ -220,10 +220,10 @@ beforeEach(() => {
 describe('createSceneController – initial positioning', () => {
     test('places ground, volcano and effect exactly like the previous hand-wired setup', () => {
         const controller = makeController();
-        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=1.6
+        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=1.4
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
-        expect(controller.getMetaballHeight()).toBeCloseTo(1.6, 9);
+        expect(controller.getMetaballHeight()).toBeCloseTo(1.4, 9);
     });
 });
 
@@ -233,7 +233,7 @@ describe('createSceneController – setGroundHeight / setOffsetY', () => {
         controller.setGroundHeight(-3);
         expect(controller.getGroundHeight()).toBe(-3);
         // volcano.y = ground_y + position.y = -3 + 0 = -3
-        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(1.6) = 4.96
+        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(1.4) = 4.76
         expect(controller.getGroundHeight()).toBeCloseTo(-3, 9);
     });
 

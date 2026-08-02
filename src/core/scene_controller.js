@@ -20,7 +20,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
 
     const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
-    let metaball_y_offset = 1.6;
+    let metaball_y_offset = 1.4;
 
     function applyY(ground_y) {
         ground.mesh.position.y = ground_y;
