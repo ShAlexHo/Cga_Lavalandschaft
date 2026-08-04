@@ -86,5 +86,11 @@ void main() {
 
     color *= heightAmbientOcclusion(v_bump);
 
+    // self-illumination, so cracks push past the bloom pass's threshold and visibly glow -
+    // strength itself drifts across position and time instead of being a flat multiplier
+    float glow_variation = normalizedFractalBrownianMotion(v_world_position * 5.0 + vec3(0.0, u_time * 0.3, 0.0));
+    float crack_glow_strength = mix(0.4, 1.2, glow_variation);
+    color += crack_color * (1.0 - crack_mask) * crack_glow_strength;
+
     gl_FragColor = vec4(color, 1.0);
 }
