@@ -12,6 +12,7 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
+            u_crack_color_4: { value: makeColor('dd0000') },
             u_crack_softness: { value: 0.25 },
             u_proximity_color: { value: makeColor('9b9696') },
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
@@ -43,12 +44,12 @@ describe('createGround', () => {
         expect(ground.mesh.position.y).toBe(-6);
     });
 
-    test('update() forwards to updateGroundLight with the material, camera and volcano position', () => {
+    test('update() forwards to updateGroundLight with the material, camera, volcano position and time', () => {
         const ground = createGround(makeScene());
         const camera = {};
         const volcano_position = {};
-        ground.update(camera, volcano_position);
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position);
+        ground.update(camera, volcano_position, 3.5);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position, 3.5);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {
@@ -72,6 +73,9 @@ describe('createGround', () => {
 
         ground.setCrackColor3('#333333');
         expect(ground.getCrackColor3()).toBe('#333333');
+
+        ground.setCrackColor4('#444400');
+        expect(ground.getCrackColor4()).toBe('#444400');
 
         ground.setCrackSoftness(0.6);
         expect(ground.getCrackSoftness()).toBe(0.6);

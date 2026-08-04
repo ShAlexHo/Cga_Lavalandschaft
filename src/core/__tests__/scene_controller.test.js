@@ -27,6 +27,7 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
+            u_crack_color_4: { value: makeColor('dd0000') },
             u_crack_softness: { value: 0.25 },
             u_proximity_color: { value: makeColor('9b9696') },
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
@@ -294,6 +295,9 @@ describe('createSceneController – ground', () => {
         controller.setGroundCrackColor3('#789789');
         expect(controller.getGroundCrackColor3()).toBe('#789789');
 
+        controller.setGroundCrackColor4('#abcabc');
+        expect(controller.getGroundCrackColor4()).toBe('#abcabc');
+
         controller.setGroundCrackSoftness(0.6);
         expect(controller.getGroundCrackSoftness()).toBe(0.6);
 
@@ -357,7 +361,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
-            groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
+            groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackColor4: '#a00000', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
             groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0',
@@ -509,7 +513,7 @@ describe('createSceneController – update()', () => {
 
         controller.update(12.5);
 
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object));
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), 12.5);
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);

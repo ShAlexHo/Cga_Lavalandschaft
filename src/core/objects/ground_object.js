@@ -15,8 +15,8 @@ export function createGround(scene) {
 
     return {
         mesh,
-        update(camera, volcano_world_position) {
-            updateGroundLight(material, camera, volcano_world_position);
+        update(camera, volcano_world_position, time) {
+            updateGroundLight(material, camera, volcano_world_position, time);
         },
 
         getVisible: () => mesh.visible,

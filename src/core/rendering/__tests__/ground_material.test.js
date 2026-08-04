@@ -17,6 +17,7 @@ describe('createGroundMaterial', () => {
     test('contains all expected uniforms', () => {
         const material = createGroundMaterial();
         const expected_keys = [
+            'u_time',
             'u_light_position',
             'u_sun_position',
             'u_sun_color',
@@ -31,6 +32,7 @@ describe('createGroundMaterial', () => {
             'u_crack_color',
             'u_crack_color_2',
             'u_crack_color_3',
+            'u_crack_color_4',
             'u_volcano_position',
             'u_proximity_color',
             'u_proximity_noise_color',
@@ -52,6 +54,11 @@ describe('createGroundMaterial', () => {
     test('u_sun_enabled starts at 1.0', () => {
         const material = createGroundMaterial();
         expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
+    });
+
+    test('u_time starts at 0', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_time.value).toBe(0.0);
     });
 
     test('displacement uniforms start at their config defaults', () => {
@@ -81,6 +88,7 @@ describe('updateGroundLight', () => {
     function makeMaterial() {
         return {
             uniforms: {
+                u_time: { value: 0 },
                 u_light_position: { value: { copy: vi.fn() } },
                 u_sun_position: { value: { copy: vi.fn() } },
                 u_volcano_position: { value: { copy: vi.fn() } },
@@ -93,19 +101,25 @@ describe('updateGroundLight', () => {
 
     test('calls copy() on u_light_position.value', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position);
+        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
         expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
     });
 
     test('calls copy() on u_sun_position.value', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position);
+        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
         expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
     });
 
     test('calls copy() on u_volcano_position.value with the given world position', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position);
+        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
         expect(material.uniforms.u_volcano_position.value.copy).toHaveBeenCalledWith(mock_volcano_position);
+    });
+
+    test('sets u_time to the given time value', () => {
+        const material = makeMaterial();
+        updateGroundLight(material, mock_camera, mock_volcano_position, 3.14);
+        expect(material.uniforms.u_time.value).toBe(3.14);
     });
 });

@@ -23,6 +23,7 @@
   "groundCrackColor": "#e03008",
   "groundCrackColor2": "#872412",
   "groundCrackColor3": "#db9e49",
+  "groundCrackColor4": "#dd0000",
   "groundCrackSoftness": 0.015,
   "groundProximityColor": "#000000",
   "groundProximityNoiseColor": "#2d2424",

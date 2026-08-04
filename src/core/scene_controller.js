@@ -31,7 +31,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
 
     const controller = {
         update(time) {
-            ground.update(camera, volcano.mesh.position);
+            ground.update(camera, volcano.mesh.position, time);
             metaball_field.update(time, camera);
             sun.update(time);
             volcano.update(camera, sun.light.position);
@@ -91,6 +91,8 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setGroundCrackColor2: value => ground.setCrackColor2(value),
         getGroundCrackColor3: () => ground.getCrackColor3(),
         setGroundCrackColor3: value => ground.setCrackColor3(value),
+        getGroundCrackColor4: () => ground.getCrackColor4(),
+        setGroundCrackColor4: value => ground.setCrackColor4(value),
         getGroundCrackSoftness: () => ground.getCrackSoftness(),
         setGroundCrackSoftness: value => ground.setCrackSoftness(value),
         getGroundProximityColor: () => ground.getProximityColor(),
@@ -209,6 +211,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'groundCrackColor', get: () => controller.getGroundCrackColor(), set: value => controller.setGroundCrackColor(value) },
         { key: 'groundCrackColor2', get: () => controller.getGroundCrackColor2(), set: value => controller.setGroundCrackColor2(value) },
         { key: 'groundCrackColor3', get: () => controller.getGroundCrackColor3(), set: value => controller.setGroundCrackColor3(value) },
+        { key: 'groundCrackColor4', get: () => controller.getGroundCrackColor4(), set: value => controller.setGroundCrackColor4(value) },
         { key: 'groundCrackSoftness', get: () => controller.getGroundCrackSoftness(), set: value => controller.setGroundCrackSoftness(value) },
         { key: 'groundProximityColor', get: () => controller.getGroundProximityColor(), set: value => controller.setGroundProximityColor(value) },
         { key: 'groundProximityNoiseColor', get: () => controller.getGroundProximityNoiseColor(), set: value => controller.setGroundProximityNoiseColor(value) },

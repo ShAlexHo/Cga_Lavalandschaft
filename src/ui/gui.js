@@ -117,6 +117,7 @@ export function setupGui(facade) {
         crack_color: facade.getGroundCrackColor,
         crack_color_2: facade.getGroundCrackColor2,
         crack_color_3: facade.getGroundCrackColor3,
+        crack_color_4: facade.getGroundCrackColor4,
         crack_softness: facade.getGroundCrackSoftness,
         proximity_color: facade.getGroundProximityColor,
         proximity_noise_color: facade.getGroundProximityNoiseColor,
@@ -140,6 +141,9 @@ export function setupGui(facade) {
     bind(ground_folder.addColor(ground_parameters, 'crack_color_3'))
         .name('Rissfarbe 3')
         .onChange(value => facade.setGroundCrackColor3(value));
+    bind(ground_folder.addColor(ground_parameters, 'crack_color_4'))
+        .name('Rissfarbe 4 (Rotblitz)')
+        .onChange(value => facade.setGroundCrackColor4(value));
     bind(ground_folder.add(ground_parameters, 'crack_softness', 0.001, 1.0, 0.001))
         .name('Rissweichheit')
         .onChange(value => facade.setGroundCrackSoftness(value));

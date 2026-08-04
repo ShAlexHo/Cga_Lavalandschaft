@@ -19,6 +19,7 @@ export function createGroundMaterial() {
         vertexShader: noise_glsl + vertex_glsl,
         fragmentShader: noise_glsl + fragment_glsl,
         uniforms: {
+            u_time: { value: 0.0 },
             u_light_position: { value: new THREE.Vector3() },
             u_sun_position: { value: new THREE.Vector3() },
             u_sun_color: { value: new THREE.Color(SUN_LIGHT_COLOR) },
@@ -33,6 +34,7 @@ export function createGroundMaterial() {
             u_crack_color: { value: new THREE.Color(0xe03008) },
             u_crack_color_2: { value: new THREE.Color(0x872412) },
             u_crack_color_3: { value: new THREE.Color(0xdb9e49) },
+            u_crack_color_4: { value: new THREE.Color(0xdd0000) },
             u_volcano_position: { value: new THREE.Vector3() },
             u_proximity_color: { value: new THREE.Color(0x000000) },
             u_proximity_noise_color: { value: new THREE.Color(0x2d2424) },
@@ -46,10 +48,11 @@ export function createGroundMaterial() {
     });
 }
 
-export function updateGroundLight(material, camera, volcano_world_position) {
+export function updateGroundLight(material, camera, volcano_world_position, time) {
     computeLightViewPosition(camera, LIGHT_WORLD_POSITION, _light_view_position);
     material.uniforms.u_light_position.value.copy(_light_view_position);
     computeLightViewPosition(camera, SUN_WORLD_POSITION, _sun_view_position);
     material.uniforms.u_sun_position.value.copy(_sun_view_position);
     material.uniforms.u_volcano_position.value.copy(volcano_world_position);
+    material.uniforms.u_time.value = time;
 }

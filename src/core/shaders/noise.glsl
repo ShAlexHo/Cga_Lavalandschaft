@@ -168,10 +168,12 @@ float crackPattern(vec3 position, float frequency, float crack_width) {
 // (squared noise, so it appears in isolated spots rather than sliding in linearly) at a different
 // frequency and offset, so its regions don't line up with the base blend's.
 vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, vec3 world_position) {
-    float base_blend = normalizedFractalBrownianMotion(world_position * 0.15);
+    // frequencies well above the crack spacing itself, so different crack lines land on very
+    // different phases of these fields instead of all settling near the same blend
+    float base_blend = normalizedFractalBrownianMotion(world_position * 0.6);
     vec3 base_color = mix(crack_color, crack_color_2, base_blend);
 
-    float accent_blend = normalizedFractalBrownianMotion(world_position * 0.37 + vec3(52.1, 14.7, 8.3));
+    float accent_blend = normalizedFractalBrownianMotion(world_position * 1.1 + vec3(52.1, 14.7, 8.3));
     return mix(base_color, crack_color_3, accent_blend * accent_blend);
 }
 

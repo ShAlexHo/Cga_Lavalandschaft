@@ -5,6 +5,7 @@ uniform bool receiveShadow;
 #include <shadowmap_pars_fragment>
 #include <shadowmask_pars_fragment>
 
+uniform float u_time;
 uniform vec3  u_light_position;
 uniform vec3  u_sun_position;
 uniform vec3  u_sun_color;
@@ -17,6 +18,7 @@ uniform vec3  u_rock_color;
 uniform vec3  u_crack_color;
 uniform vec3  u_crack_color_2;
 uniform vec3  u_crack_color_3;
+uniform vec3  u_crack_color_4;
 uniform vec3  u_volcano_position;
 uniform vec3  u_proximity_color;
 uniform vec3  u_proximity_noise_color;
@@ -31,7 +33,7 @@ void main() {
     vec3 normal = normalize(v_normal);
     if (!gl_FrontFacing) normal = -normal;
 
-    // perturbed so displaced bumps actually show under lighting
+    // normal perturbation, so bumps show under lighting
     normal = normalize(normal + bumpOffset(v_world_position, 3.0) * 0.1);
 
     float shadow_mask = getShadowMask();
@@ -46,6 +48,22 @@ void main() {
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
     vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, u_crack_color_3, v_world_position);
+    // partial amplitude keeps per-crack variety visible instead of washing to one color at the peak
+    float crack_time_pulse = 0.5 + 0.5 * sin(u_time * 0.9);
+    crack_color = mix(crack_color, u_crack_color_3, crack_time_pulse * 0.5);
+    // mismatched frequencies only align into a peak occasionally (beat period), not every cycle
+    float flare_a = sin(u_time * 0.37);
+    float flare_b = sin(u_time * 0.53 + 1.7);
+    float red_flare = pow(max(flare_a * flare_b, 0.0), 8.0);
+    // narrow threshold + high frequency -> isolated dots; time offset varies which ones light up
+    float sparkle_noise = simplexNoise(v_world_position * 18.0 + vec3(0.0, u_time * 0.15, 0.0));
+    float sparkle_mask = smoothstep(0.93, 0.97, sparkle_noise) * (1.0 - crack_mask);
+    crack_color = mix(crack_color, u_crack_color_4, red_flare * sparkle_mask);
+    // applied last so it isn't diluted by the mixes above; anisotropic + warp for hair-like strands
+    vec3 hair_warp = vec3(simplexNoise(v_world_position * 4.0 + vec3(6.1, 0.0, 2.4)), 0.0, 0.0) * 4.0;
+    vec3 hair_coordinate = (v_world_position + hair_warp) * vec3(3.0, 12.0, 30.0) + vec3(3.7, 1.2, 5.5);
+    float crack_detail_noise = normalizedFractalBrownianMotion(hair_coordinate);
+    crack_color *= mix(0.3, 1.8, crack_detail_noise);
     vec3 color = mix(crack_color, varied_color, crack_mask);
 
     // tiny: ground, not polished rock
@@ -57,7 +75,7 @@ void main() {
 
     float volcano_distance = length(v_world_position.xz - u_volcano_position.xz);
     float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
-    // proximity colors are pre-lit (sampled from the volcano); blended in post-ambient so they aren't lit twice
+    // pre-lit color, blended post-ambient to avoid double lighting
     color = mix(color, u_proximity_color, proximity);
 
     // crack_mask keeps this off the lava crack veins
