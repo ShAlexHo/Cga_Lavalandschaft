@@ -17,6 +17,7 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_proximity_color: { value: makeColor('9b9696') },
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
             u_proximity_radius: { value: 18.0 },
+            u_sun_focus_radius: { value: 4.5 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -44,12 +45,13 @@ describe('createGround', () => {
         expect(ground.mesh.position.y).toBe(-6);
     });
 
-    test('update() forwards to updateGroundLight with the material, camera, volcano position and time', () => {
+    test('update() forwards to updateGroundLight with the material, camera, volcano position, sun position and time', () => {
         const ground = createGround(makeScene());
         const camera = {};
         const volcano_position = {};
-        ground.update(camera, volcano_position, 3.5);
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position, 3.5);
+        const sun_position = {};
+        ground.update(camera, volcano_position, sun_position, 3.5);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position, sun_position, 3.5);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {
@@ -88,6 +90,9 @@ describe('createGround', () => {
 
         ground.setProximityRadius(25.0);
         expect(ground.getProximityRadius()).toBe(25.0);
+
+        ground.setSunFocusRadius(6.0);
+        expect(ground.getSunFocusRadius()).toBe(6.0);
 
         ground.setDisplacementScale(1.2);
         expect(ground.getDisplacementScale()).toBe(1.2);

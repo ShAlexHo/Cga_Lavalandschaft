@@ -31,9 +31,9 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
 
     const controller = {
         update(time) {
-            ground.update(camera, volcano.mesh.position, time);
-            metaball_field.update(time, camera);
             sun.update(time);
+            ground.update(camera, volcano.mesh.position, sun.light.position, time);
+            metaball_field.update(time, camera);
             volcano.update(camera, sun.light.position);
             smoke.update(time, metaball_field.getEruptionIntensity(time));
         },
@@ -101,6 +101,8 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setGroundProximityNoiseColor: value => ground.setProximityNoiseColor(value),
         getGroundProximityRadius: () => ground.getProximityRadius(),
         setGroundProximityRadius: value => ground.setProximityRadius(value),
+        getGroundSunFocusRadius: () => ground.getSunFocusRadius(),
+        setGroundSunFocusRadius: value => ground.setSunFocusRadius(value),
         getGroundDisplacementScale: () => ground.getDisplacementScale(),
         setGroundDisplacementScale: value => ground.setDisplacementScale(value),
         getGroundDisplacementFrequency: () => ground.getDisplacementFrequency(),
@@ -216,6 +218,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'groundProximityColor', get: () => controller.getGroundProximityColor(), set: value => controller.setGroundProximityColor(value) },
         { key: 'groundProximityNoiseColor', get: () => controller.getGroundProximityNoiseColor(), set: value => controller.setGroundProximityNoiseColor(value) },
         { key: 'groundProximityRadius', get: () => controller.getGroundProximityRadius(), set: value => controller.setGroundProximityRadius(value) },
+        { key: 'groundSunFocusRadius', get: () => controller.getGroundSunFocusRadius(), set: value => controller.setGroundSunFocusRadius(value) },
         { key: 'groundDisplacementScale', get: () => controller.getGroundDisplacementScale(), set: value => controller.setGroundDisplacementScale(value) },
         { key: 'groundDisplacementFrequency', get: () => controller.getGroundDisplacementFrequency(), set: value => controller.setGroundDisplacementFrequency(value) },
         { key: 'groundHeight', get: () => controller.getGroundHeight(), set: value => controller.setGroundHeight(value) },

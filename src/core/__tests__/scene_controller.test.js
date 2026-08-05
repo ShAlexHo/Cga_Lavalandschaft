@@ -32,6 +32,7 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_proximity_color: { value: makeColor('9b9696') },
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
             u_proximity_radius: { value: 18.0 },
+            u_sun_focus_radius: { value: 4.5 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -362,7 +363,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             displacementEnabled: false, displacementStrength: 0.0015,
             groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
             groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackColor4: '#a00000', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
-            groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22,
+            groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22, groundSunFocusRadius: 5.5,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,
@@ -513,7 +514,8 @@ describe('createSceneController – update()', () => {
 
         controller.update(12.5);
 
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), 12.5);
+        const sun = createSun.mock.results[0].value;
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), sun.light.position, 12.5);
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);
@@ -521,7 +523,6 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
-        const sun = createSun.mock.results[0].value;
         expect(updateVolcanoLight.mock.calls[0][2]).toBe(sun.light.position);
         expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 12.5, 1.0);
         expect(sun.update).toHaveBeenCalledWith(12.5);

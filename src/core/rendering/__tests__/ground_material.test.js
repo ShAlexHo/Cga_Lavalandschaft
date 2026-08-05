@@ -10,7 +10,7 @@ vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
 import {
     GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY, GROUND_DEFAULT_CRACK_SOFTNESS,
-    SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
+    GROUND_DEFAULT_SUN_FOCUS_RADIUS, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
 } from '../../config.js';
 
 describe('createGroundMaterial', () => {
@@ -37,6 +37,7 @@ describe('createGroundMaterial', () => {
             'u_proximity_color',
             'u_proximity_noise_color',
             'u_proximity_radius',
+            'u_sun_focus_radius',
             'u_volcano_crack_scale',
             'u_volcano_crack_frequency',
         ];
@@ -77,6 +78,11 @@ describe('createGroundMaterial', () => {
         expect(material.uniforms.u_crack_softness.value).toBe(GROUND_DEFAULT_CRACK_SOFTNESS);
     });
 
+    test('u_sun_focus_radius starts at GROUND_DEFAULT_SUN_FOCUS_RADIUS', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_sun_focus_radius.value).toBe(GROUND_DEFAULT_SUN_FOCUS_RADIUS);
+    });
+
     test('u_volcano_crack_scale/frequency start at the volcano\'s own config defaults', () => {
         const material = createGroundMaterial();
         expect(material.uniforms.u_volcano_crack_scale.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_SCALE);
@@ -98,28 +104,29 @@ describe('updateGroundLight', () => {
 
     const mock_camera = { matrixWorldInverse: {} };
     const mock_volcano_position = {};
+    const mock_sun_position = { x: 1, y: 2, z: 3 };
 
     test('calls copy() on u_light_position.value', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
+        updateGroundLight(material, mock_camera, mock_volcano_position, mock_sun_position, 0);
         expect(material.uniforms.u_light_position.value.copy).toHaveBeenCalled();
     });
 
-    test('calls copy() on u_sun_position.value', () => {
+    test('calls copy() on u_sun_position.value using the given sun world position', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
+        updateGroundLight(material, mock_camera, mock_volcano_position, mock_sun_position, 0);
         expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
     });
 
     test('calls copy() on u_volcano_position.value with the given world position', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position, 0);
+        updateGroundLight(material, mock_camera, mock_volcano_position, mock_sun_position, 0);
         expect(material.uniforms.u_volcano_position.value.copy).toHaveBeenCalledWith(mock_volcano_position);
     });
 
     test('sets u_time to the given time value', () => {
         const material = makeMaterial();
-        updateGroundLight(material, mock_camera, mock_volcano_position, 3.14);
+        updateGroundLight(material, mock_camera, mock_volcano_position, mock_sun_position, 3.14);
         expect(material.uniforms.u_time.value).toBe(3.14);
     });
 });

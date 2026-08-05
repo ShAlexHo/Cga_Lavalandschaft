@@ -15,8 +15,8 @@ export function createGround(scene) {
 
     return {
         mesh,
-        update(camera, volcano_world_position, time) {
-            updateGroundLight(material, camera, volcano_world_position, time);
+        update(camera, volcano_world_position, sun_world_position, time) {
+            updateGroundLight(material, camera, volcano_world_position, sun_world_position, time);
         },
 
         getVisible: () => mesh.visible,
@@ -31,6 +31,8 @@ export function createGround(scene) {
         setProximityNoiseColor: value => material.uniforms.u_proximity_noise_color.value.set(value),
         getProximityRadius: () => material.uniforms.u_proximity_radius.value,
         setProximityRadius: value => { material.uniforms.u_proximity_radius.value = value; },
+        getSunFocusRadius: () => material.uniforms.u_sun_focus_radius.value,
+        setSunFocusRadius: value => { material.uniforms.u_sun_focus_radius.value = value; },
         ...bindCrackColorUniforms(material),
         ...bindDisplacementUniforms(material),
         ...bindSunUniforms(material),

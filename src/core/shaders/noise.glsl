@@ -181,7 +181,9 @@ vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, 
 // volcano terrain, which pass their own normal/view/sun directions and focus.
 float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float sun_focus) {
     float sun_facing = max(dot(normal, sun_direction), 0.0);
-    float sun_wash = pow(sun_facing, 1.5) * 0.4;
+    // exponent tied to sun_focus too, not just the rim - otherwise this wash stays broad
+    // regardless of the focus setting and washes out most of the sun-facing terrain
+    float sun_wash = pow(sun_facing, sun_focus) * 0.4;
     float sun_rim = pow(1.0 - max(dot(normal, view_direction), 0.0), sun_focus) * sun_facing;
     return sun_wash + sun_rim;
 }

@@ -23,6 +23,7 @@ uniform vec3  u_volcano_position;
 uniform vec3  u_proximity_color;
 uniform vec3  u_proximity_noise_color;
 uniform float u_proximity_radius;
+uniform float u_sun_focus_radius;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -41,7 +42,29 @@ void main() {
     vec3 view_direction = normalize(-v_view_position);
     vec3 sun_direction  = normalize(u_sun_position - v_view_position);
     float diffuse = max(dot(normal, normalize(u_light_position - v_view_position)), 0.0) * shadow_mask;
-    float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, u_sun_focus);
+
+    float volcano_distance = length(v_world_position.xz - u_volcano_position.xz);
+    float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
+
+    // sun-focus boost zone: a trapezoid running from the volcano (narrow edge) out to one fixed
+    // side of it, widening until it reaches u_sun_focus_radius (the far edge, matching the
+    // previous circular zone's reach) - a purely visual placement next to the volcano, not tied
+    // to the sun's real position/direction, so it stays put regardless of where the sun orbits to
+    vec2 trapezoid_forward = vec2(1.0, 0.0);
+    vec2 trapezoid_right = vec2(-trapezoid_forward.y, trapezoid_forward.x);
+    vec2 volcano_relative_position = v_world_position.xz - u_volcano_position.xz;
+    float trapezoid_forward_distance = dot(volcano_relative_position, trapezoid_forward);
+    float trapezoid_lateral_distance = abs(dot(volcano_relative_position, trapezoid_right));
+    float trapezoid_edge_softness = max(u_sun_focus_radius * 0.15, 0.3);
+    float trapezoid_length_mask = smoothstep(-trapezoid_edge_softness, trapezoid_edge_softness, trapezoid_forward_distance)
+        * (1.0 - smoothstep(u_sun_focus_radius - trapezoid_edge_softness, u_sun_focus_radius + trapezoid_edge_softness, trapezoid_forward_distance));
+    float trapezoid_progress = clamp(trapezoid_forward_distance / u_sun_focus_radius, 0.0, 1.0);
+    float trapezoid_half_width = mix(u_sun_focus_radius * 0.25, u_sun_focus_radius, trapezoid_progress);
+    float trapezoid_width_mask = 1.0 - smoothstep(trapezoid_half_width - trapezoid_edge_softness, trapezoid_half_width + trapezoid_edge_softness, trapezoid_lateral_distance);
+    float sun_focus_proximity = trapezoid_length_mask * trapezoid_width_mask;
+
+    float sun_focus_near_volcano = mix(u_sun_focus, u_sun_focus * 1.8, sun_focus_proximity);
+    float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, sun_focus_near_volcano) * mix(1.0, 1.6, sun_focus_proximity);
 
     float color_variation = normalizedFractalBrownianMotion(v_world_position * 1.5);
     vec3 varied_color = mix(u_rock_color * 0.6, u_rock_color, color_variation);
@@ -73,8 +96,6 @@ void main() {
     // matches the scene's AmbientLight (main.js)
     color = color * (1.8 + diffuse * 0.55) + vec3(specular);
 
-    float volcano_distance = length(v_world_position.xz - u_volcano_position.xz);
-    float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
     // pre-lit color, blended post-ambient to avoid double lighting
     color = mix(color, u_proximity_color, proximity);
 

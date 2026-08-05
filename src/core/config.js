@@ -21,6 +21,7 @@ export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
 export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.015; // crackPattern()'s crack_width
 export const GROUND_DEFAULT_PROXIMITY_RADIUS = 30.0; // world-unit falloff distance for the volcano-proximity tint, well past the ~14-unit volcano foot radius so the blend reads as a wide apron rather than a hard ring
+export const GROUND_DEFAULT_SUN_FOCUS_RADIUS = 20.0; // world-unit falloff distance for the sun-focus boost trapezoid next to the volcano - must clear VOLCANO_PROFILE's ~14-unit foot radius, otherwise the whole boosted zone sits hidden under the volcano mesh and never becomes visible
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 
@@ -66,8 +67,8 @@ export const SUN_ASH_TINT_COLOR = 0xdd1100; // separate, blue-free red for tinti
 export const SUN_LIGHT_INTENSITY = 4.0;
 export const SUN_LIGHT_DISTANCE = 60;
 export const SUN_VISUAL_RADIUS = 2.5; // radius of the sun disc - large enough to read clearly as a sun rather than a distant dot
-export const SUN_DEFAULT_STRENGTH = 0.06; // shared default for ground/volcano/smoke's u_sun_strength
-export const SUN_DEFAULT_FOCUS = 8.0; // shared default for ground/volcano's u_sun_focus
+export const SUN_DEFAULT_STRENGTH = 0.125; // shared default for ground/volcano/smoke's u_sun_strength
+export const SUN_DEFAULT_FOCUS = 5.8; // shared default for ground/volcano's u_sun_focus
 
 // Orbit: the sun slowly circles the volcano at a fixed height/radius (both derived from
 // SUN_LIGHT_POSITION, so the starting frame looks exactly as before) instead of sitting still.

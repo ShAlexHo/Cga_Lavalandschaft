@@ -122,6 +122,7 @@ export function setupGui(facade) {
         proximity_color: facade.getGroundProximityColor,
         proximity_noise_color: facade.getGroundProximityNoiseColor,
         proximity_radius: facade.getGroundProximityRadius,
+        sun_focus_radius: facade.getGroundSunFocusRadius,
         displacement_scale: facade.getGroundDisplacementScale,
         displacement_frequency: facade.getGroundDisplacementFrequency,
         height: facade.getGroundHeight,
@@ -156,6 +157,9 @@ export function setupGui(facade) {
     bind(ground_folder.add(ground_parameters, 'proximity_radius', 0.0, 40.0, 0.5))
         .name('Reichweite (Vulkannähe)')
         .onChange(value => facade.setGroundProximityRadius(value));
+    bind(ground_folder.add(ground_parameters, 'sun_focus_radius', 0.0, 40.0, 0.1))
+        .name('Sonnenfokus-Nähe (Vulkan)')
+        .onChange(value => facade.setGroundSunFocusRadius(value));
     bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))
         .name('Unebenheit')
         .onChange(value => facade.setGroundDisplacementScale(value));
@@ -198,7 +202,7 @@ export function setupGui(facade) {
     bind(sun_folder.add(sun_parameters, 'strength', 0.0, 0.3, 0.005))
         .name('Sonneneinstrahlung')
         .onChange(value => facade.setSunStrength(value));
-    bind(sun_folder.add(sun_parameters, 'focus', 1.0, 12.0, 0.1))
+    bind(sun_folder.add(sun_parameters, 'focus', 1.0, 25.0, 0.1))
         .name('Sonnenfokus')
         .onChange(value => facade.setSunFocus(value));
 
