@@ -27,6 +27,7 @@ export function createMetaballMaterial() {
             u_displacement: { value: DEFAULT_SETTINGS.displacementStrength },
         },
         side: THREE.DoubleSide,
+        precision: 'highp',
     });
 }
 

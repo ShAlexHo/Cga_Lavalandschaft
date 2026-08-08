@@ -26,6 +26,7 @@ export function createVolcanoMaterial() {
             u_rock_color: { value: new THREE.Color(DEFAULT_SETTINGS.volcanoRockColor) },
         },
         side: THREE.DoubleSide,
+        precision: 'highp',
     });
 }
 

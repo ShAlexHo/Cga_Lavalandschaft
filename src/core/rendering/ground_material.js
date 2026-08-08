@@ -45,6 +45,7 @@ export function createGroundMaterial() {
             u_volcano_crack_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
         },
         side: THREE.DoubleSide,
+        precision: 'highp',
     });
 }
 

@@ -39,6 +39,7 @@ export function createSmokeMaterial() {
         },
         transparent: true,
         depthWrite: false,
+        precision: 'highp',
     });
 }
 

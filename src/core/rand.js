@@ -1,4 +1,4 @@
-const SEED = 42;
+import { RANDOM_SEED } from './config.js';
 
 export function makeSeededRand(seed) {
     let state = seed >>> 0;
@@ -8,7 +8,7 @@ export function makeSeededRand(seed) {
     };
 }
 
-const randomRaw = makeSeededRand(SEED);
+const randomRaw = makeSeededRand(RANDOM_SEED);
 
 export function random(min, max) {
     return min + randomRaw() * (max - min);

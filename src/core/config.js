@@ -1,6 +1,10 @@
 // Hardcoded tuning constants for geometry/animation/rendering. Unlike
 // default_settings.json (GUI defaults), these need a code change to alter.
 
+// ─── Randomness (seeded PRNG in rand.js) ─────────────────────────────────────
+
+export const RANDOM_SEED = 42; // fixed, so particle placement/variance is identical on every load
+
 // ─── Camera (perspective camera + OrbitControls) ────────────────────────────
 
 export const CAMERA_FOV = 75;

@@ -14,6 +14,7 @@ export function createSunMaterial() {
             u_color_blood_orange: { value: new THREE.Color(SUN_BLOOD_ORANGE_COLOR) },
             u_time: { value: 0.0 },
         },
+        precision: 'highp',
     });
 }
 
