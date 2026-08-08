@@ -18,12 +18,10 @@ void main() {
     float volcano_distance = length(flat_world_position.xz - u_volcano_position.xz);
     float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
 
-    // Symmetric around zero (unlike the volcano's one-sided crack dents), so the ground's average
-    // height stays put while the surface itself becomes uneven.
+    // symmetric around zero (unlike the volcano's one-sided crack dents), so the average height stays put
     float bump = warpedFractalBrownianMotion(position * u_displacement_frequency, 0.6) * 2.0 - 1.0;
 
-    // Re-centered the same way as `bump` (rather than reusing the volcano's raw one-sided dents),
-    // so blending it in near the volcano changes the surface's character, not its average height.
+    // re-centered the same way as `bump`, so blending it in changes character, not average height
     float volcano_style_bump = crackDisplacementNoise(flat_world_position, u_volcano_crack_frequency) * 2.0 - 1.0;
     bump = mix(bump, volcano_style_bump, proximity);
 

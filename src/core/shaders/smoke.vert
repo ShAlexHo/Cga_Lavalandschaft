@@ -43,11 +43,10 @@ void main() {
     float age_seconds = mod(u_time + phase_offset, lifetime);
     float age_fraction = age_seconds / lifetime;
 
-    // Age still dominates the mix so young particles stay close to u_color_1, but color_seed carries
-    // more weight for a mottled, varied cloud instead of a too-uniform gradient.
+    // age dominates the mix (young stays close to u_color_1); color_seed adds mottling
     float color_mix = clamp(age_fraction * 0.65 + color_seed * 0.35, 0.0, 1.0);
 
-    // smoothstep's zero slope at the fade-out edges lets particles drift into invisibility instead of cutting off.
+    // smoothstep's zero slope at the edges lets particles drift into invisibility instead of cutting off
     float fade_in = smoothstep(0.0, u_fade_in_end, age_fraction);
     float fade_out = 1.0 - smoothstep(u_fade_out_start, 1.0, age_fraction);
     float life_envelope = fade_in * fade_out;
@@ -75,14 +74,14 @@ void main() {
     } else {
         float rise_shape = 0.2 + 0.8 * age_fraction;
 
-        // core_radius never depends on u_spread, so the center stays dense; extra_reach grows with the
-        // cube of base_radius, so only particles already far out get pushed further.
+        // core_radius ignores u_spread so the center stays dense; extra_reach (cubed base_radius)
+        // only pushes particles already far out
         float core_radius = base_radius * u_core_spread * rise_shape;
         float extra_reach = u_spread * pow(base_radius, 3.0) * rise_shape;
         float radius = core_radius + extra_reach;
         float angle = base_angle + drift_angle * age_fraction;
 
-        // Normalized by u_core_spread so widening the core doesn't also crush the cloud's opacity towards zero.
+        // normalized by u_core_spread so widening the core doesn't crush opacity towards zero
         float normalized_radius = radius / u_core_spread;
         float distance_falloff = 1.0 / (1.0 + normalized_radius * normalized_radius);
 

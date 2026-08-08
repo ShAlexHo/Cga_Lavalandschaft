@@ -14,7 +14,11 @@ uniform float u_sun_strength;
 uniform float u_sun_focus;
 uniform float u_crack_frequency;
 uniform float u_crack_softness;
+uniform float u_displacement_frequency;
 uniform vec3  u_rock_color;
+uniform vec3  u_rock_color_2;
+uniform vec3  u_rock_color_3;
+uniform vec3  u_rock_color_4;
 uniform vec3  u_crack_color;
 uniform vec3  u_crack_color_2;
 uniform vec3  u_crack_color_3;
@@ -24,6 +28,7 @@ uniform vec3  u_proximity_color;
 uniform vec3  u_proximity_noise_color;
 uniform float u_proximity_radius;
 uniform float u_sun_focus_radius;
+uniform float u_rock_variance_radius;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -46,10 +51,8 @@ void main() {
     float volcano_distance = length(v_world_position.xz - u_volcano_position.xz);
     float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
 
-    // sun-focus boost zone: a trapezoid running from the volcano (narrow edge) out to one fixed
-    // side of it, widening until it reaches u_sun_focus_radius (the far edge, matching the
-    // previous circular zone's reach) - a purely visual placement next to the volcano, not tied
-    // to the sun's real position/direction, so it stays put regardless of where the sun orbits to
+    // sun-focus boost zone: a trapezoid from the volcano out to one fixed side (not tied to the
+    // sun's real position, so it stays put as the sun orbits), reaching out to u_sun_focus_radius
     vec2 trapezoid_forward = vec2(1.0, 0.0);
     vec2 trapezoid_right = vec2(-trapezoid_forward.y, trapezoid_forward.x);
     vec2 volcano_relative_position = v_world_position.xz - u_volcano_position.xz;
@@ -66,8 +69,13 @@ void main() {
     float sun_focus_near_volcano = mix(u_sun_focus, u_sun_focus * 1.8, sun_focus_proximity);
     float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, sun_focus_near_volcano) * mix(1.0, 1.6, sun_focus_proximity);
 
+    // each hill-sized patch gets its own rock tone; faded out near the volcano over its own radius
+    // so the scorched ground close to it stays a plain, uniform u_rock_color
+    float rock_variance_strength = smoothstep(0.0, u_rock_variance_radius, volcano_distance);
+    vec3 rock_base_color = blendTerrainColors(u_rock_color, u_rock_color_2, u_rock_color_3, u_rock_color_4, v_world_position, u_displacement_frequency);
+    rock_base_color = mix(u_rock_color, rock_base_color, rock_variance_strength);
     float color_variation = normalizedFractalBrownianMotion(v_world_position * 1.5);
-    vec3 varied_color = mix(u_rock_color * 0.6, u_rock_color, color_variation);
+    vec3 varied_color = mix(rock_base_color * 0.6, rock_base_color, color_variation);
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
     vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, u_crack_color_3, v_world_position);
@@ -96,8 +104,8 @@ void main() {
     // matches the scene's AmbientLight (main.js)
     color = color * (1.8 + diffuse * 0.55) + vec3(specular);
 
-    // pre-lit color, blended post-ambient to avoid double lighting
-    color = mix(color, u_proximity_color, proximity);
+    // capped below 1.0 so the rock's own color/hill variance still shows through at the volcano's foot
+    color = mix(color, u_proximity_color, proximity * 0.6);
 
     // crack_mask keeps this off the lava crack veins
     float proximity_noise = clamp(normalizedFractalBrownianMotion(v_world_position * 2.5) * 1.8, 0.0, 1.0) * proximity * crack_mask;
@@ -107,8 +115,7 @@ void main() {
 
     color *= heightAmbientOcclusion(v_bump);
 
-    // self-illumination, so cracks push past the bloom pass's threshold and visibly glow -
-    // strength itself drifts across position and time instead of being a flat multiplier
+    // self-illumination so cracks push past the bloom threshold; strength drifts over position/time
     float glow_variation = normalizedFractalBrownianMotion(v_world_position * 5.0 + vec3(0.0, u_time * 0.3, 0.0));
     float crack_glow_strength = mix(0.4, 1.2, glow_variation);
     color += crack_color * (1.0 - crack_mask) * crack_glow_strength;

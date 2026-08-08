@@ -1,6 +1,5 @@
-// Hardcoded tuning constants for geometry/animation/rendering.
-// Unlike default_settings.json (initial values of the GUI-adjustable
-// controls), these are values that can only be changed by editing the code.
+// Hardcoded tuning constants for geometry/animation/rendering. Unlike
+// default_settings.json (GUI defaults), these need a code change to alter.
 
 // ─── Camera (perspective camera + OrbitControls) ────────────────────────────
 
@@ -12,16 +11,18 @@ export const CAMERA_MIN_DISTANCE = 16;
 export const CAMERA_MAX_DISTANCE = 36;
 export const CAMERA_MIN_POLAR_ANGLE = 1;
 export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
+
 // ─── Ground (geometry / rendering) ───────────────────────────────────────────
 
 export const GROUND_SIZE = 80;
-export const GROUND_SEGMENTS = 160; // resolution the displacement noise is sampled at - needs to be well above the default 1x1 plane for bumps to read as terrain rather than a tilted flat tile
-export const GROUND_CRACK_FREQUENCY = 0.06; // crack-color frequency, not yet exposed in the GUI - lower means fewer, more spaced-out cracks
+export const GROUND_SEGMENTS = 160; // must be well above 1x1, or bumps read as a tilted flat plane
+export const GROUND_CRACK_FREQUENCY = 0.06; // not yet exposed in the GUI
 export const GROUND_DEFAULT_DISPLACEMENT_SCALE = 1.26;
 export const GROUND_DEFAULT_DISPLACEMENT_FREQUENCY = 0.1;
 export const GROUND_DEFAULT_CRACK_SOFTNESS = 0.015; // crackPattern()'s crack_width
-export const GROUND_DEFAULT_PROXIMITY_RADIUS = 30.0; // world-unit falloff distance for the volcano-proximity tint, well past the ~14-unit volcano foot radius so the blend reads as a wide apron rather than a hard ring
-export const GROUND_DEFAULT_SUN_FOCUS_RADIUS = 20.0; // world-unit falloff distance for the sun-focus boost trapezoid next to the volcano - must clear VOLCANO_PROFILE's ~14-unit foot radius, otherwise the whole boosted zone sits hidden under the volcano mesh and never becomes visible
+export const GROUND_DEFAULT_PROXIMITY_RADIUS = 30.0; // past the ~14-unit volcano foot radius, for a wide apron
+export const GROUND_DEFAULT_SUN_FOCUS_RADIUS = 20.0; // must clear the foot radius or the boost hides under the volcano mesh
+export const GROUND_DEFAULT_ROCK_VARIANCE_RADIUS = 45.0; // kept separate from GROUND_DEFAULT_PROXIMITY_RADIUS so the two aprons scale independently
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 
@@ -37,12 +38,12 @@ export const METABALL_LIGHT_POSITION = { x: 6, y: 8, z: 6 };
 export const METABALL_MAX_BALLS = 500;
 export const METABALL_LEGACY_EFFECT_SCALE = 6.0;
 export const METABALL_CRATER_X = 0.5;
-export const METABALL_CRATER_Y = 0.45;  // (-1 - 0.36) / 30 + 0.5  (volcano tip: ground -6 + height 5 = -1)
+export const METABALL_CRATER_Y = 0.45; // volcano tip: ground -6 + height 5 = -1 -> (-1 - 0.36) / 30 + 0.5
 export const METABALL_CRATER_Z = 0.5;
 export const METABALL_GROUND_Y = 0.288; // (-6 - 0.36) / 30 + 0.5
-export const METABALL_BALL_LIFETIME = 3.5; // seconds from crater to ground
+export const METABALL_BALL_LIFETIME = 3.5; // seconds, crater to ground
 export const METABALL_SECTORS = 6;
-export const METABALL_WAVE_TRANSITION = 3.0; // seconds to ease the eruption intensity down/up around a wave pause, so dependents (e.g. the smoke plume) can fade smoothly instead of snapping
+export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the smoke plume fades instead of snapping
 
 // ─── Volcano (geometry / rendering) ──────────────────────────────────────────
 
@@ -59,58 +60,57 @@ export const VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY = 0.5;
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────
 
-export const SUN_LIGHT_POSITION = { x: 12, y: 10, z: -30 }; // further out along the same line of sight as before and higher in the sky, while staying inside the default camera frustum
-export const SUN_LIGHT_COLOR = 0xff1020; // deep red, only a faint hint of pink left
-export const SUN_CORE_COLOR = 0xff3311; // red core the turbulent sun surface blends towards - still varied, but red rather than orange
-export const SUN_BLOOD_ORANGE_COLOR = 0xcc2200; // second, independently-animated noise layer's color, for extra patch variation on top of the core/edge blend
-export const SUN_ASH_TINT_COLOR = 0xdd1100; // separate, blue-free red for tinting the ash - blending SUN_LIGHT_COLOR's slight blue over the pale smoke read as pink instead of red
+export const SUN_LIGHT_POSITION = { x: 12, y: 10, z: -30 }; // stays inside the default camera frustum
+export const SUN_LIGHT_COLOR = 0xff1020;
+export const SUN_CORE_COLOR = 0xff3311;
+export const SUN_BLOOD_ORANGE_COLOR = 0xcc2200; // second, independently-animated noise layer
+export const SUN_ASH_TINT_COLOR = 0xdd1100; // blue-free red, or it reads pink over the pale smoke
 export const SUN_LIGHT_INTENSITY = 4.0;
 export const SUN_LIGHT_DISTANCE = 60;
-export const SUN_VISUAL_RADIUS = 2.5; // radius of the sun disc - large enough to read clearly as a sun rather than a distant dot
-export const SUN_DEFAULT_STRENGTH = 0.125; // shared default for ground/volcano/smoke's u_sun_strength
-export const SUN_DEFAULT_FOCUS = 5.8; // shared default for ground/volcano's u_sun_focus
+export const SUN_VISUAL_RADIUS = 2.5;
+export const SUN_DEFAULT_STRENGTH = 0.125; // shared ground/volcano/smoke u_sun_strength
+export const SUN_DEFAULT_FOCUS = 5.8; // shared ground/volcano u_sun_focus
 
-// Orbit: the sun slowly circles the volcano at a fixed height/radius (both derived from
-// SUN_LIGHT_POSITION, so the starting frame looks exactly as before) instead of sitting still.
+// orbits the volcano at a fixed height/radius derived from SUN_LIGHT_POSITION
 export const SUN_ORBIT_RADIUS = Math.sqrt(SUN_LIGHT_POSITION.x ** 2 + SUN_LIGHT_POSITION.z ** 2);
 export const SUN_ORBIT_HEIGHT = SUN_LIGHT_POSITION.y;
 export const SUN_ORBIT_START_ANGLE = Math.atan2(SUN_LIGHT_POSITION.z, SUN_LIGHT_POSITION.x);
-export const SUN_ORBIT_PERIOD = 600; // seconds for one full revolution - slow enough to read as ambient drift, not a spinning light
+export const SUN_ORBIT_PERIOD = 600; // seconds per revolution
 export const SUN_ORBIT_SPEED = (2 * Math.PI) / SUN_ORBIT_PERIOD;
 
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────
 
 export const SMOKE_MAX_PARTICLES = 1400;
 export const SMOKE_DEFAULT_COUNT = 816;
-export const SMOKE_SPAWN_HEIGHT = 4.6; // height above the volcano's own origin where the crater opening sits
-export const SMOKE_RISE_HEIGHT = 10.0; // world units a particle rises before being recycled
-export const SMOKE_CORE_SPREAD = 5.0; // fixed radial (xy-plane) reach near the plume's axis - stays constant regardless of the spread setting, so the center never gets diluted; large so the ash blankets the volcano's summit area rather than forming a thin column
-export const SMOKE_DEFAULT_SPREAD = 2.0; // extra outward reach for particles already away from the axis, so the plume visibly fills more space above the volcano
-export const SMOKE_DEFAULT_RISE_SPEED = 0.4; // two fifths of the "normal" (1.0) pace, so the plume rises/cycles more slowly by default
-export const SMOKE_LIFETIME = 12.0; // seconds from spawn (crater) to recycle (top of the plume)
-export const SMOKE_FADE_IN_END = 0.15; // age fraction (of one lifetime) by which a particle reaches full opacity
-export const SMOKE_FADE_OUT_START = 0.4; // age fraction at which the long, gentle fade-out towards invisible begins
-export const SMOKE_PARTICLE_SIZE = 36; // base point size in pixels, before perspective attenuation
-export const SMOKE_SIZE_MULT_MIN = 0.3; // per-particle random size multiplier range, so points vary in size instead of all looking identical
+export const SMOKE_SPAWN_HEIGHT = 4.6; // above the volcano's own origin, where the crater opening sits
+export const SMOKE_RISE_HEIGHT = 10.0;
+export const SMOKE_CORE_SPREAD = 5.0; // fixed reach near the axis so the center never gets diluted
+export const SMOKE_DEFAULT_SPREAD = 2.0;
+export const SMOKE_DEFAULT_RISE_SPEED = 0.4;
+export const SMOKE_LIFETIME = 12.0;
+export const SMOKE_FADE_IN_END = 0.15; // age fraction to reach full opacity
+export const SMOKE_FADE_OUT_START = 0.4; // age fraction where fade-out begins
+export const SMOKE_PARTICLE_SIZE = 36;
+export const SMOKE_SIZE_MULT_MIN = 0.3;
 export const SMOKE_SIZE_MULT_MAX = 1.3;
-export const SMOKE_COLOR_1 = 0x000000; // black ash near the crater - deliberately not reddish/brownish
-export const SMOKE_COLOR_2 = 0x515150; // darker neutral grey steam higher up - kept close to true grey (not warm/reddish) while still distinct in brightness from color 1
-export const SMOKE_COLOR_3 = 0xff5b00; // sparse bright ember accent on a minority of freshly spawned particles
-export const SMOKE_ACCENT_STRENGTH = 0.6; // caps how strongly the ember accent can ever tint a particle, keeping it a faint hint rather than a red highlight
-export const SMOKE_ACCENT_THRESHOLD = 0.8; // only the top (1 - threshold) share of particles show any ember accent/glow, keeping it a rare highlight rather than a uniform tint
-export const SMOKE_EMBER_COOLING_TIME = 20.0; // seconds to cool to grey, independent of u_lifetime/u_rise_speed
-export const SMOKE_EMBER_COOLING_MULT_MIN = 0.5; // per-particle multiplier range for SMOKE_EMBER_COOLING_TIME, mean 1.0
+export const SMOKE_COLOR_1 = 0x000000; // black ash near the crater
+export const SMOKE_COLOR_2 = 0x515150; // neutral grey steam higher up
+export const SMOKE_COLOR_3 = 0xff5b00; // sparse bright ember accent
+export const SMOKE_ACCENT_STRENGTH = 0.6; // caps the ember tint
+export const SMOKE_ACCENT_THRESHOLD = 0.8; // only the top (1 - threshold) share gets any accent
+export const SMOKE_EMBER_COOLING_TIME = 20.0;
+export const SMOKE_EMBER_COOLING_MULT_MIN = 0.5;
 export const SMOKE_EMBER_COOLING_MULT_MAX = 1.5;
-export const SMOKE_EMBER_GLOW_STRENGTH = 6.0; // HDR multiplier added on top of the ember accent so freshly spawned, high-accent particles push past the bloom pass's threshold and read as a small light source, not yet exposed in the GUI
-export const SMOKE_EMBER_GLOW_MULT_MIN = 0.4; // per-particle random multiplier range applied to SMOKE_EMBER_GLOW_STRENGTH, so ember particles glow with varying brightness instead of all matching one fixed intensity
+export const SMOKE_EMBER_GLOW_STRENGTH = 6.0; // HDR multiplier, pushes past the bloom threshold
+export const SMOKE_EMBER_GLOW_MULT_MIN = 0.4;
 export const SMOKE_EMBER_GLOW_MULT_MAX = 1.8;
-export const SMOKE_PAUSED_ERUPTION_OPACITY = 0.35; // crater-plume opacity floor while no metaballs are being spawned (between lava waves) - thins the plume without hiding it entirely; the ambient haze is unaffected
+export const SMOKE_PAUSED_ERUPTION_OPACITY = 0.35; // crater-plume floor between lava waves
 
-export const SMOKE_AMBIENT_FRACTION = 0.3; // share of particles scattered around the volcano as background haze, rather than following the crater plume
-export const SMOKE_AMBIENT_RADIUS = 22.0; // horizontal reach of the ambient haze - covers most of the visible space around the volcano
-export const SMOKE_AMBIENT_HEIGHT_MIN = -3.0; // lowest ambient ash height (local space, relative to the crater opening)
-export const SMOKE_AMBIENT_HEIGHT_MAX = 14.0; // highest ambient ash height
-export const SMOKE_AMBIENT_OPACITY = 0.35; // opacity cap for ambient ash - a subtle haze that never competes with the dense plume at the crater
+export const SMOKE_AMBIENT_FRACTION = 0.3; // share scattered as background haze, not the crater plume
+export const SMOKE_AMBIENT_RADIUS = 22.0;
+export const SMOKE_AMBIENT_HEIGHT_MIN = -3.0;
+export const SMOKE_AMBIENT_HEIGHT_MAX = 14.0;
+export const SMOKE_AMBIENT_OPACITY = 0.35;
 
 // ─── Key light + ambient (scene lighting set up in main.js) ─────────────────
 

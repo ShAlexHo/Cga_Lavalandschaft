@@ -1,7 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-// vi.mock() factories are hoisted above the rest of the module, so the array the OrbitControls
-// mock records its instances into has to be created via vi.hoisted() to be visible down here too.
+// vi.mock() factories hoist above this, so this array needs vi.hoisted() to be visible down here
 const { controls_instances } = vi.hoisted(() => ({ controls_instances: [] }));
 
 vi.mock('three', () => {

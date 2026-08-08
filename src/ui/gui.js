@@ -114,6 +114,9 @@ export function setupGui(facade) {
     const ground_parameters = makeParameters({
         visible: facade.getGroundVisible,
         color: facade.getGroundColor,
+        color_2: facade.getGroundColor2,
+        color_3: facade.getGroundColor3,
+        color_4: facade.getGroundColor4,
         crack_color: facade.getGroundCrackColor,
         crack_color_2: facade.getGroundCrackColor2,
         crack_color_3: facade.getGroundCrackColor3,
@@ -123,6 +126,7 @@ export function setupGui(facade) {
         proximity_noise_color: facade.getGroundProximityNoiseColor,
         proximity_radius: facade.getGroundProximityRadius,
         sun_focus_radius: facade.getGroundSunFocusRadius,
+        rock_variance_radius: facade.getGroundRockVarianceRadius,
         displacement_scale: facade.getGroundDisplacementScale,
         displacement_frequency: facade.getGroundDisplacementFrequency,
         height: facade.getGroundHeight,
@@ -133,6 +137,15 @@ export function setupGui(facade) {
     bind(ground_folder.addColor(ground_parameters, 'color'))
         .name('Farbe')
         .onChange(value => facade.setGroundColor(value));
+    bind(ground_folder.addColor(ground_parameters, 'color_2'))
+        .name('Farbe 2 (Gesteinsart)')
+        .onChange(value => facade.setGroundColor2(value));
+    bind(ground_folder.addColor(ground_parameters, 'color_3'))
+        .name('Farbe 3 (Gesteinsart)')
+        .onChange(value => facade.setGroundColor3(value));
+    bind(ground_folder.addColor(ground_parameters, 'color_4'))
+        .name('Farbe 4 (Gesteinsart)')
+        .onChange(value => facade.setGroundColor4(value));
     bind(ground_folder.addColor(ground_parameters, 'crack_color'))
         .name('Rissfarbe')
         .onChange(value => facade.setGroundCrackColor(value));
@@ -160,6 +173,9 @@ export function setupGui(facade) {
     bind(ground_folder.add(ground_parameters, 'sun_focus_radius', 0.0, 40.0, 0.1))
         .name('Sonnenfokus-Nähe (Vulkan)')
         .onChange(value => facade.setGroundSunFocusRadius(value));
+    bind(ground_folder.add(ground_parameters, 'rock_variance_radius', 0.0, 80.0, 0.5))
+        .name('Reichweite bis Gesteinsvarianz')
+        .onChange(value => facade.setGroundRockVarianceRadius(value));
     bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))
         .name('Unebenheit')
         .onChange(value => facade.setGroundDisplacementScale(value));

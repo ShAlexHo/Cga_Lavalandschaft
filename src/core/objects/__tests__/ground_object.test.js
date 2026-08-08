@@ -9,6 +9,9 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_displacement_scale: { value: 0.6 },
             u_displacement_frequency: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
+            u_rock_color_2: { value: makeColor('2a1f1a') },
+            u_rock_color_3: { value: makeColor('1c1f24') },
+            u_rock_color_4: { value: makeColor('35404a') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
@@ -18,6 +21,7 @@ vi.mock('../../rendering/ground_material.js', () => ({
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
             u_proximity_radius: { value: 18.0 },
             u_sun_focus_radius: { value: 4.5 },
+            u_rock_variance_radius: { value: 45.0 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -67,6 +71,15 @@ describe('createGround', () => {
         ground.setColor('#abcabc');
         expect(ground.getColor()).toBe('#abcabc');
 
+        ground.setColor2('#aabbcc');
+        expect(ground.getColor2()).toBe('#aabbcc');
+
+        ground.setColor3('#ccbbaa');
+        expect(ground.getColor3()).toBe('#ccbbaa');
+
+        ground.setColor4('#334455');
+        expect(ground.getColor4()).toBe('#334455');
+
         ground.setCrackColor('#111111');
         expect(ground.getCrackColor()).toBe('#111111');
 
@@ -93,6 +106,9 @@ describe('createGround', () => {
 
         ground.setSunFocusRadius(6.0);
         expect(ground.getSunFocusRadius()).toBe(6.0);
+
+        ground.setRockVarianceRadius(50.0);
+        expect(ground.getRockVarianceRadius()).toBe(50.0);
 
         ground.setDisplacementScale(1.2);
         expect(ground.getDisplacementScale()).toBe(1.2);

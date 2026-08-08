@@ -1,5 +1,5 @@
-// Shared `vi.mock('three', ...)` fakes, referenced from test files via plain imports (Vitest
-// resolves those before a mock factory ever runs, so this is safe despite vi.mock() hoisting).
+// Shared `vi.mock('three', ...)` fakes - safe to import directly despite vi.mock() hoisting,
+// since Vitest resolves imports before a mock factory runs.
 
 import { vi } from 'vitest';
 

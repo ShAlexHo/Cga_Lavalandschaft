@@ -10,7 +10,7 @@ vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
 import {
     GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY, GROUND_DEFAULT_CRACK_SOFTNESS,
-    GROUND_DEFAULT_SUN_FOCUS_RADIUS, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
+    GROUND_DEFAULT_SUN_FOCUS_RADIUS, GROUND_DEFAULT_ROCK_VARIANCE_RADIUS, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
 } from '../../config.js';
 
 describe('createGroundMaterial', () => {
@@ -29,6 +29,9 @@ describe('createGroundMaterial', () => {
             'u_crack_frequency',
             'u_crack_softness',
             'u_rock_color',
+            'u_rock_color_2',
+            'u_rock_color_3',
+            'u_rock_color_4',
             'u_crack_color',
             'u_crack_color_2',
             'u_crack_color_3',
@@ -38,6 +41,7 @@ describe('createGroundMaterial', () => {
             'u_proximity_noise_color',
             'u_proximity_radius',
             'u_sun_focus_radius',
+            'u_rock_variance_radius',
             'u_volcano_crack_scale',
             'u_volcano_crack_frequency',
         ];
@@ -81,6 +85,11 @@ describe('createGroundMaterial', () => {
     test('u_sun_focus_radius starts at GROUND_DEFAULT_SUN_FOCUS_RADIUS', () => {
         const material = createGroundMaterial();
         expect(material.uniforms.u_sun_focus_radius.value).toBe(GROUND_DEFAULT_SUN_FOCUS_RADIUS);
+    });
+
+    test('u_rock_variance_radius starts at GROUND_DEFAULT_ROCK_VARIANCE_RADIUS', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_rock_variance_radius.value).toBe(GROUND_DEFAULT_ROCK_VARIANCE_RADIUS);
     });
 
     test('u_volcano_crack_scale/frequency start at the volcano\'s own config defaults', () => {

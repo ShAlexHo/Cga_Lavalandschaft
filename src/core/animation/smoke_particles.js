@@ -24,8 +24,7 @@ function meanAndStdDev(min, max) {
     return { mean: (min + max) / 2, std_dev: (max - min) / 4 };
 }
 
-// Bell-curve size/glow distributions, so oversized grains or extra-bright embers stay rare instead of
-// as common as any other value.
+// bell-curve size/glow distributions, so oversized grains or extra-bright embers stay rare
 const SIZE_MULT = meanAndStdDev(SMOKE_SIZE_MULT_MIN, SMOKE_SIZE_MULT_MAX);
 const GLOW_MULT = meanAndStdDev(SMOKE_EMBER_GLOW_MULT_MIN, SMOKE_EMBER_GLOW_MULT_MAX);
 const COOLING_MULT = meanAndStdDev(SMOKE_EMBER_COOLING_MULT_MIN, SMOKE_EMBER_COOLING_MULT_MAX);
@@ -44,7 +43,7 @@ function createParticleSeeds() {
         const ambient = random(0, 1) < SMOKE_AMBIENT_FRACTION;
         is_ambient[i] = ambient ? 1.0 : 0.0;
 
-        // Half-normal base_radius, so most particles stay near the plume's axis with a shrinking tail further out.
+        // half-normal base_radius keeps most particles near the axis, with a shrinking tail further out
         motion_seed.set([random(0, Math.PI * 2), Math.abs(randomGauss(0, 1)), random(-Math.PI * 0.5, Math.PI * 0.5), random(0.75, 1.35)], i * 4);
         timing_seed.set([random(0, SMOKE_LIFETIME), random(0, 1)], i * 2);
 

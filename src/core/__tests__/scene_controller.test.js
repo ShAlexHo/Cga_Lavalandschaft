@@ -1,22 +1,17 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { makeColor, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
 
-// vi.mock() factories are hoisted above the rest of the module, so the default settings each
-// mock's initial state is seeded from must be too; vi.hoisted() is the mechanism for that.
+// vi.mock() factories hoist above this, so vi.hoisted() is needed to seed their initial state
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
     DEFAULT_SETTINGS: { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 },
     DEFAULT_SMOKE_SETTINGS: { count: 200, max_count: 400 },
 }));
 
-// ─── Mock three (only Mesh/PlaneGeometry are used directly by scene_controller.js
-//     — the ground mesh is built here, everything else comes from the (also
-//     mocked) geometry/animation/rendering layers) ───────────────────────────
+// ─── Mock three (only Mesh/PlaneGeometry are used directly here) ────────────
 
 vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 
-// ─── Mock the geometry/animation/rendering layers wholesale — their own logic
-//     is covered by the tests next to each module; here we only need fakes
-//     that let us observe how the facade drives them. ────────────────────────
+// ─── Mock the geometry/animation/rendering layers wholesale ─────────────────
 
 vi.mock('../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({
@@ -24,6 +19,9 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_displacement_scale: { value: 0.6 },
             u_displacement_frequency: { value: 0.08 },
             u_rock_color: { value: makeColor('220500') },
+            u_rock_color_2: { value: makeColor('2a1f1a') },
+            u_rock_color_3: { value: makeColor('1c1f24') },
+            u_rock_color_4: { value: makeColor('35404a') },
             u_crack_color: { value: makeColor('050505') },
             u_crack_color_2: { value: makeColor('ffaa00') },
             u_crack_color_3: { value: makeColor('ffd700') },
@@ -33,6 +31,7 @@ vi.mock('../rendering/ground_material.js', () => ({
             u_proximity_noise_color: { value: makeColor('8a3a1a') },
             u_proximity_radius: { value: 18.0 },
             u_sun_focus_radius: { value: 4.5 },
+            u_rock_variance_radius: { value: 45.0 },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: 0.06 },
             u_sun_focus: { value: 8.0 },
@@ -361,9 +360,9 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
             displacementEnabled: false, displacementStrength: 0.0015,
-            groundVisible: false, groundColor: '#0a0a0a', groundHeight: -2,
+            groundVisible: false, groundColor: '#0a0a0a', groundColor2: '#0a0a0b', groundColor3: '#0a0a0c', groundColor4: '#0a0a0d', groundHeight: -2,
             groundCrackColor: '#050505', groundCrackColor2: '#0a0a00', groundCrackColor3: '#0a0500', groundCrackColor4: '#a00000', groundCrackSoftness: 0.3, groundDisplacementScale: 1.1, groundDisplacementFrequency: 0.12,
-            groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22, groundSunFocusRadius: 5.5,
+            groundProximityColor: '#a0a0a0', groundProximityNoiseColor: '#774422', groundProximityRadius: 22, groundSunFocusRadius: 5.5, groundRockVarianceRadius: 40.0,
             volcanoVisible: false, volcanoDisplacementScale: 4.4, volcanoDisplacementFrequency: 0.7,
             volcanoRockColor: '#b0b0b0',
             sunVisible: false, sunStrength: 0.09, sunFocus: 3.5,

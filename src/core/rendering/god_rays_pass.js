@@ -30,8 +30,7 @@ class GodRaysPass extends Pass {
         this.generate_material = createGodRaysGenerateMaterial();
         this.combine_material = createGodRaysCombineMaterial();
 
-        // depthTexture lets the combine step reuse this render's depth to tell solid ground/volcano
-        // apart from open sky, instead of a second scene render just for that.
+        // depthTexture lets combine reuse this depth to tell solid ground/volcano from open sky
         this.occlusion_target = new THREE.WebGLRenderTarget(1, 1, { depthTexture: new THREE.DepthTexture(1, 1) });
         this.god_rays_target = new THREE.WebGLRenderTarget(1, 1);
 
@@ -63,8 +62,7 @@ class GodRaysPass extends Pass {
     }
 
     render(renderer, write_buffer, read_buffer) {
-        // A point behind the camera projects to a mirrored screen position instead of off-screen,
-        // so the effect is faded out well before that (outside the visible frustum) to avoid a ghost.
+        // faded out before the sun leaves the frustum, or a point behind the camera mirrors on-screen
         this.camera.getWorldDirection(_camera_forward);
         _to_sun.subVectors(this.sun_mesh.position, this.camera.position).normalize();
         const facing = _camera_forward.dot(_to_sun);
@@ -80,12 +78,11 @@ class GodRaysPass extends Pass {
         const old_clear_alpha = renderer.getClearAlpha();
         renderer.autoClear = false;
 
-        // Occlusion mask: hide everything except ground/volcano, draw them black, then add the sun
-        // back as a white disc depth-tested against that - naturally blocked wherever terrain is in front.
+        // occlusion mask: hide all but ground/volcano, draw black, then add the sun as a depth-tested disc
         const visibility_backup = this.scene.children.map(child => child.visible);
         this.scene.children.forEach(child => { child.visible = this.occluder_meshes.includes(child); });
 
-        // scene.background bypasses overrideMaterial, so it must be hidden or it floods the mask.
+        // bypasses overrideMaterial, so it must be hidden or it floods the mask
         const original_background = this.scene.background;
         this.scene.background = null;
 

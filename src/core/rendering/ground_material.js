@@ -4,7 +4,7 @@ import vertex_glsl from '../shaders/ground.vert?raw';
 import fragment_glsl from '../shaders/ground.frag?raw';
 import {
     VOLCANO_LIGHT_POSITION, GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY,
-    GROUND_DEFAULT_CRACK_SOFTNESS, GROUND_DEFAULT_PROXIMITY_RADIUS, GROUND_DEFAULT_SUN_FOCUS_RADIUS, SUN_LIGHT_COLOR, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS,
+    GROUND_DEFAULT_CRACK_SOFTNESS, GROUND_DEFAULT_PROXIMITY_RADIUS, GROUND_DEFAULT_SUN_FOCUS_RADIUS, GROUND_DEFAULT_ROCK_VARIANCE_RADIUS, SUN_LIGHT_COLOR, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS,
     VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
 } from '../config.js';
 import { computeLightViewPosition } from './light_utils.js';
@@ -30,6 +30,9 @@ export function createGroundMaterial() {
             u_crack_frequency: { value: GROUND_CRACK_FREQUENCY },
             u_crack_softness: { value: GROUND_DEFAULT_CRACK_SOFTNESS },
             u_rock_color: { value: new THREE.Color(0x110f0f) },
+            u_rock_color_2: { value: new THREE.Color(0x1c0c01) },
+            u_rock_color_3: { value: new THREE.Color(0x160000) },
+            u_rock_color_4: { value: new THREE.Color(0x0c0404) },
             u_crack_color: { value: new THREE.Color(0xe03008) },
             u_crack_color_2: { value: new THREE.Color(0x872412) },
             u_crack_color_3: { value: new THREE.Color(0xdb9e49) },
@@ -39,8 +42,8 @@ export function createGroundMaterial() {
             u_proximity_noise_color: { value: new THREE.Color(0x2d2424) },
             u_proximity_radius: { value: GROUND_DEFAULT_PROXIMITY_RADIUS },
             u_sun_focus_radius: { value: GROUND_DEFAULT_SUN_FOCUS_RADIUS },
-            // The volcano's own crack-displacement scale/frequency, so the jagged pattern blended into
-            // the ground near its foot (see ground.vert) matches the volcano's geometry at the seam.
+            u_rock_variance_radius: { value: GROUND_DEFAULT_ROCK_VARIANCE_RADIUS },
+            // volcano's own crack scale/frequency, so the blended pattern near its foot matches (ground.vert)
             u_volcano_crack_scale: { value: VOLCANO_DEFAULT_DISPLACEMENT_SCALE },
             u_volcano_crack_frequency: { value: VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY },
         },

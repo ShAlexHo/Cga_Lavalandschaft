@@ -1,9 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence.js';
 
-// The environment's built-in localStorage (happy-dom / Node's experimental
-// global) behaves inconsistently across setups, so tests get a plain,
-// fully-controlled in-memory stand-in instead of relying on it.
+// the environment's built-in localStorage behaves inconsistently across setups
 function makeMemoryStorage() {
     const store = new Map();
     return {
@@ -68,8 +66,7 @@ describe('downloadJson', () => {
 });
 
 describe('uploadJson', () => {
-    // happy-dom's real FileReader is unreliable in this environment, so the
-    // test drives a fully-controlled stand-in instead.
+    // happy-dom's real FileReader is unreliable in this environment
     function makeMockFileReader() {
         const reader = { readAsText: vi.fn(), onload: null, result: null };
         reader.readAsText.mockImplementation(() => {

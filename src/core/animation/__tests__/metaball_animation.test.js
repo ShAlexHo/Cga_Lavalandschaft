@@ -57,14 +57,14 @@ describe('stepMetaballAnimation', () => {
 
     test('a ball moves down from the crater towards the ground mid-flight', () => {
         animation_module.stepMetaballAnimation(0); // ball #0 spawns at the crater
-        const [ball0] = animation_module.stepMetaballAnimation(20); // early enough to stay well above the disappear threshold for any speed_mult
+        const [ball0] = animation_module.stepMetaballAnimation(20); // still above the disappear threshold
         expect(ball0.y).toBeLessThan(0.45); // moved down from the crater...
-        expect(ball0.y).toBeGreaterThan(animation_module.settings.disappear_y); // ...but not yet at the disappear threshold
+        expect(ball0.y).toBeGreaterThan(animation_module.settings.disappear_y); // ...but not disappeared yet
     });
 
     test('a ball disappears once it has fully sunk below the ground', () => {
         animation_module.stepMetaballAnimation(0); // ball #0 spawns at the crater
-        const balls = animation_module.stepMetaballAnimation(20000); // far past BALL_LIFETIME for any speed_mult -> ball #0 has sunk past disappear_y and been removed, ball #1 spawns fresh
+        const balls = animation_module.stepMetaballAnimation(20000); // far past lifetime: #0 removed, #1 spawns fresh
         expect(balls).toHaveLength(1); // only the freshly-spawned ball #1 remains active
 
         const [ball1] = balls;
@@ -105,8 +105,7 @@ describe('getEruptionIntensity', () => {
         animation_module.stepMetaballAnimation(0);
         animation_module.stepMetaballAnimation(0.1);
 
-        // Far enough into the future that any random pause_end (20-30s out) has long passed -
-        // getEruptionIntensity is a pure read of time vs. the stored pause window, so this is deterministic.
+        // far enough that any random pause_end (20-30s out) has long passed
         expect(animation_module.getEruptionIntensity(10_000)).toBe(1.0);
     });
 });

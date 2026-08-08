@@ -67,9 +67,7 @@ describe('particle_seeds', () => {
         const near_mean = size_mults.filter(value => Math.abs(value - mean) < (SMOKE_SIZE_MULT_MAX - mean) * 0.5);
         const near_max = size_mults.filter(value => value > mean + (SMOKE_SIZE_MULT_MAX - mean) * 0.8);
 
-        // A uniform distribution would put ~50% of particles in the "near mean" band and ~20% in the
-        // "near max" band - a bell curve clusters much more tightly around the mean and leaves the
-        // extreme large sizes rare.
+        // a bell curve clusters near the mean and leaves extreme sizes rare, unlike a uniform distribution
         expect(near_mean.length / size_mults.length).toBeGreaterThan(0.6);
         expect(near_max.length / size_mults.length).toBeLessThan(0.1);
     });

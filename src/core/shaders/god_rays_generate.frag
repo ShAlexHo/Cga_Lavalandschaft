@@ -20,19 +20,16 @@ void main() {
         illumination_decay *= u_decay;
     }
 
-    // UV is square but the viewport usually isn't, so an equal UV distance in x/y covers a different
-    // number of screen pixels - without this, the streaks/gap below render as an ellipse.
+    // corrects for the viewport's aspect ratio, or the streaks/gap below render as an ellipse
     vec2 to_fragment = v_uv - u_light_uv;
     to_fragment.x *= u_aspect;
 
-    // A single smooth silhouette gives a flat gradient, not streaks - a fixed angular pattern fakes
-    // the irregular partial occlusion (clouds, leaves) that real light shafts need to read as rays.
+    // fixed angular pattern fakes irregular partial occlusion, so this reads as rays, not a flat gradient
     float angle = atan(to_fragment.y, to_fragment.x);
     float streaks = 0.5 + 0.5 * sin(angle * 22.0 + sin(angle * 6.0) * 2.5);
     streaks = mix(0.35, 1.0, streaks);
 
-    // Accumulation peaks right at the light, reading as a second glow blob next to the sun's own
-    // (perspective-distorted, non-circular) disc - a gap before the glow ramps in keeps them separate.
+    // gap before the glow ramps in, so this doesn't read as a second blob next to the sun's own disc
     float near_light_fade = smoothstep(0.05, 0.11, length(to_fragment));
     gl_FragColor = vec4(color * u_exposure * u_visibility * near_light_fade * streaks, 1.0);
 }

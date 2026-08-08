@@ -85,6 +85,12 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setGroundVisible: value => ground.setVisible(value),
         getGroundColor: () => ground.getColor(),
         setGroundColor: value => ground.setColor(value),
+        getGroundColor2: () => ground.getColor2(),
+        setGroundColor2: value => ground.setColor2(value),
+        getGroundColor3: () => ground.getColor3(),
+        setGroundColor3: value => ground.setColor3(value),
+        getGroundColor4: () => ground.getColor4(),
+        setGroundColor4: value => ground.setColor4(value),
         getGroundCrackColor: () => ground.getCrackColor(),
         setGroundCrackColor: value => ground.setCrackColor(value),
         getGroundCrackColor2: () => ground.getCrackColor2(),
@@ -103,6 +109,8 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         setGroundProximityRadius: value => ground.setProximityRadius(value),
         getGroundSunFocusRadius: () => ground.getSunFocusRadius(),
         setGroundSunFocusRadius: value => ground.setSunFocusRadius(value),
+        getGroundRockVarianceRadius: () => ground.getRockVarianceRadius(),
+        setGroundRockVarianceRadius: value => ground.setRockVarianceRadius(value),
         getGroundDisplacementScale: () => ground.getDisplacementScale(),
         setGroundDisplacementScale: value => ground.setDisplacementScale(value),
         getGroundDisplacementFrequency: () => ground.getDisplacementFrequency(),
@@ -186,8 +194,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
     };
 
-    // Single source of truth for every persisted/snapshot-able setting - getSnapshot() and the
-    // restore-by-key SETTERS map are both derived from this instead of hand-duplicating each field twice.
+    // single source of truth: getSnapshot() and the restore-by-key SETTERS map both derive from this
     const SETTINGS = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },
@@ -210,6 +217,9 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'displacementStrength', get: () => controller.getDisplacementStrength(), set: value => controller.setDisplacementStrength(value) },
         { key: 'groundVisible', get: () => controller.getGroundVisible(), set: value => controller.setGroundVisible(value) },
         { key: 'groundColor', get: () => controller.getGroundColor(), set: value => controller.setGroundColor(value) },
+        { key: 'groundColor2', get: () => controller.getGroundColor2(), set: value => controller.setGroundColor2(value) },
+        { key: 'groundColor3', get: () => controller.getGroundColor3(), set: value => controller.setGroundColor3(value) },
+        { key: 'groundColor4', get: () => controller.getGroundColor4(), set: value => controller.setGroundColor4(value) },
         { key: 'groundCrackColor', get: () => controller.getGroundCrackColor(), set: value => controller.setGroundCrackColor(value) },
         { key: 'groundCrackColor2', get: () => controller.getGroundCrackColor2(), set: value => controller.setGroundCrackColor2(value) },
         { key: 'groundCrackColor3', get: () => controller.getGroundCrackColor3(), set: value => controller.setGroundCrackColor3(value) },
@@ -219,6 +229,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
         { key: 'groundProximityNoiseColor', get: () => controller.getGroundProximityNoiseColor(), set: value => controller.setGroundProximityNoiseColor(value) },
         { key: 'groundProximityRadius', get: () => controller.getGroundProximityRadius(), set: value => controller.setGroundProximityRadius(value) },
         { key: 'groundSunFocusRadius', get: () => controller.getGroundSunFocusRadius(), set: value => controller.setGroundSunFocusRadius(value) },
+        { key: 'groundRockVarianceRadius', get: () => controller.getGroundRockVarianceRadius(), set: value => controller.setGroundRockVarianceRadius(value) },
         { key: 'groundDisplacementScale', get: () => controller.getGroundDisplacementScale(), set: value => controller.setGroundDisplacementScale(value) },
         { key: 'groundDisplacementFrequency', get: () => controller.getGroundDisplacementFrequency(), set: value => controller.setGroundDisplacementFrequency(value) },
         { key: 'groundHeight', get: () => controller.getGroundHeight(), set: value => controller.setGroundHeight(value) },

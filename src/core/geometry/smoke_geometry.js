@@ -15,8 +15,7 @@ export function createSmokeGeometry(scene, material, particle_seeds) {
 
     const points = new THREE.Points(geometry, material);
     points.position.set(0, 0, 0);
-    // Positions are computed in smoke.vert, not from the (unused) `position` attribute, so THREE can't
-    // derive a bounding sphere - disable frustum culling instead of risking the whole plume vanishing.
+    // positions are computed in smoke.vert, so THREE can't derive a bounding sphere for culling
     points.frustumCulled = false;
     scene.add(points);
 

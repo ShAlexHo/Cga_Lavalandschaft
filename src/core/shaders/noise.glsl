@@ -96,15 +96,13 @@ float fractalBrownianMotion(vec3 position) {
     return value;
 }
 
-// fractalBrownianMotion() output is in [-1, 1]; this remaps it to [0, 1] for direct use as a
-// mix/smoothstep factor - the normalization every caller needs, so it lives here once.
+// Remaps fractalBrownianMotion()'s [-1, 1] output to [0, 1] for mix/smoothstep use.
 float normalizedFractalBrownianMotion(vec3 position) {
     return fractalBrownianMotion(position) * 0.5 + 0.5;
 }
 
-// Second fractal-brownian-motion pass over a copy of `position` displaced by an extra simplex layer,
-// so the result reads as churning, higher-frequency turbulence instead of one smooth layer. Shared by
-// the lava crust (metaball) and the sun's plasma surface, which pass their own warp_strength/scale/speed.
+// Extra simplex-displaced fbm pass, for churning turbulence instead of one smooth layer.
+// Shared by the lava crust and the sun's plasma surface.
 float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     vec3 warped = position + warp_strength * vec3(
         simplexNoise(position + vec3(1.7, 9.2, 0.0)),
@@ -114,9 +112,8 @@ float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     return normalizedFractalBrownianMotion(warped);
 }
 
-// Displaces `position` (already scaled by `frequency`) so the crack pattern reads as jagged veins
-// instead of perfectly straight lines. Shared by the ground/metaball crack pattern and the volcano's
-// own crack layer, which each sample simplexNoise at the same three offsets but pass their own frequency.
+// Displaces `position` (already scaled by `frequency`) so crack patterns read as jagged veins
+// instead of straight lines. Shared by the ground/metaball/volcano crack layers.
 vec3 crackWarpOffset(vec3 position, float frequency) {
     return vec3(
         simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
@@ -125,10 +122,8 @@ vec3 crackWarpOffset(vec3 position, float frequency) {
     );
 }
 
-// One-sided crack-vein displacement (always <= 0, deep dents around the noise's zero-crossing,
-// near-flat elsewhere) driving the volcano's jagged rock geometry. Shared with the ground vertex
-// shader, which blends this in near the volcano's foot so the terrain shape - not just its color -
-// reads as a continuation of the volcano instead of cutting to a smoother pattern at the seam.
+// One-sided crack-vein displacement driving the volcano's jagged rock geometry. Also blended
+// into the ground near the volcano's foot so the terrain shape matches at the seam.
 float crackDisplacementLayer(vec3 position, float frequency) {
     vec3 warp = crackWarpOffset(position, frequency);
     float noise_value = abs(simplexNoise((position + warp * 1.2) * frequency));
@@ -146,9 +141,8 @@ float crackDisplacementNoise(vec3 position, float frequency) {
     return accumulated_noise / weight_total;
 }
 
-// `crack_width` is a flat, solid crack region around the noise's zero-crossing; only its outer 15%
-// blends into rock, so bigger cracks stay solid instead of blurring throughout. `frequency` is itself
-// modulated by a slow noise field so crack size varies across the terrain rather than being uniform.
+// `crack_width` is solid around the noise's zero-crossing, blending to rock only in its outer 15%.
+// `frequency` is modulated by a slow noise field so crack size varies across the terrain.
 float crackPattern(vec3 position, float frequency, float crack_width) {
     const float FREQUENCY_MODULATION_BASE  = 0.6;
     const float FREQUENCY_MODULATION_RANGE = 0.8;
@@ -162,14 +156,9 @@ float crackPattern(vec3 position, float frequency, float crack_width) {
     return smoothstep(crack_width - edge, crack_width + edge, distance_from_crack);
 }
 
-// Blends across three crack colors using two independent noise fields at different frequencies
-// and offsets, rather than one smoothstep gradient over a single color pair: the base color mixes
-// between crack_color/crack_color_2 at a low frequency, then crack_color_3 is folded in as patches
-// (squared noise, so it appears in isolated spots rather than sliding in linearly) at a different
-// frequency and offset, so its regions don't line up with the base blend's.
+// Blends three crack colors via two independent noise fields at different frequencies/offsets;
+// crack_color_3 uses squared noise so it appears as isolated accent patches, not a linear slide.
 vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, vec3 world_position) {
-    // frequencies well above the crack spacing itself, so different crack lines land on very
-    // different phases of these fields instead of all settling near the same blend
     float base_blend = normalizedFractalBrownianMotion(world_position * 0.6);
     vec3 base_color = mix(crack_color, crack_color_2, base_blend);
 
@@ -177,27 +166,39 @@ vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, 
     return mix(base_color, crack_color_3, accent_blend * accent_blend);
 }
 
-// Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and
-// volcano terrain, which pass their own normal/view/sun directions and focus.
+// Like blendCrackColors, but at the terrain's own displacement frequency (so patches line up with
+// hills). Narrow smoothstep bands (instead of a plain linear mix) keep most of each patch a pure
+// color, so the four rock types read as distinct instead of mostly-blended.
+vec3 blendTerrainColors(vec3 rock_color, vec3 rock_color_2, vec3 rock_color_3, vec3 rock_color_4, vec3 world_position, float frequency) {
+    float base_blend = normalizedFractalBrownianMotion(world_position * frequency);
+    vec3 color = mix(rock_color, rock_color_2, smoothstep(0.4, 0.6, base_blend));
+
+    float accent_blend = normalizedFractalBrownianMotion(world_position * frequency * 1.8 + vec3(52.1, 14.7, 8.3));
+    color = mix(color, rock_color_3, smoothstep(0.4, 0.6, accent_blend));
+
+    // higher threshold than the other two, so rock_color_4 covers less area
+    float fourth_blend = normalizedFractalBrownianMotion(world_position * frequency * 1.4 + vec3(-33.7, 21.3, 9.6));
+    return mix(color, rock_color_4, smoothstep(0.72, 0.82, fourth_blend));
+}
+
+// Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and volcano.
 float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float sun_focus) {
     float sun_facing = max(dot(normal, sun_direction), 0.0);
-    // exponent tied to sun_focus too, not just the rim - otherwise this wash stays broad
-    // regardless of the focus setting and washes out most of the sun-facing terrain
-    float sun_wash = pow(sun_facing, sun_focus) * 0.4;
-    float sun_rim = pow(1.0 - max(dot(normal, view_direction), 0.0), sun_focus) * sun_facing;
+    float sun_wash = pow(sun_facing, sun_focus) * 0.2;
+    // capped like sun_wash, or this blows out at any grazing view angle (pow(1.0, x) == 1.0)
+    float sun_rim = pow(1.0 - max(dot(normal, view_direction), 0.0), sun_focus) * sun_facing * 0.2;
     return sun_wash + sun_rim;
 }
 
-// `height` is roughly [-1, 1]; smoothstep (not a linear mix) since the noise driving it clusters near 0.
+// `height` is roughly [-1, 1]; smoothstep since the noise driving it clusters near 0.
 float heightAmbientOcclusion(float height) {
     const float MIN_OCCLUSION = 0.6;
     const float CONTRAST_BAND = 0.35;
     return mix(MIN_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
 }
 
-// Independent simplex sample per axis (rather than reusing one noise value three times), scaled by
-// `scale`, for use as a shading-normal perturbation. Shared by the ground and lava crust bump mapping,
-// which each mix in their own strength on top of the returned offset.
+// Independent simplex sample per axis, for a shading-normal perturbation. Shared by the ground
+// and lava crust bump mapping.
 vec3 bumpOffset(vec3 world_position, float scale) {
     vec3 coordinate = world_position * scale;
     return vec3(
