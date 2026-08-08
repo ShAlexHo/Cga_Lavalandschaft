@@ -181,6 +181,24 @@ vec3 blendTerrainColors(vec3 rock_color, vec3 rock_color_2, vec3 rock_color_3, v
     return mix(color, rock_color_4, smoothstep(0.72, 0.82, fourth_blend));
 }
 
+// Mask for the ground's sun-focus boost zone: a trapezoid from the volcano out to one fixed side
+// (not tied to the sun's real position, so it stays put as the sun orbits), narrow at the volcano
+// and widening out to `radius`.
+float sunFocusTrapezoidMask(vec3 world_position, vec3 volcano_position, float radius) {
+    vec2 trapezoid_forward = vec2(1.0, 0.0);
+    vec2 trapezoid_right = vec2(-trapezoid_forward.y, trapezoid_forward.x);
+    vec2 volcano_relative_position = world_position.xz - volcano_position.xz;
+    float trapezoid_forward_distance = dot(volcano_relative_position, trapezoid_forward);
+    float trapezoid_lateral_distance = abs(dot(volcano_relative_position, trapezoid_right));
+    float trapezoid_edge_softness = max(radius * 0.15, 0.3);
+    float trapezoid_length_mask = smoothstep(-trapezoid_edge_softness, trapezoid_edge_softness, trapezoid_forward_distance)
+        * (1.0 - smoothstep(radius - trapezoid_edge_softness, radius + trapezoid_edge_softness, trapezoid_forward_distance));
+    float trapezoid_progress = clamp(trapezoid_forward_distance / radius, 0.0, 1.0);
+    float trapezoid_half_width = mix(radius * 0.25, radius, trapezoid_progress);
+    float trapezoid_width_mask = 1.0 - smoothstep(trapezoid_half_width - trapezoid_edge_softness, trapezoid_half_width + trapezoid_edge_softness, trapezoid_lateral_distance);
+    return trapezoid_length_mask * trapezoid_width_mask;
+}
+
 // Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and volcano.
 float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float sun_focus) {
     float sun_facing = max(dot(normal, sun_direction), 0.0);

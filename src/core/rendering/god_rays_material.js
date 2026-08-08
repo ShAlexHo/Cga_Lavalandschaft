@@ -4,9 +4,8 @@ import generate_frag from '../shaders/god_rays_generate.frag?raw';
 import sun_disc_vert from '../shaders/god_rays_sun_disc.vert?raw';
 import sun_disc_frag from '../shaders/god_rays_sun_disc.frag?raw';
 import combine_frag from '../shaders/god_rays_combine.frag?raw';
-import {
-    GOD_RAYS_NUM_SAMPLES, GOD_RAYS_DENSITY, GOD_RAYS_DECAY, GOD_RAYS_WEIGHT, GOD_RAYS_EXPOSURE, GOD_RAYS_TINT_COLOR,
-} from '../config.js';
+import { GOD_RAYS_NUM_SAMPLES } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 // GLSL for-loops need a compile-time-constant bound, so this is baked in as text rather than a uniform.
 const generate_frag_resolved = generate_frag.replaceAll('NUM_SAMPLES', GOD_RAYS_NUM_SAMPLES);
@@ -28,10 +27,10 @@ export function createGodRaysGenerateMaterial() {
         uniforms: {
             u_occlusion: { value: null },
             u_light_uv: { value: new THREE.Vector2(0.5, 0.5) },
-            u_exposure: { value: GOD_RAYS_EXPOSURE },
-            u_decay: { value: GOD_RAYS_DECAY },
-            u_density: { value: GOD_RAYS_DENSITY },
-            u_weight: { value: GOD_RAYS_WEIGHT },
+            u_exposure: { value: DEFAULT_SETTINGS.godRaysExposure },
+            u_decay: { value: DEFAULT_SETTINGS.godRaysDecay },
+            u_density: { value: DEFAULT_SETTINGS.godRaysDensity },
+            u_weight: { value: DEFAULT_SETTINGS.godRaysWeight },
             u_visibility: { value: 1.0 },
             u_aspect: { value: 1.0 },
         },
@@ -46,7 +45,7 @@ export function createGodRaysCombineMaterial() {
             u_base: { value: null },
             u_god_rays: { value: null },
             u_depth: { value: null },
-            u_tint: { value: new THREE.Color(GOD_RAYS_TINT_COLOR) },
+            u_tint: { value: new THREE.Color(DEFAULT_SETTINGS.godRaysTintColor) },
         },
         vertexShader: passthrough_vert,
         fragmentShader: combine_frag,

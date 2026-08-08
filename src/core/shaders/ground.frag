@@ -51,21 +51,7 @@ void main() {
     float volcano_distance = length(v_world_position.xz - u_volcano_position.xz);
     float proximity = 1.0 - smoothstep(0.0, u_proximity_radius, volcano_distance);
 
-    // sun-focus boost zone: a trapezoid from the volcano out to one fixed side (not tied to the
-    // sun's real position, so it stays put as the sun orbits), reaching out to u_sun_focus_radius
-    vec2 trapezoid_forward = vec2(1.0, 0.0);
-    vec2 trapezoid_right = vec2(-trapezoid_forward.y, trapezoid_forward.x);
-    vec2 volcano_relative_position = v_world_position.xz - u_volcano_position.xz;
-    float trapezoid_forward_distance = dot(volcano_relative_position, trapezoid_forward);
-    float trapezoid_lateral_distance = abs(dot(volcano_relative_position, trapezoid_right));
-    float trapezoid_edge_softness = max(u_sun_focus_radius * 0.15, 0.3);
-    float trapezoid_length_mask = smoothstep(-trapezoid_edge_softness, trapezoid_edge_softness, trapezoid_forward_distance)
-        * (1.0 - smoothstep(u_sun_focus_radius - trapezoid_edge_softness, u_sun_focus_radius + trapezoid_edge_softness, trapezoid_forward_distance));
-    float trapezoid_progress = clamp(trapezoid_forward_distance / u_sun_focus_radius, 0.0, 1.0);
-    float trapezoid_half_width = mix(u_sun_focus_radius * 0.25, u_sun_focus_radius, trapezoid_progress);
-    float trapezoid_width_mask = 1.0 - smoothstep(trapezoid_half_width - trapezoid_edge_softness, trapezoid_half_width + trapezoid_edge_softness, trapezoid_lateral_distance);
-    float sun_focus_proximity = trapezoid_length_mask * trapezoid_width_mask;
-
+    float sun_focus_proximity = sunFocusTrapezoidMask(v_world_position, u_volcano_position, u_sun_focus_radius);
     float sun_focus_near_volcano = mix(u_sun_focus, u_sun_focus * 1.8, sun_focus_proximity);
     float sun_diffuse = sunDiffuseTerm(normal, view_direction, sun_direction, sun_focus_near_volcano) * mix(1.0, 1.6, sun_focus_proximity);
 

@@ -8,10 +8,8 @@ vi.mock('../../shaders/ground.vert?raw', () => ({ default: '// vertex shader' })
 vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
-import {
-    GROUND_CRACK_FREQUENCY, GROUND_DEFAULT_DISPLACEMENT_SCALE, GROUND_DEFAULT_DISPLACEMENT_FREQUENCY, GROUND_DEFAULT_CRACK_SOFTNESS,
-    GROUND_DEFAULT_SUN_FOCUS_RADIUS, GROUND_DEFAULT_ROCK_VARIANCE_RADIUS, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
-} from '../../config.js';
+import { GROUND_CRACK_FREQUENCY } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 
 describe('createGroundMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -52,8 +50,8 @@ describe('createGroundMaterial', () => {
 
     test('u_sun_strength/focus start at the shared sun defaults', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
-        expect(material.uniforms.u_sun_focus.value).toBe(SUN_DEFAULT_FOCUS);
+        expect(material.uniforms.u_sun_strength.value).toBe(DEFAULT_SETTINGS.sunStrength);
+        expect(material.uniforms.u_sun_focus.value).toBe(DEFAULT_SETTINGS.sunFocus);
     });
 
     test('u_sun_enabled starts at 1.0', () => {
@@ -66,10 +64,10 @@ describe('createGroundMaterial', () => {
         expect(material.uniforms.u_time.value).toBe(0.0);
     });
 
-    test('displacement uniforms start at their config defaults', () => {
+    test('displacement uniforms start at their default_settings.json values', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_displacement_scale.value).toBe(GROUND_DEFAULT_DISPLACEMENT_SCALE);
-        expect(material.uniforms.u_displacement_frequency.value).toBe(GROUND_DEFAULT_DISPLACEMENT_FREQUENCY);
+        expect(material.uniforms.u_displacement_scale.value).toBe(DEFAULT_SETTINGS.groundDisplacementScale);
+        expect(material.uniforms.u_displacement_frequency.value).toBe(DEFAULT_SETTINGS.groundDisplacementFrequency);
     });
 
     test('u_crack_frequency starts at GROUND_CRACK_FREQUENCY', () => {
@@ -77,25 +75,25 @@ describe('createGroundMaterial', () => {
         expect(material.uniforms.u_crack_frequency.value).toBe(GROUND_CRACK_FREQUENCY);
     });
 
-    test('u_crack_softness starts at GROUND_DEFAULT_CRACK_SOFTNESS', () => {
+    test('u_crack_softness starts at DEFAULT_SETTINGS.groundCrackSoftness', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_crack_softness.value).toBe(GROUND_DEFAULT_CRACK_SOFTNESS);
+        expect(material.uniforms.u_crack_softness.value).toBe(DEFAULT_SETTINGS.groundCrackSoftness);
     });
 
-    test('u_sun_focus_radius starts at GROUND_DEFAULT_SUN_FOCUS_RADIUS', () => {
+    test('u_sun_focus_radius starts at DEFAULT_SETTINGS.groundSunFocusRadius', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_sun_focus_radius.value).toBe(GROUND_DEFAULT_SUN_FOCUS_RADIUS);
+        expect(material.uniforms.u_sun_focus_radius.value).toBe(DEFAULT_SETTINGS.groundSunFocusRadius);
     });
 
-    test('u_rock_variance_radius starts at GROUND_DEFAULT_ROCK_VARIANCE_RADIUS', () => {
+    test('u_rock_variance_radius starts at DEFAULT_SETTINGS.groundRockVarianceRadius', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_rock_variance_radius.value).toBe(GROUND_DEFAULT_ROCK_VARIANCE_RADIUS);
+        expect(material.uniforms.u_rock_variance_radius.value).toBe(DEFAULT_SETTINGS.groundRockVarianceRadius);
     });
 
-    test('u_volcano_crack_scale/frequency start at the volcano\'s own config defaults', () => {
+    test('u_volcano_crack_scale/frequency start at the volcano\'s own default_settings.json values', () => {
         const material = createGroundMaterial();
-        expect(material.uniforms.u_volcano_crack_scale.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_SCALE);
-        expect(material.uniforms.u_volcano_crack_frequency.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY);
+        expect(material.uniforms.u_volcano_crack_scale.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementScale);
+        expect(material.uniforms.u_volcano_crack_frequency.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementFrequency);
     });
 });
 

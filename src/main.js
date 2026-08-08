@@ -4,9 +4,10 @@ import { createCameraController } from './core/objects/camera_object.js';
 import { createKeyLight } from './core/objects/key_light_object.js';
 import { createPostProcessing } from './core/rendering/post_processing.js';
 import { setupGui } from './ui/gui.js';
+import DEFAULT_SETTINGS from './core/default_settings.json';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x510000);
+scene.background = new THREE.Color(DEFAULT_SETTINGS.skyColor);
 
 createKeyLight(scene);
 

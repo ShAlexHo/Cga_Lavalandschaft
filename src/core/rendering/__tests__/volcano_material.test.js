@@ -8,9 +8,7 @@ vi.mock('../../shaders/volcano.vert?raw', () => ({ default: '// vertex shader' }
 vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createVolcanoMaterial, updateVolcanoLight } from '../volcano_material.js';
-import {
-    SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS, VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
-} from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 
 describe('createVolcanoMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -33,14 +31,14 @@ describe('createVolcanoMaterial', () => {
 
     test('u_displacement_scale/frequency start at the volcano defaults', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_displacement_scale.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_SCALE);
-        expect(material.uniforms.u_displacement_frequency.value).toBe(VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY);
+        expect(material.uniforms.u_displacement_scale.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementScale);
+        expect(material.uniforms.u_displacement_frequency.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementFrequency);
     });
 
     test('u_sun_strength/focus start at the shared sun defaults', () => {
         const material = createVolcanoMaterial();
-        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
-        expect(material.uniforms.u_sun_focus.value).toBe(SUN_DEFAULT_FOCUS);
+        expect(material.uniforms.u_sun_strength.value).toBe(DEFAULT_SETTINGS.sunStrength);
+        expect(material.uniforms.u_sun_focus.value).toBe(DEFAULT_SETTINGS.sunFocus);
     });
 
     test('u_sun_enabled starts at 1.0', () => {

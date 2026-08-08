@@ -2,7 +2,6 @@ import { random, randomGauss } from '../rand.js';
 import { clamp } from './math_utils.js';
 import {
     SMOKE_MAX_PARTICLES,
-    SMOKE_DEFAULT_COUNT,
     SMOKE_LIFETIME,
     SMOKE_SIZE_MULT_MIN,
     SMOKE_SIZE_MULT_MAX,
@@ -15,10 +14,11 @@ import {
     SMOKE_AMBIENT_FRACTION,
     SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
 
-export const settings = { count: SMOKE_DEFAULT_COUNT, max_count: MAX_PARTICLES };
+export const settings = { count: DEFAULT_SETTINGS.smokeCount, max_count: MAX_PARTICLES };
 
 function meanAndStdDev(min, max) {
     return { mean: (min + max) / 2, std_dev: (max - min) / 4 };

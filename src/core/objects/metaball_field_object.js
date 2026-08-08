@@ -2,13 +2,14 @@ import { createMetaballGeometry, rebuildMetaballGeometry } from '../geometry/met
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from './color_utils.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {
     const material = createMetaballMaterial();
     const effect = createMetaballGeometry(scene, material);
     rebuildMetaballGeometry(effect, getActiveBalls());
 
-    let displacement_enabled = true;
+    let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_last = material.uniforms.u_displacement.value;
 
     return {

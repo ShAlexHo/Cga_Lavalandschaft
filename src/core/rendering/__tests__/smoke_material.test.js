@@ -9,9 +9,9 @@ vi.mock('../../shaders/smoke.frag?raw', () => ({ default: '// fragment shader' }
 
 import { createSmokeMaterial, updateSmokeMaterial } from '../smoke_material.js';
 import {
-    SMOKE_PARTICLE_SIZE, SUN_ASH_TINT_COLOR, SMOKE_DEFAULT_SPREAD, SMOKE_DEFAULT_RISE_SPEED, SMOKE_LIFETIME,
-    SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS, SUN_DEFAULT_STRENGTH, SMOKE_EMBER_COOLING_TIME,
+    SUN_ASH_TINT_COLOR, SMOKE_LIFETIME, SMOKE_CORE_SPREAD, SMOKE_RISE_HEIGHT, SMOKE_AMBIENT_RADIUS,
 } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 
 describe('createSmokeMaterial', () => {
     test('contains the expected uniforms', () => {
@@ -33,15 +33,15 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms).toHaveProperty('u_ambient_radius');
     });
 
-    test('u_size starts at SMOKE_PARTICLE_SIZE', () => {
+    test('u_size starts at DEFAULT_SETTINGS.smokeParticleSize', () => {
         const material = createSmokeMaterial();
-        expect(material.uniforms.u_size.value).toBe(SMOKE_PARTICLE_SIZE);
+        expect(material.uniforms.u_size.value).toBe(DEFAULT_SETTINGS.smokeParticleSize);
     });
 
     test('u_sun_enabled starts at 1.0 and u_sun_strength starts at the shared sun default', () => {
         const material = createSmokeMaterial();
         expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
-        expect(material.uniforms.u_sun_strength.value).toBe(SUN_DEFAULT_STRENGTH);
+        expect(material.uniforms.u_sun_strength.value).toBe(DEFAULT_SETTINGS.sunStrength);
     });
 
     test('u_sun_color starts at the dedicated ash tint color (not the shared sun light color)', () => {
@@ -51,8 +51,8 @@ describe('createSmokeMaterial', () => {
 
     test('u_spread/u_rise_speed start at their configured defaults', () => {
         const material = createSmokeMaterial();
-        expect(material.uniforms.u_spread.value).toBe(SMOKE_DEFAULT_SPREAD);
-        expect(material.uniforms.u_rise_speed.value).toBe(SMOKE_DEFAULT_RISE_SPEED);
+        expect(material.uniforms.u_spread.value).toBe(DEFAULT_SETTINGS.smokeSpread);
+        expect(material.uniforms.u_rise_speed.value).toBe(DEFAULT_SETTINGS.smokeRiseSpeed);
     });
 
     test('fixed tuning uniforms are sourced from config.js, not hardcoded twice', () => {
@@ -63,9 +63,9 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms.u_ambient_radius.value).toBe(SMOKE_AMBIENT_RADIUS);
     });
 
-    test('u_ember_cooling_time starts at SMOKE_EMBER_COOLING_TIME', () => {
+    test('u_ember_cooling_time starts at DEFAULT_SETTINGS.smokeEmberCoolingTime', () => {
         const material = createSmokeMaterial();
-        expect(material.uniforms.u_ember_cooling_time.value).toBe(SMOKE_EMBER_COOLING_TIME);
+        expect(material.uniforms.u_ember_cooling_time.value).toBe(DEFAULT_SETTINGS.smokeEmberCoolingTime);
     });
 
     test('u_time and u_plume_opacity_factor start at 0.0/1.0 (no time elapsed, no dimming)', () => {

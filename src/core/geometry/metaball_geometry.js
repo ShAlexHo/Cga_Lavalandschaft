@@ -4,12 +4,12 @@ import {
     METABALL_SCALE_Z,
     METABALL_RESOLUTION,
     METABALL_MAX_POLYGON_COUNT,
-    METABALL_DEFAULT_ISOLATION,
 } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballGeometry(scene, material) {
     const effect = new MarchingCubes(METABALL_RESOLUTION, material, false, false, METABALL_MAX_POLYGON_COUNT);
-    effect.isolation = METABALL_DEFAULT_ISOLATION;
+    effect.isolation = DEFAULT_SETTINGS.metaballIsolation;
     effect.scale.set(METABALL_SCALE_XY, METABALL_SCALE_XY, METABALL_SCALE_Z);
     scene.add(effect);
     return effect;

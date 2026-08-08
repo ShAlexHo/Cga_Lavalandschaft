@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { METABALL_WAVE_TRANSITION } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 import { importFreshModule } from '../../test-utils/reimport.js';
 
 let animation_module;
@@ -8,14 +9,14 @@ beforeEach(async () => {
 });
 
 describe('settings (default values)', () => {
-    test('count is 100', () => expect(animation_module.settings.count).toBe(100));
-    test('spread is 1.0', () => expect(animation_module.settings.spread).toBe(1.0));
-    test('speed_factor is 0.0011', () => expect(animation_module.settings.speed_factor).toBe(0.0011));
-    test('sink_speed is 0.25', () => expect(animation_module.settings.sink_speed).toBe(0.25));
-    test('disappear_y is 0.34', () => expect(animation_module.settings.disappear_y).toBe(0.34));
-    test('paused is false', () => expect(animation_module.settings.paused).toBe(false));
+    test('count matches DEFAULT_SETTINGS.metaballCount', () => expect(animation_module.settings.count).toBe(DEFAULT_SETTINGS.metaballCount));
+    test('spread matches DEFAULT_SETTINGS.metaballSpread', () => expect(animation_module.settings.spread).toBe(DEFAULT_SETTINGS.metaballSpread));
+    test('speed_factor matches DEFAULT_SETTINGS.metaballSpeed', () => expect(animation_module.settings.speed_factor).toBe(DEFAULT_SETTINGS.metaballSpeed));
+    test('sink_speed matches DEFAULT_SETTINGS.metaballSinkSpeed', () => expect(animation_module.settings.sink_speed).toBe(DEFAULT_SETTINGS.metaballSinkSpeed));
+    test('disappear_y matches DEFAULT_SETTINGS.metaballDisappearY', () => expect(animation_module.settings.disappear_y).toBe(DEFAULT_SETTINGS.metaballDisappearY));
+    test('paused matches DEFAULT_SETTINGS.paused', () => expect(animation_module.settings.paused).toBe(DEFAULT_SETTINGS.paused));
     test('max_count is 500', () => expect(animation_module.settings.max_count).toBe(500));
-    test('flow_z_radius is 10.8', () => expect(animation_module.settings.flow_z_radius).toBe(10.8));
+    test('flow_z_radius matches DEFAULT_SETTINGS.flowRadius', () => expect(animation_module.settings.flow_z_radius).toBe(DEFAULT_SETTINGS.flowRadius));
 });
 
 describe('getActiveBalls', () => {

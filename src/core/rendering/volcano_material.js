@@ -2,10 +2,8 @@ import * as THREE from 'three';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/volcano.vert?raw';
 import fragment_glsl from '../shaders/volcano.frag?raw';
-import {
-    VOLCANO_LIGHT_POSITION, SUN_LIGHT_COLOR, SUN_DEFAULT_STRENGTH, SUN_DEFAULT_FOCUS,
-    VOLCANO_DEFAULT_DISPLACEMENT_SCALE, VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY,
-} from '../config.js';
+import { VOLCANO_LIGHT_POSITION, SUN_LIGHT_COLOR } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 import { computeLightViewPosition } from './light_utils.js';
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(VOLCANO_LIGHT_POSITION.x, VOLCANO_LIGHT_POSITION.y, VOLCANO_LIGHT_POSITION.z);
@@ -21,11 +19,11 @@ export function createVolcanoMaterial() {
             u_sun_position: { value: new THREE.Vector3() },
             u_sun_color: { value: new THREE.Color(SUN_LIGHT_COLOR) },
             u_sun_enabled: { value: 1.0 },
-            u_sun_strength: { value: SUN_DEFAULT_STRENGTH },
-            u_sun_focus: { value: SUN_DEFAULT_FOCUS },
-            u_displacement_scale: { value: VOLCANO_DEFAULT_DISPLACEMENT_SCALE },
-            u_displacement_frequency: { value: VOLCANO_DEFAULT_DISPLACEMENT_FREQUENCY },
-            u_rock_color: { value: new THREE.Color(0x9b9696) },
+            u_sun_strength: { value: DEFAULT_SETTINGS.sunStrength },
+            u_sun_focus: { value: DEFAULT_SETTINGS.sunFocus },
+            u_displacement_scale: { value: DEFAULT_SETTINGS.volcanoDisplacementScale },
+            u_displacement_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
+            u_rock_color: { value: new THREE.Color(DEFAULT_SETTINGS.volcanoRockColor) },
         },
         side: THREE.DoubleSide,
     });

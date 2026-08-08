@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
+import { makeColor, makeGroundMaterialUniformsMock, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
 
 // vi.mock() factories hoist above this, so vi.hoisted() is needed to seed their initial state
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
@@ -14,29 +14,7 @@ vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 // ─── Mock the geometry/animation/rendering layers wholesale ─────────────────
 
 vi.mock('../rendering/ground_material.js', () => ({
-    createGroundMaterial: vi.fn(() => ({
-        uniforms: {
-            u_displacement_scale: { value: 0.6 },
-            u_displacement_frequency: { value: 0.08 },
-            u_rock_color: { value: makeColor('220500') },
-            u_rock_color_2: { value: makeColor('2a1f1a') },
-            u_rock_color_3: { value: makeColor('1c1f24') },
-            u_rock_color_4: { value: makeColor('35404a') },
-            u_crack_color: { value: makeColor('050505') },
-            u_crack_color_2: { value: makeColor('ffaa00') },
-            u_crack_color_3: { value: makeColor('ffd700') },
-            u_crack_color_4: { value: makeColor('dd0000') },
-            u_crack_softness: { value: 0.25 },
-            u_proximity_color: { value: makeColor('9b9696') },
-            u_proximity_noise_color: { value: makeColor('8a3a1a') },
-            u_proximity_radius: { value: 18.0 },
-            u_sun_focus_radius: { value: 4.5 },
-            u_rock_variance_radius: { value: 45.0 },
-            u_sun_enabled: { value: 1.0 },
-            u_sun_strength: { value: 0.06 },
-            u_sun_focus: { value: 8.0 },
-        },
-    })),
+    createGroundMaterial: vi.fn(() => ({ uniforms: makeGroundMaterialUniformsMock() })),
     updateGroundLight: vi.fn(),
 }));
 
@@ -158,7 +136,7 @@ vi.mock('../default_settings.json', () => ({
         metaballHeight: 2.0, flowRadius: 5,
         colorHot: '#111111', colorCool: '#222222', glowEnabled: false, glowColor: '#333333',
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
-        displacementEnabled: false, displacementStrength: 0.001,
+        displacementEnabled: true, displacementStrength: 0.001,
         groundVisible: false, groundColor: '#666666', groundHeight: -3,
         groundCrackColor: '#333333', groundCrackColor2: '#444400', groundCrackColor3: '#555500', groundCrackSoftness: 0.4, groundDisplacementScale: 0.9, groundDisplacementFrequency: 0.15,
         groundProximityColor: '#888888', groundProximityNoiseColor: '#663311', groundProximityRadius: 12,

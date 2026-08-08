@@ -12,12 +12,22 @@ import {
     METABALL_SECTORS,
     METABALL_WAVE_TRANSITION,
 } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export const MAX_BALLS = METABALL_MAX_BALLS;
 
 const BALL_STRENGTH = (METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY) ** 2;
 
-export const settings = { count: 100, spread: 1.0, speed_factor: 0.0011, sink_speed: 0.25, disappear_y: 0.34, paused: false, max_count: MAX_BALLS, flow_z_radius: 10.8 };
+export const settings = {
+    count: DEFAULT_SETTINGS.metaballCount,
+    spread: DEFAULT_SETTINGS.metaballSpread,
+    speed_factor: DEFAULT_SETTINGS.metaballSpeed,
+    sink_speed: DEFAULT_SETTINGS.metaballSinkSpeed,
+    disappear_y: DEFAULT_SETTINGS.metaballDisappearY,
+    paused: DEFAULT_SETTINGS.paused,
+    max_count: MAX_BALLS,
+    flow_z_radius: DEFAULT_SETTINGS.flowRadius,
+};
 
 const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 

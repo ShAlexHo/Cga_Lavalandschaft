@@ -1,32 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeColor, makeScene, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
+import { makeGroundMaterialUniformsMock, makeScene, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
 
 vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
 
 vi.mock('../../rendering/ground_material.js', () => ({
-    createGroundMaterial: vi.fn(() => ({
-        uniforms: {
-            u_displacement_scale: { value: 0.6 },
-            u_displacement_frequency: { value: 0.08 },
-            u_rock_color: { value: makeColor('220500') },
-            u_rock_color_2: { value: makeColor('2a1f1a') },
-            u_rock_color_3: { value: makeColor('1c1f24') },
-            u_rock_color_4: { value: makeColor('35404a') },
-            u_crack_color: { value: makeColor('050505') },
-            u_crack_color_2: { value: makeColor('ffaa00') },
-            u_crack_color_3: { value: makeColor('ffd700') },
-            u_crack_color_4: { value: makeColor('dd0000') },
-            u_crack_softness: { value: 0.25 },
-            u_proximity_color: { value: makeColor('9b9696') },
-            u_proximity_noise_color: { value: makeColor('8a3a1a') },
-            u_proximity_radius: { value: 18.0 },
-            u_sun_focus_radius: { value: 4.5 },
-            u_rock_variance_radius: { value: 45.0 },
-            u_sun_enabled: { value: 1.0 },
-            u_sun_strength: { value: 0.06 },
-            u_sun_focus: { value: 8.0 },
-        },
-    })),
+    createGroundMaterial: vi.fn(() => ({ uniforms: makeGroundMaterialUniformsMock() })),
     updateGroundLight: vi.fn(),
 }));
 

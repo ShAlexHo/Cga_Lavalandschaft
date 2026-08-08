@@ -15,7 +15,8 @@ vi.mock('three/addons/objects/MarchingCubes.js', () => {
 });
 
 import { createMetaballGeometry, rebuildMetaballGeometry } from '../metaball_geometry.js';
-import { METABALL_SCALE_XY, METABALL_SCALE_Z, METABALL_DEFAULT_ISOLATION } from '../../config.js';
+import { METABALL_SCALE_XY, METABALL_SCALE_Z } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 import { makeScene } from '../../test-utils/three_mocks.js';
 
 function makeEffect() {
@@ -35,9 +36,9 @@ describe('createMetaballGeometry', () => {
         expect(mock_scene.add).toHaveBeenCalledWith(effect);
     });
 
-    test('sets effect.isolation to METABALL_DEFAULT_ISOLATION', () => {
+    test('sets effect.isolation to DEFAULT_SETTINGS.metaballIsolation', () => {
         const effect = createMetaballGeometry(mock_scene, {});
-        expect(effect.isolation).toBe(METABALL_DEFAULT_ISOLATION);
+        expect(effect.isolation).toBe(DEFAULT_SETTINGS.metaballIsolation);
     });
 
     test('calls effect.scale.set(30, 30, 30)', () => {

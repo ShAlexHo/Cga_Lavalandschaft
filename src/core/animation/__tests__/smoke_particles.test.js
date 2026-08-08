@@ -2,7 +2,6 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { importFreshModule } from '../../test-utils/reimport.js';
 import {
     SMOKE_MAX_PARTICLES,
-    SMOKE_DEFAULT_COUNT,
     SMOKE_LIFETIME,
     SMOKE_SIZE_MULT_MIN,
     SMOKE_SIZE_MULT_MAX,
@@ -14,6 +13,7 @@ import {
     SMOKE_AMBIENT_FRACTION,
     SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 
 let particles_module;
 beforeEach(async () => {
@@ -21,7 +21,7 @@ beforeEach(async () => {
 });
 
 describe('settings (default values)', () => {
-    test('count is SMOKE_DEFAULT_COUNT', () => expect(particles_module.settings.count).toBe(SMOKE_DEFAULT_COUNT));
+    test('count matches DEFAULT_SETTINGS.smokeCount', () => expect(particles_module.settings.count).toBe(DEFAULT_SETTINGS.smokeCount));
     test('max_count is SMOKE_MAX_PARTICLES', () => expect(particles_module.settings.max_count).toBe(SMOKE_MAX_PARTICLES));
 });
 

@@ -3,6 +3,7 @@ import vertex_glsl from '../shaders/metaball.vert?raw';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import fragment_glsl from '../shaders/metaball.frag?raw';
 import { METABALL_LIGHT_POSITION } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 import { computeLightViewPosition } from './light_utils.js';
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(METABALL_LIGHT_POSITION.x, METABALL_LIGHT_POSITION.y, METABALL_LIGHT_POSITION.z);
@@ -15,15 +16,15 @@ export function createMetaballMaterial() {
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
             u_time: { value: 0.0 },
-            u_glow_enabled: { value: 1.0 },
-            u_glow_color: { value: new THREE.Color(0xff3f00) },
-            u_color_hot: { value: new THREE.Color(0xa01500) },
-            u_color_cool: { value: new THREE.Color(0x7c3027) },
-            u_noise_enabled: { value: 1.0 },
-            u_noise_color_1: { value: new THREE.Color(0x7c3027) },
-            u_noise_color_2: { value: new THREE.Color(0xea6927) },
-            u_bump_enabled: { value: 1.0 },
-            u_displacement: { value: 0.0001 },
+            u_glow_enabled: { value: DEFAULT_SETTINGS.glowEnabled ? 1.0 : 0.0 },
+            u_glow_color: { value: new THREE.Color(DEFAULT_SETTINGS.glowColor) },
+            u_color_hot: { value: new THREE.Color(DEFAULT_SETTINGS.colorHot) },
+            u_color_cool: { value: new THREE.Color(DEFAULT_SETTINGS.colorCool) },
+            u_noise_enabled: { value: DEFAULT_SETTINGS.noiseEnabled ? 1.0 : 0.0 },
+            u_noise_color_1: { value: new THREE.Color(DEFAULT_SETTINGS.noiseColor1) },
+            u_noise_color_2: { value: new THREE.Color(DEFAULT_SETTINGS.noiseColor2) },
+            u_bump_enabled: { value: DEFAULT_SETTINGS.bumpEnabled ? 1.0 : 0.0 },
+            u_displacement: { value: DEFAULT_SETTINGS.displacementStrength },
         },
         side: THREE.DoubleSide,
     });
