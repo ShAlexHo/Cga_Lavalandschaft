@@ -4,16 +4,18 @@ import { createMetaballField } from './objects/metaball_field_object.js';
 import { createSmoke } from './objects/smoke_object.js';
 import { createSun } from './objects/sun_object.js';
 import { createSky } from './objects/sky_object.js';
+import { createInteractionController } from './objects/interaction_controller.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
-export function createSceneController({ scene, camera, bloom_pass, god_rays_pass }) {
+export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
     const smoke = createSmoke(scene);
     const sun = createSun(scene);
     const sky = createSky(scene);
+    const interaction = createInteractionController(renderer, volcano.mesh);
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -34,12 +36,23 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
             sun.update(time);
             ground.update(camera, volcano.mesh.position, sun.light.position, time);
             metaball_field.update(time, camera);
-            volcano.update(camera, sun.light.position);
+            const interaction_points = interaction.step(
+                time, camera,
+                () => metaball_field.getActiveWorldPositions(),
+                position => metaball_field.removeNearestBall(position),
+            );
+            volcano.update(camera, sun.light.position, interaction_points);
             smoke.update(time, metaball_field.getEruptionIntensity(time));
         },
 
         isPaused: () => metaball_field.isPaused(),
         setPaused: value => metaball_field.setPaused(value),
+
+        getInteractionMode: () => interaction.getEnabled(),
+        setInteractionMode: value => {
+            interaction.setEnabled(value);
+            setControlsEnabled(!value);
+        },
 
         getMetaballCount: () => metaball_field.getCount(),
         setMetaballCount: value => metaball_field.setCount(value),
@@ -197,6 +210,7 @@ export function createSceneController({ scene, camera, bloom_pass, god_rays_pass
     // single source of truth: getSnapshot() and the restore-by-key SETTERS map both derive from this
     const SETTINGS = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
+        { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },
         { key: 'metaballIsolation', get: () => controller.getMetaballIsolation(), set: value => controller.setMetaballIsolation(value) },
         { key: 'metaballSpread', get: () => controller.getMetaballSpread(), set: value => controller.setMetaballSpread(value) },

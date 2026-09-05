@@ -42,6 +42,19 @@ export const METABALL_BALL_LIFETIME = 3.5; // seconds, crater to ground
 export const METABALL_SECTORS = 6;
 export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the smoke plume fades instead of snapping
 
+// ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
+
+export const INTERACTION_MAX_POINTS = 64; // GLSL array length - must match volcano.vert
+export const INTERACTION_DECAY_DURATION = 3.0; // seconds for a touch to fade out, radius shrinking outside-in
+export const INTERACTION_BUMP_RADIUS = 0.5; // world units
+export const INTERACTION_PLATEAU_FRACTION = 0.3; // share of the radius held at full push height before falling off
+export const INTERACTION_METABALL_PROXIMITY_THRESHOLD_BASE = 6.0; // world units; grows via GROWTH_RATE while dwelling
+export const INTERACTION_METABALL_PROXIMITY_GROWTH_RATE = 3.0; // world units per second
+export const INTERACTION_DWELL_POSITION_TOLERANCE = 0.5; // world units; "still the same spot" radius
+export const INTERACTION_DWELL_POOL_SIZE = 8; // distinct dwelling spots tracked at once
+export const INTERACTION_METABALL_REMOVE_THRESHOLD = 0.5; // world units; view-ray distance to pop a metaball
+export const INTERACTION_MIN_POINT_SPACING = 0.15; // world units; a touch within this distance of an existing active point refreshes it instead of spawning a new one - kept well under INTERACTION_BUMP_RADIUS so consecutive points along a drag overlap heavily rather than reading as separate dots
+
 // ─── Volcano (geometry / rendering) ──────────────────────────────────────────
 
 export const VOLCANO_PROFILE = [
@@ -49,8 +62,8 @@ export const VOLCANO_PROFILE = [
     { x: 2.5, y: 5.0 },
     { x: 1.0, y: 4.2 },
 ];
-export const VOLCANO_PROFILE_SUBDIVISIONS = 24;
-export const VOLCANO_LATHE_SEGMENTS = 96;
+export const VOLCANO_PROFILE_SUBDIVISIONS = 48; // raised alongside VOLCANO_LATHE_SEGMENTS so the small-radius interaction bump has enough nearby vertices to read as round instead of a single sharp spike
+export const VOLCANO_LATHE_SEGMENTS = 240;
 export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────

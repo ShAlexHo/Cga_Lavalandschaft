@@ -1,4 +1,4 @@
-import { createMetaballGeometry, rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
+import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from './color_utils.js';
@@ -23,6 +23,24 @@ export function createMetaballField(scene) {
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
         getEruptionIntensity: time => getEruptionIntensity(time),
+        getActiveWorldPositions: () => getActiveBalls().map(ball => ({
+            ...ballToWorldPosition(ball, effect),
+            radius: ballToWorldRadius(ball, effect),
+        })),
+        removeNearestBall: position => {
+            let nearest_ball = null;
+            let nearest_distance = Infinity;
+            for (const ball of getActiveBalls()) {
+                const world_position = ballToWorldPosition(ball, effect);
+                const dx = world_position.x - position.x, dy = world_position.y - position.y, dz = world_position.z - position.z;
+                const ball_distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (ball_distance < nearest_distance) {
+                    nearest_distance = ball_distance;
+                    nearest_ball = ball;
+                }
+            }
+            if (nearest_ball) nearest_ball.active = false;
+        },
 
         getCount: () => settings.count,
         setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },

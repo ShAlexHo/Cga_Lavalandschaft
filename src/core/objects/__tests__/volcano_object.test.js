@@ -21,11 +21,12 @@ vi.mock('../../rendering/volcano_material.js', () => ({
         },
     })),
     updateVolcanoLight: vi.fn(),
+    updateVolcanoInteraction: vi.fn(),
 }));
 
 import { createVolcano } from '../volcano_object.js';
 import { createVolcanoGeometry } from '../../geometry/volcano_geometry.js';
-import { createVolcanoMaterial, updateVolcanoLight } from '../../rendering/volcano_material.js';
+import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../../rendering/volcano_material.js';
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -44,6 +45,16 @@ describe('createVolcano', () => {
         const sun_position = { x: 1, y: 2, z: 3 };
         volcano.update(camera, sun_position);
         expect(updateVolcanoLight).toHaveBeenCalledWith(expect.any(Object), camera, sun_position);
+    });
+
+    test('update() forwards interaction points to updateVolcanoInteraction, defaulting to an empty list', () => {
+        const volcano = createVolcano(makeScene());
+        volcano.update({}, { x: 0, y: 0, z: 0 });
+        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), []);
+
+        const points = [{ x: 1, y: 1, z: 1, strength: 0.4 }];
+        volcano.update({}, { x: 0, y: 0, z: 0 }, points);
+        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), points);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {

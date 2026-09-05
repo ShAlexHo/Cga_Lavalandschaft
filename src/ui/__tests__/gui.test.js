@@ -26,6 +26,8 @@ function makeFacade(overrides = {}) {
     return {
         isPaused: vi.fn(() => false),
         setPaused: vi.fn(),
+        getInteractionMode: vi.fn(() => false),
+        setInteractionMode: vi.fn(),
 
         getMetaballCount: vi.fn(() => 100),
         setMetaballCount: vi.fn(),
@@ -264,6 +266,16 @@ describe('setupGui – structure', () => {
         expect(entry.obj.paused).toBe(true);
         fire(registry, 'root', 'paused', false);
         expect(facade.setPaused).toHaveBeenCalledWith(false);
+    });
+
+    test('root interaction_mode control is seeded from facade.getInteractionMode() and writes back via setInteractionMode', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'interaction_mode');
+        expect(entry.obj.interaction_mode).toBe(true);
+        fire(registry, 'root', 'interaction_mode', false);
+        expect(facade.setInteractionMode).toHaveBeenCalledWith(false);
     });
 });
 

@@ -25,6 +25,8 @@ vi.mock('../geometry/metaball_geometry.js', () => ({
         return effect;
     }),
     rebuildMetaballGeometry: vi.fn(),
+    ballToWorldPosition: vi.fn(() => ({ x: 0, y: 0, z: 0 })),
+    ballToWorldRadius: vi.fn(() => 0),
 }));
 
 vi.mock('../animation/metaball_animation.js', () => {
@@ -74,6 +76,18 @@ vi.mock('../rendering/volcano_material.js', () => ({
         },
     })),
     updateVolcanoLight: vi.fn(),
+    updateVolcanoInteraction: vi.fn(),
+}));
+
+vi.mock('../objects/interaction_controller.js', () => ({
+    createInteractionController: vi.fn(() => {
+        let enabled = false;
+        return {
+            step: vi.fn(() => []),
+            getEnabled: () => enabled,
+            setEnabled: value => { enabled = value; },
+        };
+    }),
 }));
 
 vi.mock('../objects/sun_object.js', () => ({
@@ -152,18 +166,20 @@ vi.mock('../default_settings.json', () => ({
 
 import { createSceneController } from '../scene_controller.js';
 import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
-import { settings as mock_settings, stepMetaballAnimation } from '../animation/metaball_animation.js';
+import { settings as mock_settings, stepMetaballAnimation, getActiveBalls } from '../animation/metaball_animation.js';
 import { updateMetaballLight } from '../rendering/metaball_material.js';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings } from '../animation/smoke_particles.js';
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
 import { createSun } from '../objects/sun_object.js';
+import { createInteractionController } from '../objects/interaction_controller.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeScene() { return { add: vi.fn(), background: makeColor('6b2f1a') }; }
 function makeCamera() { return { matrixWorldInverse: {} }; }
+function makeRenderer() { return { domElement: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
 function makeGodRaysPass() {
@@ -184,7 +200,9 @@ function makeGodRaysPass() {
 
 function makeController() {
     return createSceneController({
-        scene: makeScene(), camera: makeCamera(), bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+        scene: makeScene(), camera: makeCamera(), renderer: makeRenderer(),
+        bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+        setControlsEnabled: vi.fn(),
     });
 }
 
@@ -333,7 +351,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
         const controller = makeController();
         const snapshot = {
-            paused: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
+            paused: true, interactionMode: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
             metaballHeight: 3.3, flowRadius: 7,
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
@@ -470,12 +488,70 @@ describe('createSceneController – smoke', () => {
     test('setOffsetX/Z also move the smoke effect', () => {
         const scene = makeScene();
         const controller = createSceneController({
-            scene, camera: makeCamera(), bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+            scene, camera: makeCamera(), renderer: makeRenderer(),
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+            setControlsEnabled: vi.fn(),
         });
         controller.setOffsetX(3);
         controller.setOffsetZ(-4);
         expect(controller.getOffsetX()).toBe(3);
         expect(controller.getOffsetZ()).toBe(-4);
+    });
+});
+
+// ─── interaction mode ─────────────────────────────────────────────────────────
+
+describe('createSceneController – interaction mode', () => {
+    test('creates the interaction controller with the renderer and the volcano mesh', () => {
+        const renderer = makeRenderer();
+        createSceneController({
+            scene: makeScene(), camera: makeCamera(), renderer,
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled: vi.fn(),
+        });
+        expect(createInteractionController).toHaveBeenCalledWith(renderer, expect.any(Object));
+    });
+
+    test('getInteractionMode/setInteractionMode forward to the interaction controller and toggle OrbitControls', () => {
+        const set_controls_enabled = vi.fn();
+        const controller = createSceneController({
+            scene: makeScene(), camera: makeCamera(), renderer: makeRenderer(),
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled: set_controls_enabled,
+        });
+
+        expect(controller.getInteractionMode()).toBe(false);
+
+        controller.setInteractionMode(true);
+        expect(controller.getInteractionMode()).toBe(true);
+        expect(set_controls_enabled).toHaveBeenCalledWith(false);
+
+        controller.setInteractionMode(false);
+        expect(controller.getInteractionMode()).toBe(false);
+        expect(set_controls_enabled).toHaveBeenCalledWith(true);
+    });
+
+    test('update() advances the interaction step and forwards its points to volcano.update', () => {
+        const controller = makeController();
+        const interaction = createInteractionController.mock.results.at(-1).value;
+        const points = [{ x: 1, y: 1, z: 1, strength: 0.5 }];
+        interaction.step.mockReturnValueOnce(points);
+
+        controller.update(4.0);
+
+        expect(interaction.step).toHaveBeenCalledWith(4.0, expect.any(Object), expect.any(Function), expect.any(Function));
+    });
+
+    test('update() wires the metaball-removal callback through to metaball_field.removeNearestBall', () => {
+        const controller = makeController();
+        controller.update(0);
+
+        const interaction = createInteractionController.mock.results.at(-1).value;
+        const remove_metaball_near = interaction.step.mock.calls.at(-1)[3];
+
+        const ball = { active: true };
+        getActiveBalls.mockReturnValueOnce([ball]);
+        remove_metaball_near({ x: 0, y: 0, z: 0 });
+
+        expect(ball.active).toBe(false);
     });
 });
 
@@ -485,9 +561,10 @@ describe('createSceneController – update()', () => {
     test('delegates to stepMetaballAnimation, updateMetaballLight and updateVolcanoLight with the right arguments', () => {
         const scene = makeScene();
         const camera = makeCamera();
+        const renderer = makeRenderer();
         const bloom_pass = makeBloomPass();
         const god_rays_pass = makeGodRaysPass();
-        const controller = createSceneController({ scene, camera, bloom_pass, god_rays_pass });
+        const controller = createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled: vi.fn() });
 
         controller.update(12.5);
 

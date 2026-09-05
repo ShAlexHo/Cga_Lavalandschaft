@@ -1,5 +1,6 @@
 {
   "paused": false,
+  "interactionMode": false,
   "metaballCount": 100,
   "metaballIsolation": 50,
   "metaballSpread": 1,

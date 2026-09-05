@@ -26,5 +26,8 @@ export function createCameraController(renderer) {
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
         },
+        setControlsEnabled(value) {
+            controls.enabled = value;
+        },
     };
 }

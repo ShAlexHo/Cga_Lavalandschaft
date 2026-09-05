@@ -22,3 +22,18 @@ export function rebuildMetaballGeometry(effect, balls) {
     }
     effect.update();
 }
+
+// ball.x/y/z are normalized MarchingCubes field-space coordinates in [0, 1].
+export function ballToWorldPosition(ball, effect) {
+    return {
+        x: effect.position.x + effect.scale.x * (2 * ball.x - 1),
+        y: effect.position.y + effect.scale.y * (2 * ball.y - 1),
+        z: effect.position.z + effect.scale.z * (2 * ball.z - 1),
+    };
+}
+
+// Isosurface radius where strength / distance^2 - subtract == effect.isolation, in world space.
+export function ballToWorldRadius(ball, effect) {
+    const field_radius = Math.sqrt(ball.strength / (effect.isolation + ball.subtract));
+    return 2 * effect.scale.x * field_radius;
+}

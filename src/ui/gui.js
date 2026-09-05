@@ -20,8 +20,9 @@ export function setupGui(facade) {
         return parameters;
     }
 
-    const root_parameters = makeParameters({ paused: facade.isPaused });
+    const root_parameters = makeParameters({ paused: facade.isPaused, interaction_mode: facade.getInteractionMode });
     bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
+    bind(gui.add(root_parameters, 'interaction_mode')).name('Interaktionsmodus').onChange(value => facade.setInteractionMode(value));
 
     const metaballs_folder = gui.addFolder('Metaballs');
     const metaballs_parameters = makeParameters({

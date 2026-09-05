@@ -7,8 +7,9 @@ vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/volcano.vert?raw', () => ({ default: '// vertex shader' }));
 vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }));
 
-import { createVolcanoMaterial, updateVolcanoLight } from '../volcano_material.js';
+import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../volcano_material.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
+import { INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION } from '../../config.js';
 
 describe('createVolcanoMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -23,10 +24,23 @@ describe('createVolcanoMaterial', () => {
             'u_displacement_scale',
             'u_displacement_frequency',
             'u_rock_color',
+            'u_interaction_positions',
+            'u_interaction_strengths',
+            'u_interaction_radii',
+            'u_interaction_plateau_fraction',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
         });
+    });
+
+    test('interaction uniform arrays have length INTERACTION_MAX_POINTS and start at zero strength', () => {
+        const material = createVolcanoMaterial();
+        expect(material.uniforms.u_interaction_positions.value).toHaveLength(INTERACTION_MAX_POINTS);
+        expect(material.uniforms.u_interaction_strengths.value).toHaveLength(INTERACTION_MAX_POINTS);
+        expect(material.uniforms.u_interaction_radii.value).toHaveLength(INTERACTION_MAX_POINTS);
+        expect(Array.from(material.uniforms.u_interaction_strengths.value)).toEqual(new Array(INTERACTION_MAX_POINTS).fill(0));
+        expect(material.uniforms.u_interaction_plateau_fraction.value).toBe(INTERACTION_PLATEAU_FRACTION);
     });
 
     test('u_displacement_scale/frequency start at the volcano defaults', () => {
@@ -70,5 +84,22 @@ describe('updateVolcanoLight', () => {
         const material = makeMaterial();
         updateVolcanoLight(material, mock_camera, mock_sun_position);
         expect(material.uniforms.u_sun_position.value.copy).toHaveBeenCalled();
+    });
+});
+
+describe('updateVolcanoInteraction', () => {
+    test('writes active touch points into the position/strength/radius uniform arrays', () => {
+        const material = createVolcanoMaterial();
+        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3 }]);
+        expect(material.uniforms.u_interaction_positions.value[0]).toMatchObject({ x: 1, y: 2, z: 3 });
+        expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0.5);
+        expect(material.uniforms.u_interaction_radii.value[0]).toBeCloseTo(0.3, 5);
+    });
+
+    test('zeroes out slots with no corresponding touch point', () => {
+        const material = createVolcanoMaterial();
+        material.uniforms.u_interaction_strengths.value[3] = 0.9;
+        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3 }]);
+        expect(material.uniforms.u_interaction_strengths.value[3]).toBe(0.0);
     });
 });

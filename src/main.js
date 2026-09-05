@@ -26,7 +26,12 @@ const post_processing = createPostProcessing({ renderer, scene, camera });
 
 const clock = new THREE.Clock();
 
-const controller = createSceneController({ scene, camera, bloom_pass: post_processing.bloom_pass, god_rays_pass: post_processing.god_rays_pass });
+const controller = createSceneController({
+    scene, camera, renderer,
+    bloom_pass: post_processing.bloom_pass,
+    god_rays_pass: post_processing.god_rays_pass,
+    setControlsEnabled: camera_controller.setControlsEnabled,
+});
 
 post_processing.setOccluders({
     sun_mesh: controller.getSunMesh(),

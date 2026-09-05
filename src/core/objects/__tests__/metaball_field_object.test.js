@@ -8,6 +8,12 @@ vi.mock('../../geometry/metaball_geometry.js', () => ({
         return effect;
     }),
     rebuildMetaballGeometry: vi.fn(),
+    ballToWorldPosition: vi.fn((ball, effect) => ({
+        x: effect.position.x + 30 * (2 * ball.x - 1),
+        y: effect.position.y + 30 * (2 * ball.y - 1),
+        z: effect.position.z + 30 * (2 * ball.z - 1),
+    })),
+    ballToWorldRadius: vi.fn(() => 1.5),
 }));
 
 vi.mock('../../rendering/metaball_material.js', () => ({
@@ -38,9 +44,9 @@ vi.mock('../../animation/metaball_animation.js', () => {
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
-import { createMetaballGeometry, rebuildMetaballGeometry } from '../../geometry/metaball_geometry.js';
+import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
-import { settings as mock_settings, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
+import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 };
 
@@ -81,6 +87,33 @@ describe('createMetaballField', () => {
         field.setPaused(true);
         expect(field.isPaused()).toBe(true);
         expect(mock_settings.paused).toBe(true);
+    });
+
+    test('getActiveWorldPositions maps active balls through ballToWorldPosition/ballToWorldRadius using the field\'s effect', () => {
+        const field = createMetaballField(makeScene());
+        getActiveBalls.mockReturnValueOnce([{ x: 0.5, y: 0.5, z: 0.5 }]);
+        const positions = field.getActiveWorldPositions();
+        expect(ballToWorldPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5 }, field.effect);
+        expect(ballToWorldRadius).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5 }, field.effect);
+        expect(positions).toEqual([{ x: 0, y: 0, z: 0, radius: 1.5 }]);
+    });
+
+    test('removeNearestBall deactivates the active ball closest to the given world position', () => {
+        const field = createMetaballField(makeScene());
+        const near_ball = { x: 0.5, y: 0.5, z: 0.5, active: true }; // world position (0, 0, 0)
+        const far_ball = { x: 0.6, y: 0.5, z: 0.5, active: true }; // world position (6, 0, 0)
+        getActiveBalls.mockReturnValueOnce([far_ball, near_ball]);
+
+        field.removeNearestBall({ x: 0, y: 0, z: 0 });
+
+        expect(near_ball.active).toBe(false);
+        expect(far_ball.active).toBe(true);
+    });
+
+    test('removeNearestBall does nothing when there are no active balls', () => {
+        const field = createMetaballField(makeScene());
+        getActiveBalls.mockReturnValueOnce([]);
+        expect(() => field.removeNearestBall({ x: 0, y: 0, z: 0 })).not.toThrow();
     });
 
     test('getEruptionIntensity forwards to the animation module', () => {

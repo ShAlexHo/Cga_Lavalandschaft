@@ -90,6 +90,14 @@ describe('createCameraController', () => {
         expect(controls.update).toHaveBeenCalledTimes(1);
     });
 
+    test('setControlsEnabled(false) disables OrbitControls, setControlsEnabled(true) re-enables it', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        camera_controller.setControlsEnabled(false);
+        expect(controls_instances[0].enabled).toBe(false);
+        camera_controller.setControlsEnabled(true);
+        expect(controls_instances[0].enabled).toBe(true);
+    });
+
     test('handleResize() updates the camera aspect and recomputes the projection matrix', () => {
         const camera_controller = createCameraController(makeRenderer());
         camera_controller.handleResize(1600, 800);
