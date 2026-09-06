@@ -1,7 +1,7 @@
 import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
-import { toHexColor } from './color_utils.js';
+import { toHexColor } from '../rendering/color_utils.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {

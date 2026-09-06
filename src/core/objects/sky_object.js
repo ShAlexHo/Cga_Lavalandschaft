@@ -1,4 +1,4 @@
-import { toHexColor } from './color_utils.js';
+import { toHexColor } from '../rendering/color_utils.js';
 
 export function createSky(scene) {
     return {

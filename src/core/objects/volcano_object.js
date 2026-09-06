@@ -1,6 +1,6 @@
 import { createVolcanoGeometry } from '../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../rendering/volcano_material.js';
-import { toHexColor } from './color_utils.js';
+import { toHexColor } from '../rendering/color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 import { bindDisplacementUniforms, bindSunFocusUniform } from './terrain_uniform_utils.js';
 

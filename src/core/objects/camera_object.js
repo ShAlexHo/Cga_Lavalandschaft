@@ -22,7 +22,7 @@ export function createCameraController(renderer) {
             controls.target.copy(target_position);
             controls.update();
         },
-        handleResize(width, height) {
+        resize(width, height) {
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
         },

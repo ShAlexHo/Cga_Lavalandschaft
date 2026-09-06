@@ -41,7 +41,7 @@ post_processing.setOccluders({
 setupGui(controller);
 
 window.addEventListener('resize', () => {
-    camera_controller.handleResize(window.innerWidth, window.innerHeight);
+    camera_controller.resize(window.innerWidth, window.innerHeight);
     renderer.setSize(window.innerWidth, window.innerHeight);
     post_processing.resize(window.innerWidth, window.innerHeight);
 });

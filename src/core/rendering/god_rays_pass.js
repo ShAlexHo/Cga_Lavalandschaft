@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { GOD_RAYS_RESOLUTION_SCALE } from '../config.js';
-import { toHexColor } from '../objects/color_utils.js';
+import { toHexColor } from './color_utils.js';
+import { smoothstep } from '../animation/math_utils.js';
 import {
     createGodRaysOcclusionMaterial, createGodRaysSunDiscMaterial, createGodRaysGenerateMaterial,
     createGodRaysCombineMaterial,
@@ -11,11 +12,6 @@ const _sun_ndc = new THREE.Vector3();
 const _camera_forward = new THREE.Vector3();
 const _to_sun = new THREE.Vector3();
 const _old_clear_color = new THREE.Color();
-
-function smoothstep(edge0, edge1, x) {
-    const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
-    return t * t * (3 - 2 * t);
-}
 
 class GodRaysPass extends Pass {
     constructor({ scene, camera }) {

@@ -1,7 +1,7 @@
 import { createSmokeGeometry, setSmokeDrawRange } from '../geometry/smoke_geometry.js';
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
 import { settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
-import { toHexColor } from './color_utils.js';
+import { toHexColor } from '../rendering/color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 
 export function createSmoke(scene) {

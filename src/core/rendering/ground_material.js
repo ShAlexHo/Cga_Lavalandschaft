@@ -2,13 +2,9 @@ import * as THREE from 'three';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/ground.vert?raw';
 import fragment_glsl from '../shaders/ground.frag?raw';
-import { VOLCANO_LIGHT_POSITION, GROUND_CRACK_FREQUENCY, SUN_LIGHT_COLOR } from '../config.js';
+import { GROUND_CRACK_FREQUENCY, SUN_LIGHT_COLOR } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
-import { computeLightViewPosition } from './light_utils.js';
-
-const LIGHT_WORLD_POSITION = new THREE.Vector3(VOLCANO_LIGHT_POSITION.x, VOLCANO_LIGHT_POSITION.y, VOLCANO_LIGHT_POSITION.z);
-const _light_view_position = new THREE.Vector3();
-const _sun_view_position = new THREE.Vector3();
+import { updateKeyAndSunLightUniforms } from './light_utils.js';
 
 export function createGroundMaterial() {
     return new THREE.ShaderMaterial({
@@ -50,10 +46,7 @@ export function createGroundMaterial() {
 }
 
 export function updateGroundLight(material, camera, volcano_world_position, sun_world_position, time) {
-    computeLightViewPosition(camera, LIGHT_WORLD_POSITION, _light_view_position);
-    material.uniforms.u_light_position.value.copy(_light_view_position);
-    computeLightViewPosition(camera, sun_world_position, _sun_view_position);
-    material.uniforms.u_sun_position.value.copy(_sun_view_position);
+    updateKeyAndSunLightUniforms(material, camera, sun_world_position);
     material.uniforms.u_volcano_position.value.copy(volcano_world_position);
     material.uniforms.u_time.value = time;
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
-import { toHexColor } from './color_utils.js';
+import { toHexColor } from '../rendering/color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 import { bindDisplacementUniforms, bindCrackColorUniforms, bindSunFocusUniform } from './terrain_uniform_utils.js';
 import { GROUND_SIZE, GROUND_SEGMENTS } from '../config.js';

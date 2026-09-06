@@ -2,13 +2,9 @@ import * as THREE from 'three';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/volcano.vert?raw';
 import fragment_glsl from '../shaders/volcano.frag?raw';
-import { VOLCANO_LIGHT_POSITION, SUN_LIGHT_COLOR, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION } from '../config.js';
+import { SUN_LIGHT_COLOR, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
-import { computeLightViewPosition } from './light_utils.js';
-
-const LIGHT_WORLD_POSITION = new THREE.Vector3(VOLCANO_LIGHT_POSITION.x, VOLCANO_LIGHT_POSITION.y, VOLCANO_LIGHT_POSITION.z);
-const _light_view_position = new THREE.Vector3();
-const _sun_view_position = new THREE.Vector3();
+import { updateKeyAndSunLightUniforms } from './light_utils.js';
 
 // Compile-time array size for GLSL; mirrors GOD_RAYS_NUM_SAMPLES in god_rays_material.js.
 const vertex_glsl_resolved = vertex_glsl.replaceAll('INTERACTION_MAX_POINTS', INTERACTION_MAX_POINTS);
@@ -38,10 +34,7 @@ export function createVolcanoMaterial() {
 }
 
 export function updateVolcanoLight(material, camera, sun_world_position) {
-    computeLightViewPosition(camera, LIGHT_WORLD_POSITION, _light_view_position);
-    material.uniforms.u_light_position.value.copy(_light_view_position);
-    computeLightViewPosition(camera, sun_world_position, _sun_view_position);
-    material.uniforms.u_sun_position.value.copy(_sun_view_position);
+    updateKeyAndSunLightUniforms(material, camera, sun_world_position);
 }
 
 export function updateVolcanoInteraction(material, touch_points) {

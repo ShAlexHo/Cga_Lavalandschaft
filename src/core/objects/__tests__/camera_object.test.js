@@ -98,9 +98,9 @@ describe('createCameraController', () => {
         expect(controls_instances[0].enabled).toBe(true);
     });
 
-    test('handleResize() updates the camera aspect and recomputes the projection matrix', () => {
+    test('resize() updates the camera aspect and recomputes the projection matrix', () => {
         const camera_controller = createCameraController(makeRenderer());
-        camera_controller.handleResize(1600, 800);
+        camera_controller.resize(1600, 800);
         expect(camera_controller.camera.aspect).toBe(2);
         expect(camera_controller.camera.updateProjectionMatrix).toHaveBeenCalledTimes(1);
     });
