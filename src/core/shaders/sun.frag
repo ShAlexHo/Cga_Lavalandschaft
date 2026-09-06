@@ -25,8 +25,10 @@ void main() {
     float orange_mask = smoothstep(0.55, 0.85, orange_noise);
     color = mix(color, u_color_blood_orange, orange_mask * 0.5);
 
-    // pulsing corona: brightens the grazing edge for a glowing rim instead of a hard silhouette
-    float pulse = 0.5 + 0.5 * sin(u_time * 1.4);
+    // pulsing corona: brightens the grazing edge for a glowing rim instead of a hard silhouette.
+    // Slow frequency so it stays a gentle breathing glow instead of aliasing into a flicker when
+    // the global time scale is cranked up (u_time then advances much faster than real time).
+    float pulse = 0.5 + 0.5 * sin(u_time * 0.07);
     float rim = pow(1.0 - max(dot(view_direction, normal), 0.0), 2.5);
     color += u_color_core * rim * (0.5 + 0.5 * pulse);
 

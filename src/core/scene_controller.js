@@ -25,6 +25,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
     let metaball_y_offset = 1.4;
+    let time_scale = DEFAULT_SETTINGS.timeScale;
 
     function applyY(ground_y) {
         ground.mesh.position.y = ground_y;
@@ -50,6 +51,9 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
 
         isPaused: () => metaball_field.isPaused(),
         setPaused: value => metaball_field.setPaused(value),
+
+        getTimeScale: () => time_scale,
+        setTimeScale: value => { time_scale = value; },
 
         getInteractionMode: () => interaction.getEnabled(),
         setInteractionMode: value => {
@@ -226,6 +230,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     // single source of truth: getSnapshot() and the restore-by-key SETTERS map both derive from this
     const SETTINGS = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
+        { key: 'timeScale', get: () => controller.getTimeScale(), set: value => controller.setTimeScale(value) },
         { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
         { key: 'interactionSmokeVisible', get: () => controller.getInteractionSmokeVisible(), set: value => controller.setInteractionSmokeVisible(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },

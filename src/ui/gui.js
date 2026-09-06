@@ -22,10 +22,12 @@ export function setupGui(facade) {
 
     const root_parameters = makeParameters({
         paused: facade.isPaused,
+        time_scale: facade.getTimeScale,
         interaction_mode: facade.getInteractionMode,
         interaction_smoke_visible: facade.getInteractionSmokeVisible,
     });
     bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
+    bind(gui.add(root_parameters, 'time_scale', 0.1, 100, 0.1)).name('Zeitgeschwindigkeit').onChange(value => facade.setTimeScale(value));
     bind(gui.add(root_parameters, 'interaction_mode')).name('Interaktionsmodus').onChange(value => facade.setInteractionMode(value));
     bind(gui.add(root_parameters, 'interaction_smoke_visible')).name('Rauch bei Berührung').onChange(value => facade.setInteractionSmokeVisible(value));
 

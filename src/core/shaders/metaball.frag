@@ -36,13 +36,13 @@ void main() {
     float specular = pow(max(dot(normal, halfway_direction), 0.0), 8.0);
     float rim = pow(1.0 - max(dot(view_direction, normal), 0.0), 7.0);
 
-    float fast_pulse = 0.5 + 0.5 * sin(u_time * 2.0);
-    float slow_pulse = 0.5 + 0.5 * sin(u_time * 0.6 + 1.3);
+    float fast_pulse = 0.5 + 0.5 * sin(u_time * 1.0);
+    float slow_pulse = 0.5 + 0.5 * sin(u_time * 0.3 + 1.3);
     vec3  glow_color = mix(u_glow_color * 0.7, u_glow_color, fast_pulse);
 
     float heat;
     if (u_noise_enabled > 0.5) {
-        vec3 noise_coordinate = v_world_position * 0.7 + vec3(0.0, -u_time * 0.12, u_time * 0.05);
+        vec3 noise_coordinate = v_world_position * 0.7 + vec3(0.0, -u_time * 0.012, u_time * 0.005);
         float base_noise = normalizedFractalBrownianMotion(noise_coordinate);
         float warped_noise = warpedFractalBrownianMotion(noise_coordinate, 0.4);
         // smoothstep for sharp crust/glow contrast
@@ -56,7 +56,7 @@ void main() {
 
     if (u_noise_enabled > 0.5) {
         // second noise layer at different scale/speed for orange hot spots
-        vec3 orange_coordinate = v_world_position * 1.2 + vec3(u_time * 0.07, -u_time * 0.18, 0.0);
+        vec3 orange_coordinate = v_world_position * 1.2 + vec3(u_time * 0.007, -u_time * 0.018, 0.0);
         float orange_noise = normalizedFractalBrownianMotion(orange_coordinate);
         float orange_mask = smoothstep(0.6, 0.85, orange_noise);
         color = mix(color, u_noise_color_2, orange_mask * 0.40);

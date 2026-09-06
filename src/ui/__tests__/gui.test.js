@@ -26,6 +26,8 @@ function makeFacade(overrides = {}) {
     return {
         isPaused: vi.fn(() => false),
         setPaused: vi.fn(),
+        getTimeScale: vi.fn(() => 1),
+        setTimeScale: vi.fn(),
         getInteractionMode: vi.fn(() => false),
         setInteractionMode: vi.fn(),
         getInteractionSmokeVisible: vi.fn(() => true),
@@ -268,6 +270,16 @@ describe('setupGui – structure', () => {
         expect(entry.obj.paused).toBe(true);
         fire(registry, 'root', 'paused', false);
         expect(facade.setPaused).toHaveBeenCalledWith(false);
+    });
+
+    test('root time_scale control is seeded from facade.getTimeScale() and writes back via setTimeScale', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getTimeScale: vi.fn(() => 2.5) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'time_scale');
+        expect(entry.obj.time_scale).toBe(2.5);
+        fire(registry, 'root', 'time_scale', 4);
+        expect(facade.setTimeScale).toHaveBeenCalledWith(4);
     });
 
     test('root interaction_mode control is seeded from facade.getInteractionMode() and writes back via setInteractionMode', () => {

@@ -160,7 +160,7 @@ vi.mock('../animation/smoke_particles.js', () => {
 
 vi.mock('../default_settings.json', () => ({
     default: {
-        paused: true, metaballCount: 10, metaballIsolation: 60, metaballSpread: 1.2, metaballSpeed: 0.005,
+        paused: true, timeScale: 1, metaballCount: 10, metaballIsolation: 60, metaballSpread: 1.2, metaballSpeed: 0.005,
         metaballHeight: 2.0, flowRadius: 5,
         colorHot: '#111111', colorCool: '#222222', glowEnabled: false, glowColor: '#333333',
         noiseEnabled: false, noiseColor1: '#444444', noiseColor2: '#555555', bumpEnabled: false,
@@ -236,6 +236,15 @@ describe('createSceneController – initial positioning', () => {
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
         expect(controller.getMetaballHeight()).toBeCloseTo(1.4, 9);
+    });
+});
+
+describe('createSceneController – time scale', () => {
+    test('getTimeScale/setTimeScale forward to the same locally-owned value', () => {
+        const controller = makeController();
+        expect(controller.getTimeScale()).toBe(1);
+        controller.setTimeScale(3.5);
+        expect(controller.getTimeScale()).toBe(3.5);
     });
 });
 
@@ -366,7 +375,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
         const controller = makeController();
         const snapshot = {
-            paused: true, interactionMode: true, interactionSmokeVisible: false, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
+            paused: true, timeScale: 2.5, interactionMode: true, interactionSmokeVisible: false, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
             metaballHeight: 3.3, flowRadius: 7,
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,

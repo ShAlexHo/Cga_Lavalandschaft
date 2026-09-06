@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { METABALL_WAVE_TRANSITION } from '../../config.js';
+import { METABALL_WAVE_TRANSITION, METABALL_SPAWN_INTERVAL } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 import { importFreshModule } from '../../test-utils/reimport.js';
 
@@ -44,15 +44,15 @@ describe('stepMetaballAnimation', () => {
         expect(ball.subtract).toBeLessThanOrEqual(45);
     });
 
-    test('does not spawn a second ball less than a second after the first', () => {
+    test('does not spawn a second ball before METABALL_SPAWN_INTERVAL has elapsed', () => {
         animation_module.stepMetaballAnimation(0);
-        const balls = animation_module.stepMetaballAnimation(0.5);
+        const balls = animation_module.stepMetaballAnimation(METABALL_SPAWN_INTERVAL / 2);
         expect(balls).toHaveLength(1); // still just the 1 active ball, repositioned
     });
 
-    test('spawns the next ball once a full second has elapsed', () => {
+    test('spawns the next ball once METABALL_SPAWN_INTERVAL has elapsed', () => {
         animation_module.stepMetaballAnimation(0);
-        const balls = animation_module.stepMetaballAnimation(1.0);
+        const balls = animation_module.stepMetaballAnimation(METABALL_SPAWN_INTERVAL);
         expect(balls).toHaveLength(2); // both active balls
     });
 

@@ -9,6 +9,7 @@ import {
     METABALL_CRATER_Z,
     METABALL_GROUND_Y,
     METABALL_BALL_LIFETIME,
+    METABALL_SPAWN_INTERVAL,
     METABALL_SECTORS,
     METABALL_WAVE_TRANSITION,
 } from '../config.js';
@@ -46,7 +47,7 @@ const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
 
 let pool_head = 0;
 let current_wave_count = 0;
-let last_spawn_time = -1.0;
+let last_spawn_time = -Infinity;
 let pausing = false;
 let pause_start = -Infinity;
 let pause_end = -Infinity;
@@ -77,10 +78,10 @@ export function stepMetaballAnimation(time) {
         if (time >= pause_end) {
             pausing = false;
             current_wave_count = 0;
-            last_spawn_time = -1.0;
+            last_spawn_time = -Infinity;
         }
     } else {
-        if (current_wave_count < settings.count && time - last_spawn_time >= 1.0) {
+        if (current_wave_count < settings.count && time - last_spawn_time >= METABALL_SPAWN_INTERVAL) {
             let index = -1;
             for (let offset = 0; offset < MAX_BALLS; offset++) {
                 const candidate = (pool_head + offset) % MAX_BALLS;

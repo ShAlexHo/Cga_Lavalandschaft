@@ -39,25 +39,43 @@ export const METABALL_CRATER_Y = 0.45; // volcano tip: ground -6 + height 5 = -1
 export const METABALL_CRATER_Z = 0.5;
 export const METABALL_GROUND_Y = 0.288; // (-6 - 0.36) / 30 + 0.5
 export const METABALL_BALL_LIFETIME = 3.5; // seconds, crater to ground
+export const METABALL_SPAWN_INTERVAL = 40.0; // seconds between new metaballs joining a wave
 export const METABALL_SECTORS = 6;
 export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the smoke plume fades instead of snapping
 
 // ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
 
 export const INTERACTION_MAX_POINTS = 64; // GLSL array length - must match volcano.vert
-export const INTERACTION_DECAY_DURATION = 6.0; // seconds for a touch to fade out, radius shrinking outside-in
+export const INTERACTION_DECAY_DURATION = 26.0; // seconds for a touch to fade out, wiping from nearest-to-the-volcano's-axis outward (see INTERACTION_DECAY_WIPE_BAND_FRACTION)
 export const INTERACTION_BUMP_RADIUS = 0.5; // world units
+export const INTERACTION_PUSH_HEIGHT_SCALE = 2.0; // multiplies the raw touch-to-nearest-metaball distance that caps how far the surface (and its smoke) gets pushed, so the rise can go higher than that raw distance alone would allow
+export const INTERACTION_HOVER_RISE_RATE = 0.05; // world units per second added to an already-active touch point's push height while the mouse keeps hovering back over it, held down - lets repeatedly passing over the same spot build it up gradually beyond its initial cap
+export const INTERACTION_HOVER_RISE_MAX_DELTA = 0.2; // seconds; caps the time gap used for the above, so returning to a spot after a long pause adds only a small, bounded bump instead of a sudden jump
 export const INTERACTION_PLATEAU_FRACTION = 0.3; // share of the radius held at full push height before falling off
+export const INTERACTION_DECAY_WIPE_BAND_FRACTION = 0.3; // softness of the axis-to-outward decay wipe, as a fraction of the bump radius
+export const INTERACTION_DECAY_WIPE_NOISE_STRENGTH = 0.5; // fraction of the bump radius the decay wipe front is perturbed by, so it eats away irregularly instead of a perfectly even ring
+export const INTERACTION_DECAY_WIPE_NOISE_FREQUENCY = 6.0; // world-space noise frequency driving the above
 export const INTERACTION_DWELL_POSITION_TOLERANCE = 0.5; // world units; "still the same spot" radius
 export const INTERACTION_LAVA_DETECTION_TOLERANCE = 0.2; // fraction of the true isosurface field value needed to count as "on lava" - lower is more forgiving, extending each ball's effective reach a bit beyond its rendered surface
 export const INTERACTION_METABALL_CENTER_THRESHOLD = 0.5; // world units; view-ray distance under which a touch counts as pressing a metaball's visual center
 export const INTERACTION_METABALL_SHRINK_DURATION = 3.0; // seconds of continuous center-pressing to shrink a metaball's radius by SHRINK_FRACTION
 export const INTERACTION_METABALL_SHRINK_FRACTION = 0.55; // fraction of radius removed per SHRINK_DURATION of continuous center-pressing
 
-export const INTERACTION_SMOKE_SURFACE_OFFSET = 0.3; // world units lifted above the touched point, so smoke reads as hovering over the surface instead of clipping into it
+export const INTERACTION_SMOKE_SURFACE_OFFSET = 0.1; // world units lifted above the touched point, so smoke reads as hovering over the surface instead of clipping into it
 export const INTERACTION_SMOKE_PUSH_INFLUENCE = 0.3; // fraction of the touch's camera-ward push applied to the smoke's origin - kept low so smoke stays close to the actual local surface (the "environment") rather than the push direction, which briefly points downward on steep, sloped parts of the volcano
-export const INTERACTION_SMOKE_BURST_DURATION = 1.0; // seconds to fade out once the touch stops refreshing it
-export const INTERACTION_SMOKE_BLOOM_DURATION = 0.6; // seconds for the initial hot ember tint to cool to plain smoke
+export const INTERACTION_SMOKE_FADE_PER_PRESS_SECOND = 0.5; // seconds of fade-out earned per second the touch was actively held, so a longer press leaves the smoke lingering longer after release
+export const INTERACTION_SMOKE_MIN_BURST_DURATION = 1.0; // fade-out floor, so even a brief tap still leaves a visible trail
+export const INTERACTION_SMOKE_MAX_BURST_DURATION = 3.0; // fade-out ceiling, so an extremely long press doesn't linger forever
+export const INTERACTION_SMOKE_BLOOM_DURATION = 0.1; // seconds for the hot ember tint to cool to plain smoke once the touch stops genuinely moving - fast, almost immediate
+export const INTERACTION_SMOKE_STILLNESS_TOLERANCE = 0.05; // world units; movement below this counts as ordinary mouse jitter while "holding still", not genuine dragging
+export const INTERACTION_SMOKE_EMBER_STRENGTH_DECAY = 0.7; // each ember refresh after the first is multiplied by this, so repeated moving-then-stopping shows a progressively weaker ember tint than the very first time
+export const INTERACTION_SMOKE_MIN_EMBER_STRENGTH = 0.2; // floor for the above - never fully extinguishes the ember tint
+export const INTERACTION_SMOKE_HAZE_GROWTH_DURATION = 4.0; // seconds of continuous pressing for the grey background haze to reach its full opacity
+export const INTERACTION_SMOKE_HAZE_MAX_OPACITY = 0.5; // extra opacity the grey-leaning background particles gain once fully hazy
+export const INTERACTION_SMOKE_RISE_BOOST_DURATION = 4.0; // seconds of continuous pressing for the rise boost below to reach its max
+export const INTERACTION_SMOKE_MAX_RISE_BOOST = 2.5; // how much higher/faster each puff cycle rises once the touch has been held this long
+export const INTERACTION_SMOKE_EMBER_RADIUS_FRACTION = 0.3; // fraction of each puff's own rise-and-spread cycle (hence radius) that still reads as orange; beyond that, already grey - independent of bloom timing, so grey smoke exists (and gently rises) from the very first frame
+export const INTERACTION_SMOKE_GREY_VARIANCE_MIN = 0.6; // once a particle is fully grey, it settles at its own fixed shade somewhere between this and 1.0 (COLOR_1..COLOR_2) instead of every grey particle converging on the exact same near-black tone
 export const INTERACTION_SMOKE_MAX_BURSTS = 6; // GLSL array length - must match impact_smoke.vert
 export const INTERACTION_SMOKE_PARTICLES_PER_BURST = 40;
 export const INTERACTION_SMOKE_PARTICLE_LIFETIME = 1.2; // seconds per individual puff's own rise-and-fade cycle, repeating for as long as the burst lives - more time touching means more puffs, not one ever-growing blob
@@ -95,7 +113,7 @@ export const SUN_VISUAL_RADIUS = 2.5;
 export const SUN_ORBIT_RADIUS = Math.sqrt(SUN_LIGHT_POSITION.x ** 2 + SUN_LIGHT_POSITION.z ** 2);
 export const SUN_ORBIT_HEIGHT = SUN_LIGHT_POSITION.y;
 export const SUN_ORBIT_START_ANGLE = Math.atan2(SUN_LIGHT_POSITION.z, SUN_LIGHT_POSITION.x);
-export const SUN_ORBIT_PERIOD = 600; // seconds per revolution
+export const SUN_ORBIT_PERIOD = 4000; // seconds per revolution
 export const SUN_ORBIT_SPEED = (2 * Math.PI) / SUN_ORBIT_PERIOD;
 
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────

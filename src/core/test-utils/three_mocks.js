@@ -77,6 +77,7 @@ export class MockShaderMaterial {
         this.side = parameters.side ?? 0;
         this.transparent = parameters.transparent ?? false;
         this.depthWrite = parameters.depthWrite ?? true;
+        this.depthTest = parameters.depthTest ?? true;
     }
 }
 
