@@ -6,6 +6,9 @@ import {
     INTERACTION_SMOKE_MAX_BURSTS, INTERACTION_SMOKE_PARTICLE_SIZE,
     INTERACTION_SMOKE_SPREAD_RADIUS, INTERACTION_SMOKE_INITIAL_SPREAD_FRACTION, INTERACTION_SMOKE_RISE_SPEED,
     INTERACTION_SMOKE_PARTICLE_LIFETIME,
+    INTERACTION_SMOKE_HAZE_GROWTH_DURATION, INTERACTION_SMOKE_HAZE_MAX_OPACITY,
+    INTERACTION_SMOKE_RISE_BOOST_DURATION, INTERACTION_SMOKE_MAX_RISE_BOOST, INTERACTION_SMOKE_EMBER_RADIUS_FRACTION,
+    INTERACTION_SMOKE_GREY_VARIANCE_MIN,
     INTERACTION_SMOKE_COLOR_1, INTERACTION_SMOKE_COLOR_2,
     SMOKE_EMBER_GLOW_STRENGTH, SUN_ASH_TINT_COLOR,
 } from '../config.js';
@@ -23,10 +26,17 @@ export function createImpactSmokeMaterial() {
             u_initial_spread_fraction: { value: INTERACTION_SMOKE_INITIAL_SPREAD_FRACTION },
             u_rise_speed: { value: INTERACTION_SMOKE_RISE_SPEED },
             u_particle_lifetime: { value: INTERACTION_SMOKE_PARTICLE_LIFETIME },
+            u_haze_growth_duration: { value: INTERACTION_SMOKE_HAZE_GROWTH_DURATION },
+            u_haze_max_opacity: { value: INTERACTION_SMOKE_HAZE_MAX_OPACITY },
+            u_rise_boost_duration: { value: INTERACTION_SMOKE_RISE_BOOST_DURATION },
+            u_max_rise_boost: { value: INTERACTION_SMOKE_MAX_RISE_BOOST },
+            u_ember_radius_fraction: { value: INTERACTION_SMOKE_EMBER_RADIUS_FRACTION },
+            u_grey_variance_min: { value: INTERACTION_SMOKE_GREY_VARIANCE_MIN },
             u_burst_positions: { value: Array.from({ length: INTERACTION_SMOKE_MAX_BURSTS }, () => new THREE.Vector3()) },
             u_burst_bloom: { value: new Float32Array(INTERACTION_SMOKE_MAX_BURSTS) },
             u_burst_fade: { value: new Float32Array(INTERACTION_SMOKE_MAX_BURSTS) },
             u_burst_elapsed: { value: new Float32Array(INTERACTION_SMOKE_MAX_BURSTS) },
+            u_burst_ember_strength: { value: new Float32Array(INTERACTION_SMOKE_MAX_BURSTS).fill(1) },
             u_color_1: { value: new THREE.Color(INTERACTION_SMOKE_COLOR_1) },
             u_color_2: { value: new THREE.Color(INTERACTION_SMOKE_COLOR_2) },
             u_color_3: { value: new THREE.Color(DEFAULT_SETTINGS.smokeColor3) },
@@ -37,6 +47,7 @@ export function createImpactSmokeMaterial() {
         },
         transparent: true,
         depthWrite: false,
+        depthTest: false, // always renders in front of the ground/volcano, since it's meant to read as sitting right at the touched surface, not occluded by it
         precision: 'highp',
     });
 }
@@ -46,6 +57,7 @@ export function updateImpactSmoke(material, bursts) {
     const bloom = material.uniforms.u_burst_bloom.value;
     const fade = material.uniforms.u_burst_fade.value;
     const elapsed = material.uniforms.u_burst_elapsed.value;
+    const ember_strength = material.uniforms.u_burst_ember_strength.value;
     for (let i = 0; i < INTERACTION_SMOKE_MAX_BURSTS; i++) {
         const burst = bursts[i];
         if (burst) {
@@ -53,6 +65,7 @@ export function updateImpactSmoke(material, bursts) {
             bloom[i] = burst.bloom;
             fade[i] = burst.fade;
             elapsed[i] = burst.elapsed;
+            ember_strength[i] = burst.ember_strength;
         } else {
             fade[i] = 0.0;
         }

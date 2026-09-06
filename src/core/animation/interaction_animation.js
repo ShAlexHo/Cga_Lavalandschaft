@@ -1,9 +1,13 @@
-import { smoothstep } from './math_utils.js';
+import { smoothstep, clamp } from './math_utils.js';
 import {
     INTERACTION_MAX_POINTS,
     INTERACTION_DECAY_DURATION,
     INTERACTION_BUMP_RADIUS,
+    INTERACTION_PUSH_HEIGHT_SCALE,
+    INTERACTION_HOVER_RISE_RATE,
+    INTERACTION_HOVER_RISE_MAX_DELTA,
     INTERACTION_DWELL_POSITION_TOLERANCE,
+    INTERACTION_SMOKE_STILLNESS_TOLERANCE,
     INTERACTION_LAVA_DETECTION_TOLERANCE,
     INTERACTION_MIN_POINT_SPACING,
     INTERACTION_METABALL_CENTER_THRESHOLD,
@@ -12,8 +16,12 @@ import {
     INTERACTION_SMOKE_MAX_BURSTS,
     INTERACTION_SMOKE_SURFACE_OFFSET,
     INTERACTION_SMOKE_PUSH_INFLUENCE,
-    INTERACTION_SMOKE_BURST_DURATION,
+    INTERACTION_SMOKE_FADE_PER_PRESS_SECOND,
+    INTERACTION_SMOKE_MIN_BURST_DURATION,
+    INTERACTION_SMOKE_MAX_BURST_DURATION,
     INTERACTION_SMOKE_BLOOM_DURATION,
+    INTERACTION_SMOKE_EMBER_STRENGTH_DECAY,
+    INTERACTION_SMOKE_MIN_EMBER_STRENGTH,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
@@ -125,15 +133,24 @@ export function resetTouchSession() {
 // ─── impact smoke bursts (spawned above a touch while it's on a metaball) ──
 
 const smoke_burst_pool = Array.from({ length: INTERACTION_SMOKE_MAX_BURSTS }, () => ({
-    x: 0, y: 0, z: 0, first_active_time: -Infinity, last_active_time: -Infinity, active: false,
+    x: 0, y: 0, z: 0, first_active_time: -Infinity, last_active_time: -Infinity, ember_start_time: -Infinity, ember_strength: 1, active: false,
 }));
 let smoke_burst_head = 0;
 
-// Keeps a burst alive and following position for as long as it's called again before
-// INTERACTION_SMOKE_BURST_DURATION elapses; only once the calls stop does it fade out.
+// Keeps a burst alive and following position for as long as it's called again before its fade
+// duration elapses (see stepInteractionSmoke); only once the calls stop does it fade out.
+// ember_start_time resets whenever the touch genuinely moves (beyond ordinary mouse jitter), so the
+// hot ember tint stays fresh while actively dragging and only cools to grey once the touch settles
+// on one spot - independent of first_active_time, which keeps the particle rise motion uninterrupted.
+// Each such refresh also weakens ember_strength, so repeated moving-then-stopping reads progressively
+// less fiery than the very first ember.
 function updateSmokeBurst(time, position) {
     const { record: nearest, distance: nearest_distance } = findNearestActive(smoke_burst_pool, position);
     if (nearest && nearest_distance <= INTERACTION_DWELL_POSITION_TOLERANCE) {
+        if (distance(nearest, position) > INTERACTION_SMOKE_STILLNESS_TOLERANCE) {
+            nearest.ember_start_time = time;
+            nearest.ember_strength = Math.max(INTERACTION_SMOKE_MIN_EMBER_STRENGTH, nearest.ember_strength * INTERACTION_SMOKE_EMBER_STRENGTH_DECAY);
+        }
         nearest.x = position.x;
         nearest.y = position.y;
         nearest.z = position.z;
@@ -147,6 +164,8 @@ function updateSmokeBurst(time, position) {
     slot.z = position.z;
     slot.first_active_time = time;
     slot.last_active_time = time;
+    slot.ember_strength = 1;
+    slot.ember_start_time = time;
     slot.active = true;
     smoke_burst_head = (smoke_burst_head + 1) % INTERACTION_SMOKE_MAX_BURSTS;
 }
@@ -182,12 +201,13 @@ function spawnSmokeAt(time, hit_point, camera_position, height_cap) {
 // ─── public API ───────────────────────────────────────────────────────────────
 
 // Only registers a bump/smoke where hit_point is genuinely on the rendered lava surface (isOnLava);
-// which metaball is nearest by surface distance (center minus radius) still picks the height cap, so
-// edge touches cap just as reliably as center ones, at the raw center distance rather than the
-// (near-zero) surface distance. Returns a metaball squeeze signal ({x,y,z,shrink_increment}, by
-// view-ray distance) when the touch is on a metaball's visual center, else null - independent of
-// whether a bump was created, refreshed, or gated out. A touch that keeps landing on lava keeps its
-// smoke burst following and alive; moving off lava (or releasing) lets both fade out normally.
+// which metaball is nearest by surface distance (center minus radius) still picks the initial height
+// cap, so edge touches cap just as reliably as center ones, at the raw center distance rather than the
+// (near-zero) surface distance - see INTERACTION_HOVER_RISE_RATE for how that cap then keeps climbing
+// on repeated re-hovers. Returns a metaball squeeze signal ({x,y,z,shrink_increment}, by view-ray
+// distance) when the touch is on a metaball's visual center, else null - independent of whether a bump
+// was created, refreshed, or gated out. A touch that keeps landing on lava keeps its smoke burst
+// following and alive; moving off lava (or releasing) lets both fade out normally.
 export function registerTouch(time, hit_point, metaballs, camera_position) {
     let nearest_metaball_by_view = null;
     let nearest_view_distance = Infinity;
@@ -218,6 +238,11 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
     const { record: nearest_point, distance: nearest_point_distance } = findNearestActive(touch_pool, hit_point);
     if (nearest_point && nearest_point_distance <= INTERACTION_MIN_POINT_SPACING) {
         if (on_lava) {
+            // Repeatedly hovering back over an already-raised spot while held down keeps nudging it a
+            // little higher still, on top of its initial metaball-distance cap - capped delta so
+            // returning after a long gap adds only a small bump, not a jump.
+            const hover_delta_time = clamp(time - nearest_point.last_touched_time, 0, INTERACTION_HOVER_RISE_MAX_DELTA);
+            nearest_point.height_cap += hover_delta_time * INTERACTION_HOVER_RISE_RATE;
             nearest_point.last_touched_time = time;
             spawnSmokeAt(time, hit_point, camera_position, nearest_point.height_cap);
         }
@@ -230,7 +255,7 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
     slot.x = hit_point.x;
     slot.y = hit_point.y;
     slot.z = hit_point.z;
-    slot.height_cap = distance(hit_point, nearest_metaball_by_surface);
+    slot.height_cap = distance(hit_point, nearest_metaball_by_surface) * INTERACTION_PUSH_HEIGHT_SCALE;
     slot.last_touched_time = time;
     slot.active = true;
     pool_head = (pool_head + 1) % MAX_POINTS;
@@ -242,7 +267,10 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
 
 const active_touch_points = [];
 
-// Radius (not strength) shrinks to zero as a point ages past INTERACTION_DECAY_DURATION, then it's evicted.
+// The radius itself stays constant; decay_progress (0 to 1 as a point ages past INTERACTION_DECAY_DURATION)
+// instead drives a wipe in volcano.vert from the volcano's own central axis outward, so the bump
+// reads as draining away from the crater side first rather than shrinking evenly in every direction.
+// Evicted once decay_progress would reach 1.
 export function stepInteractionAnimation(time) {
     active_touch_points.length = 0;
     for (let i = 0; i < MAX_POINTS; i++) {
@@ -253,32 +281,43 @@ export function stepInteractionAnimation(time) {
             point.active = false;
             continue;
         }
-        const shrink = 1.0 - smoothstep(0, INTERACTION_DECAY_DURATION, age);
-        const radius = Math.max(INTERACTION_BUMP_RADIUS * shrink, 0.0001);
-        active_touch_points.push({ x: point.x, y: point.y, z: point.z, strength: point.height_cap, radius });
+        const decay_progress = smoothstep(0, INTERACTION_DECAY_DURATION, age);
+        active_touch_points.push({
+            x: point.x, y: point.y, z: point.z,
+            strength: point.height_cap, radius: INTERACTION_BUMP_RADIUS, decay_progress,
+        });
     }
     return active_touch_points;
 }
 
 const active_smoke_bursts = [];
 
-// bloom tracks the one-time hot-ember-to-smoke color cooldown; fade only starts once the burst stops
-// being touched, reaching 0 - and eviction - after INTERACTION_SMOKE_BURST_DURATION. elapsed is
+// bloom tracks the hot-ember-to-smoke color cooldown since ember_start_time (which resets on genuine
+// movement, so dragging keeps showing fresh ember color and only holding still lets it cool to grey);
+// fade only starts once the burst stops being touched, reaching 0 - and eviction - after
+// fade_duration, which scales with how long the touch was actually held (last_active_time minus
+// first_active_time) so a longer press leaves the smoke lingering longer once released. elapsed is
 // unbounded and drives the shader's per-particle rise-and-fade cycling (see impact_smoke.vert), so
 // staying longer keeps adding more overlapping puffs instead of growing one single mass.
 export function stepInteractionSmoke(time) {
     active_smoke_bursts.length = 0;
     for (const burst of smoke_burst_pool) {
         if (!burst.active) continue;
+        const press_duration = burst.last_active_time - burst.first_active_time;
+        const fade_duration = clamp(
+            press_duration * INTERACTION_SMOKE_FADE_PER_PRESS_SECOND,
+            INTERACTION_SMOKE_MIN_BURST_DURATION,
+            INTERACTION_SMOKE_MAX_BURST_DURATION,
+        );
         const time_since_touched = time - burst.last_active_time;
-        if (time_since_touched >= INTERACTION_SMOKE_BURST_DURATION) {
+        if (time_since_touched >= fade_duration) {
             burst.active = false;
             continue;
         }
         const elapsed = time - burst.first_active_time;
-        const bloom = Math.min(elapsed / INTERACTION_SMOKE_BLOOM_DURATION, 1.0);
-        const fade = 1.0 - time_since_touched / INTERACTION_SMOKE_BURST_DURATION;
-        active_smoke_bursts.push({ x: burst.x, y: burst.y, z: burst.z, bloom, fade, elapsed });
+        const bloom = Math.min((time - burst.ember_start_time) / INTERACTION_SMOKE_BLOOM_DURATION, 1.0);
+        const fade = 1.0 - time_since_touched / fade_duration;
+        active_smoke_bursts.push({ x: burst.x, y: burst.y, z: burst.z, bloom, fade, elapsed, ember_strength: burst.ember_strength });
     }
     return active_smoke_bursts;
 }

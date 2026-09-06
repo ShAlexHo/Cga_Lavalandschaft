@@ -9,7 +9,10 @@ vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }))
 
 import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../volcano_material.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
-import { INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION } from '../../config.js';
+import {
+    INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
+    INTERACTION_DECAY_WIPE_NOISE_STRENGTH, INTERACTION_DECAY_WIPE_NOISE_FREQUENCY,
+} from '../../config.js';
 
 describe('createVolcanoMaterial', () => {
     test('contains all expected uniforms', () => {
@@ -27,7 +30,11 @@ describe('createVolcanoMaterial', () => {
             'u_interaction_positions',
             'u_interaction_strengths',
             'u_interaction_radii',
+            'u_interaction_decay',
             'u_interaction_plateau_fraction',
+            'u_interaction_wipe_band_fraction',
+            'u_interaction_wipe_noise_strength',
+            'u_interaction_wipe_noise_frequency',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
@@ -39,8 +46,12 @@ describe('createVolcanoMaterial', () => {
         expect(material.uniforms.u_interaction_positions.value).toHaveLength(INTERACTION_MAX_POINTS);
         expect(material.uniforms.u_interaction_strengths.value).toHaveLength(INTERACTION_MAX_POINTS);
         expect(material.uniforms.u_interaction_radii.value).toHaveLength(INTERACTION_MAX_POINTS);
+        expect(material.uniforms.u_interaction_decay.value).toHaveLength(INTERACTION_MAX_POINTS);
         expect(Array.from(material.uniforms.u_interaction_strengths.value)).toEqual(new Array(INTERACTION_MAX_POINTS).fill(0));
         expect(material.uniforms.u_interaction_plateau_fraction.value).toBe(INTERACTION_PLATEAU_FRACTION);
+        expect(material.uniforms.u_interaction_wipe_band_fraction.value).toBe(INTERACTION_DECAY_WIPE_BAND_FRACTION);
+        expect(material.uniforms.u_interaction_wipe_noise_strength.value).toBe(INTERACTION_DECAY_WIPE_NOISE_STRENGTH);
+        expect(material.uniforms.u_interaction_wipe_noise_frequency.value).toBe(INTERACTION_DECAY_WIPE_NOISE_FREQUENCY);
     });
 
     test('u_displacement_scale/frequency start at the volcano defaults', () => {
@@ -88,18 +99,19 @@ describe('updateVolcanoLight', () => {
 });
 
 describe('updateVolcanoInteraction', () => {
-    test('writes active touch points into the position/strength/radius uniform arrays', () => {
+    test('writes active touch points into the position/strength/radius/decay uniform arrays', () => {
         const material = createVolcanoMaterial();
-        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3 }]);
+        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3, decay_progress: 0.2 }]);
         expect(material.uniforms.u_interaction_positions.value[0]).toMatchObject({ x: 1, y: 2, z: 3 });
         expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0.5);
         expect(material.uniforms.u_interaction_radii.value[0]).toBeCloseTo(0.3, 5);
+        expect(material.uniforms.u_interaction_decay.value[0]).toBeCloseTo(0.2, 5);
     });
 
     test('zeroes out slots with no corresponding touch point', () => {
         const material = createVolcanoMaterial();
         material.uniforms.u_interaction_strengths.value[3] = 0.9;
-        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3 }]);
+        updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3, decay_progress: 0.2 }]);
         expect(material.uniforms.u_interaction_strengths.value[3]).toBe(0.0);
     });
 });

@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/volcano.vert?raw';
 import fragment_glsl from '../shaders/volcano.frag?raw';
-import { SUN_LIGHT_COLOR, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION } from '../config.js';
+import {
+    SUN_LIGHT_COLOR, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
+    INTERACTION_DECAY_WIPE_NOISE_STRENGTH, INTERACTION_DECAY_WIPE_NOISE_FREQUENCY,
+} from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { updateKeyAndSunLightUniforms } from './light_utils.js';
 
@@ -26,7 +29,11 @@ export function createVolcanoMaterial() {
             u_interaction_positions: { value: Array.from({ length: INTERACTION_MAX_POINTS }, () => new THREE.Vector3()) },
             u_interaction_strengths: { value: new Float32Array(INTERACTION_MAX_POINTS) },
             u_interaction_radii: { value: new Float32Array(INTERACTION_MAX_POINTS) },
+            u_interaction_decay: { value: new Float32Array(INTERACTION_MAX_POINTS) },
             u_interaction_plateau_fraction: { value: INTERACTION_PLATEAU_FRACTION },
+            u_interaction_wipe_band_fraction: { value: INTERACTION_DECAY_WIPE_BAND_FRACTION },
+            u_interaction_wipe_noise_strength: { value: INTERACTION_DECAY_WIPE_NOISE_STRENGTH },
+            u_interaction_wipe_noise_frequency: { value: INTERACTION_DECAY_WIPE_NOISE_FREQUENCY },
         },
         side: THREE.DoubleSide,
         precision: 'highp',
@@ -41,12 +48,14 @@ export function updateVolcanoInteraction(material, touch_points) {
     const positions = material.uniforms.u_interaction_positions.value;
     const strengths = material.uniforms.u_interaction_strengths.value;
     const radii = material.uniforms.u_interaction_radii.value;
+    const decay = material.uniforms.u_interaction_decay.value;
     for (let i = 0; i < INTERACTION_MAX_POINTS; i++) {
         const point = touch_points[i];
         if (point) {
             positions[i].set(point.x, point.y, point.z);
             strengths[i] = point.strength;
             radii[i] = point.radius;
+            decay[i] = point.decay_progress;
         } else {
             strengths[i] = 0.0;
         }

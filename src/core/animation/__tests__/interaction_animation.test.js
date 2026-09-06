@@ -1,8 +1,11 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import {
-    INTERACTION_DECAY_DURATION, INTERACTION_BUMP_RADIUS, INTERACTION_MAX_POINTS,
-    INTERACTION_SMOKE_BURST_DURATION, INTERACTION_SMOKE_BLOOM_DURATION,
+    INTERACTION_DECAY_DURATION, INTERACTION_BUMP_RADIUS, INTERACTION_PUSH_HEIGHT_SCALE, INTERACTION_MAX_POINTS,
+    INTERACTION_HOVER_RISE_RATE, INTERACTION_HOVER_RISE_MAX_DELTA,
+    INTERACTION_SMOKE_MIN_BURST_DURATION, INTERACTION_SMOKE_MAX_BURST_DURATION, INTERACTION_SMOKE_FADE_PER_PRESS_SECOND,
+    INTERACTION_SMOKE_BLOOM_DURATION,
     INTERACTION_SMOKE_MAX_BURSTS, INTERACTION_SMOKE_SURFACE_OFFSET, INTERACTION_SMOKE_PUSH_INFLUENCE,
+    INTERACTION_SMOKE_EMBER_STRENGTH_DECAY, INTERACTION_SMOKE_MIN_EMBER_STRENGTH,
     INTERACTION_METABALL_SHRINK_DURATION, INTERACTION_METABALL_SHRINK_FRACTION,
     INTERACTION_LAVA_DETECTION_TOLERANCE,
 } from '../../config.js';
@@ -54,7 +57,7 @@ describe('registerTouch (lava-presence gating)', () => {
         const points = animation_module.stepInteractionAnimation(0);
         expect(points).toHaveLength(1);
         expect(points[0]).toMatchObject({ x: 0, y: 0, z: 0 });
-        expect(points[0].strength).toBeCloseTo(1.0, 9);
+        expect(points[0].strength).toBeCloseTo(1.0 * INTERACTION_PUSH_HEIGHT_SCALE, 9);
     });
 
     test('a touch whose own radius alone doesn\'t reach it can still register once overlapping metaballs are blended together', () => {
@@ -82,7 +85,7 @@ describe('registerTouch (lava-presence gating)', () => {
 
         const points = animation_module.stepInteractionAnimation(0);
         expect(points).toHaveLength(1);
-        expect(points[0].strength).toBeCloseTo(4.0, 9);
+        expect(points[0].strength).toBeCloseTo(4.0 * INTERACTION_PUSH_HEIGHT_SCALE, 9);
     });
 
     test('a touch well inside a metaball\'s own radius still gets a real (non-zero) push, capped at the raw center distance', () => {
@@ -91,7 +94,7 @@ describe('registerTouch (lava-presence gating)', () => {
         animation_module.registerTouch(0, hit_point, [ball], CAMERA_POSITION);
 
         const points = animation_module.stepInteractionAnimation(0);
-        expect(points[0].strength).toBeCloseTo(1.0, 9);
+        expect(points[0].strength).toBeCloseTo(1.0 * INTERACTION_PUSH_HEIGHT_SCALE, 9);
     });
 
     test('selects the metaball with the nearest surface among several candidates, but caps at its raw center distance', () => {
@@ -101,7 +104,7 @@ describe('registerTouch (lava-presence gating)', () => {
             metaball(2, 0, 0, 2.1), // surface distance 0 (radius exceeds the gap) - nearer despite the larger center distance, and puts the point on lava
         ], CAMERA_POSITION);
         const points = animation_module.stepInteractionAnimation(0);
-        expect(points[0].strength).toBeCloseTo(2.0, 9); // raw center distance of the selected (2nd) metaball
+        expect(points[0].strength).toBeCloseTo(2.0 * INTERACTION_PUSH_HEIGHT_SCALE, 9); // raw center distance of the selected (2nd) metaball
     });
 
     test('a repeated touch near an existing point refreshes it instead of creating a new one', () => {
@@ -111,7 +114,32 @@ describe('registerTouch (lava-presence gating)', () => {
 
         const points = animation_module.stepInteractionAnimation(0.5);
         expect(points).toHaveLength(1);
-        expect(points[0].radius).toBeCloseTo(INTERACTION_BUMP_RADIUS, 5); // still full radius - the touch timer was refreshed
+        expect(points[0].decay_progress).toBeCloseTo(0, 9); // touch timer was refreshed, so no decay has accumulated
+    });
+
+    test('repeatedly re-hovering an already-active point while held down nudges its push height a little higher each time', () => {
+        const ball = metaball(1, 0, 0, 1.2);
+        animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        const base_strength = animation_module.stepInteractionAnimation(0)[0].strength;
+
+        animation_module.registerTouch(0.1, { x: 0.05, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        const after_one_rehover = animation_module.stepInteractionAnimation(0.1)[0].strength;
+        expect(after_one_rehover).toBeCloseTo(base_strength + 0.1 * INTERACTION_HOVER_RISE_RATE, 9);
+
+        animation_module.registerTouch(0.2, { x: 0.1, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        const after_two_rehovers = animation_module.stepInteractionAnimation(0.2)[0].strength;
+        expect(after_two_rehovers).toBeCloseTo(after_one_rehover + 0.1 * INTERACTION_HOVER_RISE_RATE, 9);
+    });
+
+    test('a re-hover after a long gap only adds a bump capped at INTERACTION_HOVER_RISE_MAX_DELTA, not the full elapsed time', () => {
+        const ball = metaball(1, 0, 0, 1.2);
+        animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        const base_strength = animation_module.stepInteractionAnimation(0)[0].strength;
+
+        const long_gap = INTERACTION_HOVER_RISE_MAX_DELTA * 10;
+        animation_module.registerTouch(long_gap, { x: 0.05, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        const strength = animation_module.stepInteractionAnimation(long_gap)[0].strength;
+        expect(strength).toBeCloseTo(base_strength + INTERACTION_HOVER_RISE_MAX_DELTA * INTERACTION_HOVER_RISE_RATE, 9);
     });
 
     test('an existing bump stops being refreshed once the touch is no longer over any actual lava', () => {
@@ -215,19 +243,20 @@ describe('registerTouch (metaball center squeeze)', () => {
     });
 });
 
-describe('stepInteractionAnimation (radius decay, outside-in)', () => {
-    test('starts at (approximately) the full bump radius right after the touch', () => {
+describe('stepInteractionAnimation (decay_progress drives a top-to-bottom wipe, not radius shrink)', () => {
+    test('starts at the full bump radius and zero decay_progress right after the touch', () => {
         animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [metaball(1, 0, 0, 1.2)], CAMERA_POSITION);
         const points = animation_module.stepInteractionAnimation(0);
         expect(points[0].radius).toBeCloseTo(INTERACTION_BUMP_RADIUS, 5);
+        expect(points[0].decay_progress).toBeCloseTo(0, 9);
     });
 
-    test('the radius shrinks partway through the decay duration, while strength stays at the full height cap', () => {
+    test('decay_progress grows partway through the decay duration, while radius and strength stay constant', () => {
         animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [metaball(1, 0, 0, 1.2)], CAMERA_POSITION);
         const points = animation_module.stepInteractionAnimation(INTERACTION_DECAY_DURATION / 2);
-        expect(points[0].radius).toBeGreaterThan(0);
-        expect(points[0].radius).toBeLessThan(INTERACTION_BUMP_RADIUS);
-        expect(points[0].strength).toBeCloseTo(1.0, 9);
+        expect(points[0].radius).toBeCloseTo(INTERACTION_BUMP_RADIUS, 5);
+        expect(points[0].decay_progress).toBeCloseTo(0.5, 9);
+        expect(points[0].strength).toBeCloseTo(1.0 * INTERACTION_PUSH_HEIGHT_SCALE, 9);
     });
 
     test('is fully evicted once INTERACTION_DECAY_DURATION has elapsed since the last touch', () => {
@@ -253,11 +282,12 @@ describe('stepInteractionSmoke', () => {
     test('shifts the burst toward the camera by only a fraction of the touch\'s push amount, staying close to the actual local surface', () => {
         // hit_point and CAMERA_POSITION share x/y, so the push direction is purely +z - easy to check.
         const hit_point = { x: 0, y: 0, z: 4 };
-        const ball = metaball(0, 0, 2, 2.2); // height_cap = distance(hit_point, ball) = 2, radius large enough to be on lava
+        const ball = metaball(0, 0, 2, 2.2); // height_cap = distance(hit_point, ball) * INTERACTION_PUSH_HEIGHT_SCALE = 2 * scale, radius large enough to be on lava
         animation_module.registerTouch(0, hit_point, [ball], CAMERA_POSITION);
 
         const bursts = animation_module.stepInteractionSmoke(0);
-        const pushed_z = 4 + 2 * INTERACTION_SMOKE_PUSH_INFLUENCE; // only INTERACTION_SMOKE_PUSH_INFLUENCE of the full 2-unit push toward the camera (z=10)
+        const height_cap = 2 * INTERACTION_PUSH_HEIGHT_SCALE;
+        const pushed_z = 4 + height_cap * INTERACTION_SMOKE_PUSH_INFLUENCE; // only INTERACTION_SMOKE_PUSH_INFLUENCE of the full push toward the camera (z=10)
         expect(bursts[0]).toMatchObject({ x: 0, y: INTERACTION_SMOKE_SURFACE_OFFSET, z: pushed_z });
     });
 
@@ -269,7 +299,7 @@ describe('stepInteractionSmoke', () => {
         expect(animation_module.stepInteractionSmoke(0.05)).toHaveLength(1);
     });
 
-    test('bloom grows toward 1 over INTERACTION_SMOKE_BLOOM_DURATION while continuously touched', () => {
+    test('bloom grows toward 1 over INTERACTION_SMOKE_BLOOM_DURATION while continuously touched at the same spot', () => {
         const ball = metaball(1, 0, 0, 1.2);
         animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
         animation_module.registerTouch(INTERACTION_SMOKE_BLOOM_DURATION / 2, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
@@ -279,11 +309,47 @@ describe('stepInteractionSmoke', () => {
         expect(bursts[0].fade).toBeCloseTo(1, 9); // still being actively touched, not fading
     });
 
-    test('stays fully alive (fade never drops) for as long as it keeps being touched every frame, even well past the fade-out duration', () => {
+    test('bloom (hot ember tint) resets while genuinely dragging to new spots, and only grows once the touch holds still', () => {
+        const ball = metaball(1, 0, 0, 1.2);
+        // Each move is well beyond INTERACTION_SMOKE_STILLNESS_TOLERANCE but still within
+        // INTERACTION_DWELL_POSITION_TOLERANCE of the last, so it's the same burst refreshing.
+        animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        animation_module.registerTouch(0.3, { x: 0.2, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        animation_module.registerTouch(0.6, { x: 0.4, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        expect(animation_module.stepInteractionSmoke(0.6)[0].bloom).toBeCloseTo(0, 9); // just moved again - fresh ember
+
+        const hold_time = 0.6 + INTERACTION_SMOKE_BLOOM_DURATION / 2;
+        animation_module.registerTouch(hold_time, { x: 0.4, y: 0, z: 0 }, [ball], CAMERA_POSITION); // holding still now
+        expect(animation_module.stepInteractionSmoke(hold_time)[0].bloom).toBeCloseTo(0.5, 9);
+    });
+
+    test('ember_strength starts at 1 and weakens with each genuine movement reset, floored at INTERACTION_SMOKE_MIN_EMBER_STRENGTH', () => {
+        const ball = metaball(1, 0, 0, 1.2);
+        animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        expect(animation_module.stepInteractionSmoke(0)[0].ember_strength).toBeCloseTo(1, 9);
+
+        animation_module.registerTouch(0.1, { x: 0.2, y: 0, z: 0 }, [ball], CAMERA_POSITION); // first genuine move
+        expect(animation_module.stepInteractionSmoke(0.1)[0].ember_strength).toBeCloseTo(INTERACTION_SMOKE_EMBER_STRENGTH_DECAY, 9);
+
+        animation_module.registerTouch(0.2, { x: 0.4, y: 0, z: 0 }, [ball], CAMERA_POSITION); // second genuine move
+        expect(animation_module.stepInteractionSmoke(0.2)[0].ember_strength).toBeCloseTo(INTERACTION_SMOKE_EMBER_STRENGTH_DECAY ** 2, 9);
+
+        // Many more genuine moves should floor out at the configured minimum, never reaching 0.
+        let time = 0.2;
+        let x = 0.4;
+        for (let i = 0; i < 20; i++) {
+            time += 0.1;
+            x += 0.2;
+            animation_module.registerTouch(time, { x, y: 0, z: 0 }, [ball], CAMERA_POSITION);
+        }
+        expect(animation_module.stepInteractionSmoke(time)[0].ember_strength).toBeCloseTo(INTERACTION_SMOKE_MIN_EMBER_STRENGTH, 9);
+    });
+
+    test('stays fully alive (fade never drops) for as long as it keeps being touched every frame, even well past the longest possible fade-out duration', () => {
         const ball = metaball(1, 0, 0, 1.2);
         const hit_point = { x: 0, y: 0, z: 0 };
-        const still_touching_time = INTERACTION_SMOKE_BURST_DURATION * 5;
-        const frame_interval = 0.1; // well under INTERACTION_SMOKE_BURST_DURATION, like real per-frame calls
+        const still_touching_time = INTERACTION_SMOKE_MAX_BURST_DURATION * 2;
+        const frame_interval = 0.1; // well under any fade duration, like real per-frame calls
 
         // Mirrors how the real render loop calls registerTouch() then stepInteractionSmoke() every
         // frame - a one-shot burst would have been evicted long before reaching still_touching_time.
@@ -300,13 +366,28 @@ describe('stepInteractionSmoke', () => {
         expect(bursts[0].elapsed).toBeCloseTo(still_touching_time, 5);
     });
 
-    test('only starts fading once the touch stops, evicted INTERACTION_SMOKE_BURST_DURATION after the last touch', () => {
+    test('only starts fading once the touch stops, evicted INTERACTION_SMOKE_MIN_BURST_DURATION after a single instantaneous touch', () => {
+        // A single tap has zero press duration, so the fade floor (not the press-scaled formula) applies.
         animation_module.registerTouch(0, { x: 0, y: 0, z: 0 }, [metaball(1, 0, 0, 1.2)], CAMERA_POSITION); // last touched at t=0, then released
 
-        const midway = animation_module.stepInteractionSmoke(INTERACTION_SMOKE_BURST_DURATION / 2);
+        const midway = animation_module.stepInteractionSmoke(INTERACTION_SMOKE_MIN_BURST_DURATION / 2);
         expect(midway[0].fade).toBeCloseTo(0.5, 9);
 
-        expect(animation_module.stepInteractionSmoke(INTERACTION_SMOKE_BURST_DURATION + 0.01)).toHaveLength(0);
+        expect(animation_module.stepInteractionSmoke(INTERACTION_SMOKE_MIN_BURST_DURATION + 0.01)).toHaveLength(0);
+    });
+
+    test('a longer press leaves the smoke fading out for longer, scaled by INTERACTION_SMOKE_FADE_PER_PRESS_SECOND', () => {
+        const ball = metaball(1, 0, 0, 1.2);
+        const hit_point = { x: 0, y: 0, z: 0 };
+        const press_duration = 2.0; // comfortably between MIN and MAX, so the scaled formula applies exactly
+        animation_module.registerTouch(0, hit_point, [ball], CAMERA_POSITION);
+        animation_module.registerTouch(press_duration, hit_point, [ball], CAMERA_POSITION); // released after this
+
+        const fade_duration = press_duration * INTERACTION_SMOKE_FADE_PER_PRESS_SECOND;
+        const midway = animation_module.stepInteractionSmoke(press_duration + fade_duration / 2);
+        expect(midway[0].fade).toBeCloseTo(0.5, 9);
+
+        expect(animation_module.stepInteractionSmoke(press_duration + fade_duration + 0.01)).toHaveLength(0);
     });
 
     test('stops being refreshed (and eventually fades out) once the touch is no longer over any actual lava', () => {
@@ -316,10 +397,11 @@ describe('stepInteractionSmoke', () => {
 
         // Same spot (would refresh the lingering burst), but nothing is actually close enough to be
         // on lava anymore - a metaball merely existing somewhere else in the scene must not keep the
-        // smoke alive.
+        // smoke alive. Since the burst never got refreshed a second time, its press duration is still
+        // zero, so the fade floor (INTERACTION_SMOKE_MIN_BURST_DURATION) applies.
         animation_module.registerTouch(0.5, hit_point, [metaball(50, 0, 0, 1.2)], CAMERA_POSITION);
 
-        expect(animation_module.stepInteractionSmoke(INTERACTION_SMOKE_BURST_DURATION + 0.01)).toHaveLength(0);
+        expect(animation_module.stepInteractionSmoke(INTERACTION_SMOKE_MIN_BURST_DURATION + 0.01)).toHaveLength(0);
     });
 
     test('wraparound: a burst beyond INTERACTION_SMOKE_MAX_BURSTS distinct touches overwrites the oldest one', () => {
