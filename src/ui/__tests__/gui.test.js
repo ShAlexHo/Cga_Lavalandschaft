@@ -28,6 +28,8 @@ function makeFacade(overrides = {}) {
         setPaused: vi.fn(),
         getInteractionMode: vi.fn(() => false),
         setInteractionMode: vi.fn(),
+        getInteractionSmokeVisible: vi.fn(() => true),
+        setInteractionSmokeVisible: vi.fn(),
 
         getMetaballCount: vi.fn(() => 100),
         setMetaballCount: vi.fn(),
@@ -276,6 +278,16 @@ describe('setupGui – structure', () => {
         expect(entry.obj.interaction_mode).toBe(true);
         fire(registry, 'root', 'interaction_mode', false);
         expect(facade.setInteractionMode).toHaveBeenCalledWith(false);
+    });
+
+    test('root interaction_smoke_visible control is seeded from facade.getInteractionSmokeVisible() and writes back via setInteractionSmokeVisible', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getInteractionSmokeVisible: vi.fn(() => false) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'interaction_smoke_visible');
+        expect(entry.obj.interaction_smoke_visible).toBe(false);
+        fire(registry, 'root', 'interaction_smoke_visible', true);
+        expect(facade.setInteractionSmokeVisible).toHaveBeenCalledWith(true);
     });
 });
 

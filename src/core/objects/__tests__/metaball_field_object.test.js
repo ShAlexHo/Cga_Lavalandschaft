@@ -89,31 +89,59 @@ describe('createMetaballField', () => {
         expect(mock_settings.paused).toBe(true);
     });
 
-    test('getActiveWorldPositions maps active balls through ballToWorldPosition/ballToWorldRadius using the field\'s effect', () => {
+    test('getActiveWorldPositions maps active balls through ballToWorldPosition/ballToWorldRadius using the field\'s effect, carrying subtract/isolation along', () => {
         const field = createMetaballField(makeScene());
-        getActiveBalls.mockReturnValueOnce([{ x: 0.5, y: 0.5, z: 0.5 }]);
+        getActiveBalls.mockReturnValueOnce([{ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }]);
         const positions = field.getActiveWorldPositions();
-        expect(ballToWorldPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5 }, field.effect);
-        expect(ballToWorldRadius).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5 }, field.effect);
-        expect(positions).toEqual([{ x: 0, y: 0, z: 0, radius: 1.5 }]);
+        expect(ballToWorldPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.effect);
+        expect(ballToWorldRadius).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.effect);
+        expect(positions).toEqual([{ x: 0, y: 0, z: 0, radius: 1.5, subtract: 30, isolation: 50 }]);
     });
 
-    test('removeNearestBall deactivates the active ball closest to the given world position', () => {
+    test('squeezeNearestBall shrinks the active ball closest to the given world position, leaving others untouched', () => {
         const field = createMetaballField(makeScene());
-        const near_ball = { x: 0.5, y: 0.5, z: 0.5, active: true }; // world position (0, 0, 0)
-        const far_ball = { x: 0.6, y: 0.5, z: 0.5, active: true }; // world position (6, 0, 0)
+        const near_ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 }; // world position (0, 0, 0)
+        const far_ball = { x: 0.6, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 }; // world position (6, 0, 0)
         getActiveBalls.mockReturnValueOnce([far_ball, near_ball]);
 
-        field.removeNearestBall({ x: 0, y: 0, z: 0 });
+        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 }); // 10% smaller radius
 
-        expect(near_ball.active).toBe(false);
-        expect(far_ball.active).toBe(true);
+        expect(near_ball.strength).toBeCloseTo(4 * 0.9 * 0.9, 9);
+        expect(near_ball.active).toBe(true);
+        expect(far_ball.strength).toBe(4);
     });
 
-    test('removeNearestBall does nothing when there are no active balls', () => {
+    test('squeezeNearestBall accumulates onto the ball\'s own persisted shrink_fraction instead of resetting it, so a ball already shrunk in an earlier press stays shrunk', () => {
+        const field = createMetaballField(makeScene());
+        const ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 2.56, shrink_fraction: 0.2 }; // already 20% shrunk from an earlier press
+
+        // A fresh press session reports a zero increment on its first frame - must not pop back to full size.
+        getActiveBalls.mockReturnValueOnce([ball]);
+        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0 });
+        expect(ball.strength).toBeCloseTo(4 * 0.8 * 0.8, 9);
+
+        // Continuing to hold accumulates further, on top of the earlier 20% - not starting over from 0.
+        getActiveBalls.mockReturnValueOnce([ball]);
+        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 });
+        expect(ball.shrink_fraction).toBeCloseTo(0.3, 9);
+        expect(ball.strength).toBeCloseTo(4 * 0.7 * 0.7, 9);
+    });
+
+    test('squeezeNearestBall deactivates the ball once fully shrunk (shrink_fraction reaches 1)', () => {
+        const field = createMetaballField(makeScene());
+        const ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 };
+        getActiveBalls.mockReturnValueOnce([ball]);
+
+        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 1.0 });
+
+        expect(ball.strength).toBe(0);
+        expect(ball.active).toBe(false);
+    });
+
+    test('squeezeNearestBall does nothing when there are no active balls', () => {
         const field = createMetaballField(makeScene());
         getActiveBalls.mockReturnValueOnce([]);
-        expect(() => field.removeNearestBall({ x: 0, y: 0, z: 0 })).not.toThrow();
+        expect(() => field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 })).not.toThrow();
     });
 
     test('getEruptionIntensity forwards to the animation module', () => {

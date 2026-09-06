@@ -23,23 +23,36 @@ export function createMetaballField(scene) {
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
         getEruptionIntensity: time => getEruptionIntensity(time),
+        // subtract/isolation ride along so the interaction layer can replicate MarchingCubes' own
+        // field equation and check whether a point is genuinely on the rendered lava surface -
+        // accounting for multiple overlapping metaballs blending together, not just the nearest one.
         getActiveWorldPositions: () => getActiveBalls().map(ball => ({
             ...ballToWorldPosition(ball, effect),
             radius: ballToWorldRadius(ball, effect),
+            subtract: ball.subtract,
+            isolation: effect.isolation,
         })),
-        removeNearestBall: position => {
+        // shrink_increment accumulates onto the ball's own persisted shrink_fraction (reset only on
+        // respawn), rather than being applied as a fresh target each call - so a ball that was
+        // already shrunk in an earlier press session keeps its size instead of popping back to full
+        // when pressed again.
+        squeezeNearestBall: ({ x, y, z, shrink_increment }) => {
             let nearest_ball = null;
             let nearest_distance = Infinity;
             for (const ball of getActiveBalls()) {
                 const world_position = ballToWorldPosition(ball, effect);
-                const dx = world_position.x - position.x, dy = world_position.y - position.y, dz = world_position.z - position.z;
+                const dx = world_position.x - x, dy = world_position.y - y, dz = world_position.z - z;
                 const ball_distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 if (ball_distance < nearest_distance) {
                     nearest_distance = ball_distance;
                     nearest_ball = ball;
                 }
             }
-            if (nearest_ball) nearest_ball.active = false;
+            if (!nearest_ball) return;
+            nearest_ball.shrink_fraction = Math.min(1, nearest_ball.shrink_fraction + shrink_increment);
+            const scale = Math.max(1 - nearest_ball.shrink_fraction, 0);
+            nearest_ball.strength = nearest_ball.base_strength * scale * scale; // radius ∝ sqrt(strength)
+            if (scale <= 0) nearest_ball.active = false;
         },
 
         getCount: () => settings.count,

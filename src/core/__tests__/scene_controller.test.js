@@ -83,9 +83,23 @@ vi.mock('../objects/interaction_controller.js', () => ({
     createInteractionController: vi.fn(() => {
         let enabled = false;
         return {
-            step: vi.fn(() => []),
+            step: vi.fn(() => ({ touch_points: [], smoke_bursts: [] })),
             getEnabled: () => enabled,
             setEnabled: value => { enabled = value; },
+        };
+    }),
+}));
+
+vi.mock('../objects/impact_smoke_object.js', () => ({
+    createImpactSmoke: vi.fn(() => {
+        let visible = true;
+        return {
+            mesh: {},
+            update: vi.fn(),
+            getVisible: () => visible,
+            setVisible: value => { visible = value; },
+            setSunEnabled: vi.fn(),
+            setSunStrength: vi.fn(),
         };
     }),
 }));
@@ -174,6 +188,7 @@ import { settings as mock_smoke_settings } from '../animation/smoke_particles.js
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
 import { createSun } from '../objects/sun_object.js';
 import { createInteractionController } from '../objects/interaction_controller.js';
+import { createImpactSmoke } from '../objects/impact_smoke_object.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -351,7 +366,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
         const controller = makeController();
         const snapshot = {
-            paused: true, interactionMode: true, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
+            paused: true, interactionMode: true, interactionSmokeVisible: false, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
             metaballHeight: 3.3, flowRadius: 7,
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,
@@ -439,6 +454,17 @@ describe('createSceneController – sun', () => {
         expect(ground_material.uniforms.u_sun_strength.value).toBe(0.15);
         expect(volcano_material.uniforms.u_sun_strength.value).toBe(0.15);
         expect(smoke_material.uniforms.u_sun_strength.value).toBe(0.15);
+    });
+
+    test('setSunVisible/setSunStrength also forward to the impact smoke object', () => {
+        const controller = makeController();
+        const impact_smoke = createImpactSmoke.mock.results.at(-1).value;
+
+        controller.setSunVisible(false);
+        expect(impact_smoke.setSunEnabled).toHaveBeenCalledWith(false);
+
+        controller.setSunStrength(0.15);
+        expect(impact_smoke.setSunStrength).toHaveBeenCalledWith(0.15);
     });
 
     test('setSunFocus updates both the ground and the volcano focus', () => {
@@ -529,29 +555,40 @@ describe('createSceneController – interaction mode', () => {
         expect(set_controls_enabled).toHaveBeenCalledWith(true);
     });
 
-    test('update() advances the interaction step and forwards its points to volcano.update', () => {
+    test('getInteractionSmokeVisible/setInteractionSmokeVisible forward to the impact smoke object', () => {
+        const controller = makeController();
+        expect(controller.getInteractionSmokeVisible()).toBe(true);
+        controller.setInteractionSmokeVisible(false);
+        expect(controller.getInteractionSmokeVisible()).toBe(false);
+    });
+
+    test('update() advances the interaction step and forwards its touch points/smoke bursts onward', () => {
         const controller = makeController();
         const interaction = createInteractionController.mock.results.at(-1).value;
-        const points = [{ x: 1, y: 1, z: 1, strength: 0.5 }];
-        interaction.step.mockReturnValueOnce(points);
+        const touch_points = [{ x: 1, y: 1, z: 1, strength: 0.5 }];
+        const smoke_bursts = [{ x: 2, y: 2, z: 2, bloom: 0.7, fade: 0.4, elapsed: 2.5 }];
+        interaction.step.mockReturnValueOnce({ touch_points, smoke_bursts });
 
         controller.update(4.0);
 
         expect(interaction.step).toHaveBeenCalledWith(4.0, expect.any(Object), expect.any(Function), expect.any(Function));
+        const impact_smoke = createImpactSmoke.mock.results.at(-1).value;
+        expect(impact_smoke.update).toHaveBeenCalledWith(smoke_bursts);
     });
 
-    test('update() wires the metaball-removal callback through to metaball_field.removeNearestBall', () => {
+    test('update() wires the metaball-squeeze callback through to metaball_field.squeezeNearestBall', () => {
         const controller = makeController();
         controller.update(0);
 
         const interaction = createInteractionController.mock.results.at(-1).value;
-        const remove_metaball_near = interaction.step.mock.calls.at(-1)[3];
+        const squeeze_metaball_near = interaction.step.mock.calls.at(-1)[3];
 
-        const ball = { active: true };
+        const ball = { active: true, base_strength: 4, strength: 4, shrink_fraction: 0 };
         getActiveBalls.mockReturnValueOnce([ball]);
-        remove_metaball_near({ x: 0, y: 0, z: 0 });
+        squeeze_metaball_near({ x: 0, y: 0, z: 0, shrink_increment: 0.5 });
 
-        expect(ball.active).toBe(false);
+        expect(ball.strength).toBeCloseTo(4 * 0.5 * 0.5, 9);
+        expect(ball.active).toBe(true);
     });
 });
 

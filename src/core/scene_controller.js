@@ -5,6 +5,7 @@ import { createSmoke } from './objects/smoke_object.js';
 import { createSun } from './objects/sun_object.js';
 import { createSky } from './objects/sky_object.js';
 import { createInteractionController } from './objects/interaction_controller.js';
+import { createImpactSmoke } from './objects/impact_smoke_object.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
@@ -16,6 +17,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const sun = createSun(scene);
     const sky = createSky(scene);
     const interaction = createInteractionController(renderer, volcano.mesh);
+    const impact_smoke = createImpactSmoke(scene);
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -36,12 +38,13 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             sun.update(time);
             ground.update(camera, volcano.mesh.position, sun.light.position, time);
             metaball_field.update(time, camera);
-            const interaction_points = interaction.step(
+            const { touch_points, smoke_bursts } = interaction.step(
                 time, camera,
                 () => metaball_field.getActiveWorldPositions(),
-                position => metaball_field.removeNearestBall(position),
+                metaball_squeeze => metaball_field.squeezeNearestBall(metaball_squeeze),
             );
-            volcano.update(camera, sun.light.position, interaction_points);
+            volcano.update(camera, sun.light.position, touch_points);
+            impact_smoke.update(smoke_bursts);
             smoke.update(time, metaball_field.getEruptionIntensity(time));
         },
 
@@ -53,6 +56,8 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             interaction.setEnabled(value);
             setControlsEnabled(!value);
         },
+        getInteractionSmokeVisible: () => impact_smoke.getVisible(),
+        setInteractionSmokeVisible: value => impact_smoke.setVisible(value),
 
         getMetaballCount: () => metaball_field.getCount(),
         setMetaballCount: value => metaball_field.setCount(value),
@@ -146,9 +151,20 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
 
         getSunVisible: () => sun.getVisible(),
-        setSunVisible: value => { sun.setVisible(value); ground.setSunEnabled(value); volcano.setSunEnabled(value); smoke.setSunEnabled(value); },
+        setSunVisible: value => {
+            sun.setVisible(value);
+            ground.setSunEnabled(value);
+            volcano.setSunEnabled(value);
+            smoke.setSunEnabled(value);
+            impact_smoke.setSunEnabled(value);
+        },
         getSunStrength: () => volcano.getSunStrength(),
-        setSunStrength: value => { ground.setSunStrength(value); volcano.setSunStrength(value); smoke.setSunStrength(value); },
+        setSunStrength: value => {
+            ground.setSunStrength(value);
+            volcano.setSunStrength(value);
+            smoke.setSunStrength(value);
+            impact_smoke.setSunStrength(value);
+        },
         getSunFocus: () => volcano.getSunFocus(),
         setSunFocus: value => { ground.setSunFocus(value); volcano.setSunFocus(value); },
 
@@ -211,6 +227,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const SETTINGS = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
         { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
+        { key: 'interactionSmokeVisible', get: () => controller.getInteractionSmokeVisible(), set: value => controller.setInteractionSmokeVisible(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },
         { key: 'metaballIsolation', get: () => controller.getMetaballIsolation(), set: value => controller.setMetaballIsolation(value) },
         { key: 'metaballSpread', get: () => controller.getMetaballSpread(), set: value => controller.setMetaballSpread(value) },

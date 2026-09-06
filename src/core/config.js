@@ -45,14 +45,28 @@ export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the 
 // ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
 
 export const INTERACTION_MAX_POINTS = 64; // GLSL array length - must match volcano.vert
-export const INTERACTION_DECAY_DURATION = 3.0; // seconds for a touch to fade out, radius shrinking outside-in
+export const INTERACTION_DECAY_DURATION = 6.0; // seconds for a touch to fade out, radius shrinking outside-in
 export const INTERACTION_BUMP_RADIUS = 0.5; // world units
 export const INTERACTION_PLATEAU_FRACTION = 0.3; // share of the radius held at full push height before falling off
-export const INTERACTION_METABALL_PROXIMITY_THRESHOLD_BASE = 6.0; // world units; grows via GROWTH_RATE while dwelling
-export const INTERACTION_METABALL_PROXIMITY_GROWTH_RATE = 3.0; // world units per second
 export const INTERACTION_DWELL_POSITION_TOLERANCE = 0.5; // world units; "still the same spot" radius
-export const INTERACTION_DWELL_POOL_SIZE = 8; // distinct dwelling spots tracked at once
-export const INTERACTION_METABALL_REMOVE_THRESHOLD = 0.5; // world units; view-ray distance to pop a metaball
+export const INTERACTION_LAVA_DETECTION_TOLERANCE = 0.2; // fraction of the true isosurface field value needed to count as "on lava" - lower is more forgiving, extending each ball's effective reach a bit beyond its rendered surface
+export const INTERACTION_METABALL_CENTER_THRESHOLD = 0.5; // world units; view-ray distance under which a touch counts as pressing a metaball's visual center
+export const INTERACTION_METABALL_SHRINK_DURATION = 3.0; // seconds of continuous center-pressing to shrink a metaball's radius by SHRINK_FRACTION
+export const INTERACTION_METABALL_SHRINK_FRACTION = 0.55; // fraction of radius removed per SHRINK_DURATION of continuous center-pressing
+
+export const INTERACTION_SMOKE_SURFACE_OFFSET = 0.3; // world units lifted above the touched point, so smoke reads as hovering over the surface instead of clipping into it
+export const INTERACTION_SMOKE_PUSH_INFLUENCE = 0.3; // fraction of the touch's camera-ward push applied to the smoke's origin - kept low so smoke stays close to the actual local surface (the "environment") rather than the push direction, which briefly points downward on steep, sloped parts of the volcano
+export const INTERACTION_SMOKE_BURST_DURATION = 1.0; // seconds to fade out once the touch stops refreshing it
+export const INTERACTION_SMOKE_BLOOM_DURATION = 0.6; // seconds for the initial hot ember tint to cool to plain smoke
+export const INTERACTION_SMOKE_MAX_BURSTS = 6; // GLSL array length - must match impact_smoke.vert
+export const INTERACTION_SMOKE_PARTICLES_PER_BURST = 40;
+export const INTERACTION_SMOKE_PARTICLE_LIFETIME = 1.2; // seconds per individual puff's own rise-and-fade cycle, repeating for as long as the burst lives - more time touching means more puffs, not one ever-growing blob
+export const INTERACTION_SMOKE_SPREAD_RADIUS = 1.2; // world units, reached once per puff cycle
+export const INTERACTION_SMOKE_INITIAL_SPREAD_FRACTION = 0.6; // fraction of SPREAD_RADIUS a puff already has right at the start of its cycle, instead of converging to a point
+export const INTERACTION_SMOKE_RISE_SPEED = 1.2; // world units per second, within a single puff cycle
+export const INTERACTION_SMOKE_PARTICLE_SIZE = 60;
+export const INTERACTION_SMOKE_COLOR_1 = '#a39a8f'; // fresh puff - light warm ash-grey (darker/warmer than plain white)
+export const INTERACTION_SMOKE_COLOR_2 = '#221e1a'; // as it disperses - near-black, warm-toned
 export const INTERACTION_MIN_POINT_SPACING = 0.15; // world units; a touch within this distance of an existing active point refreshes it instead of spawning a new one - kept well under INTERACTION_BUMP_RADIUS so consecutive points along a drag overlap heavily rather than reading as separate dots
 
 // ─── Volcano (geometry / rendering) ──────────────────────────────────────────

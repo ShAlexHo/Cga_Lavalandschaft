@@ -31,13 +31,16 @@ export const settings = {
 
 const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 
-const ball_pool = Array.from({ length: MAX_BALLS }, (_, i) => ({
-    x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z,
-    strength: BALL_STRENGTH * random(0.70, 1.25), subtract: random(25, 45),
-    speed_mult: random(0.6, 1.4),
-    angle: randomGauss((i % METABALL_SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
-    active: false,
-}));
+const ball_pool = Array.from({ length: MAX_BALLS }, (_, i) => {
+    const base_strength = BALL_STRENGTH * random(0.70, 1.25);
+    return {
+        x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z,
+        strength: base_strength, base_strength, shrink_fraction: 0, subtract: random(25, 45),
+        speed_mult: random(0.6, 1.4),
+        angle: randomGauss((i % METABALL_SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
+        active: false,
+    };
+});
 
 const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
 
@@ -86,6 +89,8 @@ export function stepMetaballAnimation(time) {
             if (index !== -1) {
                 spawn_times[index] = time;
                 ball_pool[index].active = true;
+                ball_pool[index].strength = ball_pool[index].base_strength; // undo any earlier squeeze from a prior life
+                ball_pool[index].shrink_fraction = 0;
                 current_wave_count++;
                 pool_head = (index + 1) % MAX_BALLS;
                 last_spawn_time = time;

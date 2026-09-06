@@ -1,6 +1,7 @@
 {
   "paused": false,
   "interactionMode": false,
+  "interactionSmokeVisible": true,
   "metaballCount": 100,
   "metaballIsolation": 50,
   "metaballSpread": 1,
