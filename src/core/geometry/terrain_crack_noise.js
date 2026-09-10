@@ -187,6 +187,33 @@ function simplexNoise(px, py, pz) {
     return fmul(f(42.0), weighted_sum);
 }
 
+function fractalBrownianMotion(x, y, z) {
+    let value = f(0.0);
+    let amplitude = f(0.5);
+    let px = x, py = y, pz = z;
+    for (let octave = 0; octave < 4; octave++) {
+        value = fadd(value, fmul(amplitude, simplexNoise(px, py, pz)));
+        px = fmul(px, f(2.1)); py = fmul(py, f(2.1)); pz = fmul(pz, f(2.1));
+        amplitude = fmul(amplitude, f(0.5));
+    }
+    return value;
+}
+
+function normalizedFractalBrownianMotion(x, y, z) {
+    return fadd(fmul(fractalBrownianMotion(x, y, z), f(0.5)), f(0.5));
+}
+
+export function warpedFractalBrownianMotion(x, y, z, warp_strength) {
+    x = f(x); y = f(y); z = f(z); warp_strength = f(warp_strength);
+    const warp_x = simplexNoise(fadd(x, f(1.7)), fadd(y, f(9.2)), fadd(z, f(0.0)));
+    const warp_y = simplexNoise(fadd(x, f(8.3)), fadd(y, f(2.8)), fadd(z, f(0.0)));
+    const warp_z = simplexNoise(fadd(x, f(0.0)), fadd(y, f(5.1)), fadd(z, f(3.4)));
+    const warped_x = fadd(x, fmul(warp_strength, warp_x));
+    const warped_y = fadd(y, fmul(warp_strength, warp_y));
+    const warped_z = fadd(z, fmul(warp_strength, warp_z));
+    return normalizedFractalBrownianMotion(warped_x, warped_y, warped_z);
+}
+
 function crackWarpOffset(x, y, z, frequency) {
     const scale = fmul(frequency, f(0.6));
     return [

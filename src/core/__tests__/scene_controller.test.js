@@ -19,6 +19,15 @@ vi.mock('../rendering/ground_material.js', () => ({
     updateGroundLight: vi.fn(),
 }));
 
+vi.mock('../geometry/ground_geometry.js', () => ({
+    createGroundGeometry: vi.fn(scene => {
+        const mesh = { position: { x: 0, y: -6, z: 0 }, rotation: { x: -Math.PI / 2 }, visible: true };
+        scene.add(mesh);
+        return mesh;
+    }),
+    bakeGroundDisplacement: vi.fn(),
+}));
+
 vi.mock('../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn(scene => {
         const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };

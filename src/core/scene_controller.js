@@ -22,6 +22,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
     volcano.rebakeCrackDisplacement();
+    ground.rebakeDisplacement(volcano.mesh.position);
 
     const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
@@ -34,6 +35,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         metaball_field.effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
         smoke.effect.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
         volcano.rebakeCrackDisplacement();
+        ground.rebakeDisplacement(volcano.mesh.position);
     }
 
     const controller = {
@@ -154,9 +156,15 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getVolcanoRockColor: () => volcano.getRockColor(),
         setVolcanoRockColor: value => volcano.setRockColor(value),
         getVolcanoDisplacementScale: () => volcano.getDisplacementScale(),
-        setVolcanoDisplacementScale: value => volcano.setDisplacementScale(value),
+        setVolcanoDisplacementScale: value => {
+            volcano.setDisplacementScale(value);
+            ground.setVolcanoCrackScale(value);
+        },
         getVolcanoDisplacementFrequency: () => volcano.getDisplacementFrequency(),
-        setVolcanoDisplacementFrequency: value => volcano.setDisplacementFrequency(value),
+        setVolcanoDisplacementFrequency: value => {
+            volcano.setDisplacementFrequency(value);
+            ground.setVolcanoCrackFrequency(value);
+        },
 
         getSunVisible: () => sun.getVisible(),
         setSunVisible: value => {
@@ -197,11 +205,19 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         setSmokeEmberCoolingTime: value => smoke.setEmberCoolingTime(value),
 
         getOffsetX: () => position.x,
-        setOffsetX: value => { position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; smoke.effect.position.x = value; volcano.rebakeCrackDisplacement(); },
+        setOffsetX: value => {
+            position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; smoke.effect.position.x = value;
+            volcano.rebakeCrackDisplacement();
+            ground.rebakeDisplacement(volcano.mesh.position);
+        },
         getOffsetY: () => position.y,
         setOffsetY: value => { position.y = value; applyY(ground.mesh.position.y); },
         getOffsetZ: () => position.z,
-        setOffsetZ: value => { position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; smoke.effect.position.z = value; volcano.rebakeCrackDisplacement(); },
+        setOffsetZ: value => {
+            position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; smoke.effect.position.z = value;
+            volcano.rebakeCrackDisplacement();
+            ground.rebakeDisplacement(volcano.mesh.position);
+        },
 
         getBloomEnabled: () => bloom_pass.enabled,
         setBloomEnabled: value => { bloom_pass.enabled = value; },

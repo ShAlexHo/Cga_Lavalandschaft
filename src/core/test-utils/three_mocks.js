@@ -37,6 +37,8 @@ export function makeGroundMaterialUniformsMock() {
         u_sun_enabled: { value: 1.0 },
         u_sun_strength: { value: 0.06 },
         u_sun_focus: { value: 8.0 },
+        u_volcano_crack_scale: { value: 2.5 },
+        u_volcano_crack_frequency: { value: 0.5 },
     };
 }
 

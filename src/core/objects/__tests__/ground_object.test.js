@@ -1,7 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeGroundMaterialUniformsMock, makeScene, MockMesh, MockPlaneGeometry } from '../../test-utils/three_mocks.js';
+import { makeGroundMaterialUniformsMock, makeScene } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
+vi.mock('../../geometry/ground_geometry.js', () => ({
+    createGroundGeometry: vi.fn((scene, material) => {
+        const mesh = { material, position: { x: 0, y: -6, z: 0 }, rotation: { x: -Math.PI / 2 }, visible: true };
+        scene.add(mesh);
+        return mesh;
+    }),
+    bakeGroundDisplacement: vi.fn(),
+}));
 
 vi.mock('../../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({ uniforms: makeGroundMaterialUniformsMock() })),
@@ -9,22 +16,18 @@ vi.mock('../../rendering/ground_material.js', () => ({
 }));
 
 import { createGround } from '../ground_object.js';
+import { createGroundGeometry, bakeGroundDisplacement } from '../../geometry/ground_geometry.js';
 import { createGroundMaterial, updateGroundLight } from '../../rendering/ground_material.js';
 
 beforeEach(() => vi.clearAllMocks());
 
 describe('createGround', () => {
-    test('adds the mesh to the scene, built with a freshly created material', () => {
+    test('builds the geometry with a freshly created material', () => {
         const scene = makeScene();
         const ground = createGround(scene);
         expect(createGroundMaterial).toHaveBeenCalledTimes(1);
+        expect(createGroundGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
         expect(scene.add).toHaveBeenCalledWith(ground.mesh);
-    });
-
-    test('lies flat and starts at y = -6', () => {
-        const ground = createGround(makeScene());
-        expect(ground.mesh.rotation.x).toBeCloseTo(-Math.PI / 2, 9);
-        expect(ground.mesh.position.y).toBe(-6);
     });
 
     test('update() forwards to updateGroundLight with the material, camera, volcano position, sun position and time', () => {
@@ -108,5 +111,58 @@ describe('createGround', () => {
         expect(ground.getSunEnabled()).toBe(false);
         ground.setSunEnabled(true);
         expect(ground.getSunEnabled()).toBe(true);
+    });
+
+    test('getVolcanoCrackScale/getVolcanoCrackFrequency read the mirrored volcano uniforms', () => {
+        const ground = createGround(makeScene());
+        expect(ground.getVolcanoCrackScale()).toBe(2.5);
+        expect(ground.getVolcanoCrackFrequency()).toBe(0.5);
+    });
+
+    test('setDisplacementScale/setDisplacementFrequency/setProximityRadius/setVolcanoCrackScale/setVolcanoCrackFrequency each trigger a rebake', () => {
+        const ground = createGround(makeScene());
+        bakeGroundDisplacement.mockClear();
+
+        ground.setDisplacementScale(1.2);
+        expect(bakeGroundDisplacement).toHaveBeenCalledTimes(1);
+
+        ground.setDisplacementFrequency(0.3);
+        expect(bakeGroundDisplacement).toHaveBeenCalledTimes(2);
+
+        ground.setProximityRadius(25.0);
+        expect(bakeGroundDisplacement).toHaveBeenCalledTimes(3);
+
+        ground.setVolcanoCrackScale(3.0);
+        expect(bakeGroundDisplacement).toHaveBeenCalledTimes(4);
+        expect(ground.getVolcanoCrackScale()).toBe(3.0);
+
+        ground.setVolcanoCrackFrequency(0.6);
+        expect(bakeGroundDisplacement).toHaveBeenCalledTimes(5);
+        expect(ground.getVolcanoCrackFrequency()).toBe(0.6);
+    });
+
+    test('rebakeDisplacement forwards the mesh and current settings, reusing the last known volcano position', () => {
+        const ground = createGround(makeScene());
+        bakeGroundDisplacement.mockClear();
+
+        const volcano_position = { x: 3, y: 0, z: -4 };
+        ground.rebakeDisplacement(volcano_position);
+        expect(bakeGroundDisplacement).toHaveBeenCalledWith(ground.mesh, {
+            frequency: 0.08, scale: 0.6, volcano_crack_frequency: 0.5, volcano_crack_scale: 2.5,
+            volcano_position, proximity_radius: 18.0,
+        });
+
+        ground.rebakeDisplacement();
+        expect(bakeGroundDisplacement).toHaveBeenLastCalledWith(ground.mesh, expect.objectContaining({ volcano_position }));
+    });
+
+    test('update() caches the volcano position for the next no-argument rebake', () => {
+        const ground = createGround(makeScene());
+        const volcano_position = { x: 1, y: 2, z: 3 };
+        ground.update({}, volcano_position, {}, 0);
+
+        bakeGroundDisplacement.mockClear();
+        ground.rebakeDisplacement();
+        expect(bakeGroundDisplacement).toHaveBeenCalledWith(ground.mesh, expect.objectContaining({ volcano_position }));
     });
 });

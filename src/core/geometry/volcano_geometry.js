@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { VOLCANO_PROFILE, VOLCANO_PROFILE_SUBDIVISIONS, VOLCANO_LATHE_SEGMENTS } from '../config.js';
-import { crackDisplacementNoise } from './volcano_crack_displacement.js';
+import { crackDisplacementNoise } from './terrain_crack_noise.js';
 
 const _world_position = new THREE.Vector3();
 
