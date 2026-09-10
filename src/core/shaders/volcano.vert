@@ -17,7 +17,9 @@ void main() {
     vec3 world_position = (modelMatrix * vec4(position, 1.0)).xyz;
 
     float displacement = -max(0.0, 0.85 - crackDisplacementNoise(world_position, u_displacement_frequency));
-    vec3 displaced = position + normal * displacement * u_displacement_scale;
+    // Straight down (never along `normal`, which tilts sideways near the crater rim) - keeps each
+    // vertex's x/z fixed, so carving can only lower the surface, never fold it into an overhang.
+    vec3 displaced = position + vec3(0.0, 1.0, 0.0) * displacement * u_displacement_scale;
     vec3 crack_world_position = (modelMatrix * vec4(displaced, 1.0)).xyz;
 
     // The volcano's own local origin, in world space, sits exactly on its central (Lathe) axis.
