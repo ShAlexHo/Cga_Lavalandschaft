@@ -31,6 +31,7 @@ out vec4 out_color;
 float metaballField(vec3 local_position) {
     float field = 0.0;
     for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
+        if (u_ball_strength[i] <= 0.0) continue;
         vec3 offset = local_position - u_ball_center[i];
         float dist_sq = max(dot(offset, offset), 0.0001);
         field += max(0.0, 4.0 * u_ball_strength[i] / dist_sq - u_ball_subtract[i]);
