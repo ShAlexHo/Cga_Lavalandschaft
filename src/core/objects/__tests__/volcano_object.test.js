@@ -7,6 +7,7 @@ vi.mock('../../geometry/volcano_geometry.js', () => ({
         scene.add(mesh);
         return mesh;
     }),
+    bakeCrackDisplacement: vi.fn(),
 }));
 
 vi.mock('../../rendering/volcano_material.js', () => ({
@@ -25,7 +26,7 @@ vi.mock('../../rendering/volcano_material.js', () => ({
 }));
 
 import { createVolcano } from '../volcano_object.js';
-import { createVolcanoGeometry } from '../../geometry/volcano_geometry.js';
+import { createVolcanoGeometry, bakeCrackDisplacement } from '../../geometry/volcano_geometry.js';
 import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../../rendering/volcano_material.js';
 
 beforeEach(() => vi.clearAllMocks());
@@ -82,6 +83,25 @@ describe('createVolcano', () => {
 
         volcano.setSunFocus(7.0);
         expect(volcano.getSunFocus()).toBe(7.0);
+    });
+
+    test('setDisplacementScale/setDisplacementFrequency trigger a crack-displacement rebake', () => {
+        const volcano = createVolcano(makeScene());
+        bakeCrackDisplacement.mockClear();
+
+        volcano.setDisplacementScale(3.3);
+        expect(bakeCrackDisplacement).toHaveBeenCalledWith(volcano.mesh, 0.5, 3.3);
+
+        volcano.setDisplacementFrequency(0.9);
+        expect(bakeCrackDisplacement).toHaveBeenCalledWith(volcano.mesh, 0.9, 3.3);
+    });
+
+    test('rebakeCrackDisplacement forwards the mesh and current displacement settings', () => {
+        const volcano = createVolcano(makeScene());
+        bakeCrackDisplacement.mockClear();
+
+        volcano.rebakeCrackDisplacement();
+        expect(bakeCrackDisplacement).toHaveBeenCalledWith(volcano.mesh, 0.5, 2.5);
     });
 
     test('getSunEnabled/setSunEnabled toggle the sun tint uniform', () => {

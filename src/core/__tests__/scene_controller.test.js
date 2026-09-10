@@ -63,6 +63,7 @@ vi.mock('../geometry/volcano_geometry.js', () => ({
         scene.add(mesh);
         return mesh;
     }),
+    bakeCrackDisplacement: vi.fn(),
 }));
 
 vi.mock('../rendering/volcano_material.js', () => ({

@@ -1,11 +1,11 @@
 import { toHexColor } from '../rendering/color_utils.js';
 
-export function bindDisplacementUniforms(material) {
+export function bindDisplacementUniforms(material, on_change = () => {}) {
     return {
         getDisplacementScale: () => material.uniforms.u_displacement_scale.value,
-        setDisplacementScale: value => { material.uniforms.u_displacement_scale.value = value; },
+        setDisplacementScale: value => { material.uniforms.u_displacement_scale.value = value; on_change(); },
         getDisplacementFrequency: () => material.uniforms.u_displacement_frequency.value,
-        setDisplacementFrequency: value => { material.uniforms.u_displacement_frequency.value = value; },
+        setDisplacementFrequency: value => { material.uniforms.u_displacement_frequency.value = value; on_change(); },
     };
 }
 
