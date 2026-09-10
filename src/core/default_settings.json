@@ -21,7 +21,7 @@
   "noiseColor2": "#ea6927",
   "bumpEnabled": true,
   "displacementEnabled": true,
-  "displacementStrength": 0.00005,
+  "displacementStrength": 0.003,
   "groundVisible": true,
   "groundColor": "#110f0f",
   "groundColor2": "#1c0c01",

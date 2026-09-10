@@ -50,6 +50,18 @@ float safeStepDistance(vec3 p) {
     return nearest;
 }
 
+// Shared by crustColdness() and the heat computation below, so the crust bulge stays aligned
+// with the same regions the final color reads as "cold".
+vec3 heatCoordinate(vec3 world_position) {
+    return world_position * 0.7 + vec3(0.0, -u_time * 0.012, u_time * 0.005);
+}
+
+// Cheap single-octave proxy for the full heat noise below - affordable on every march step.
+float crustColdness(vec3 world_position) {
+    float heat_proxy = normalizedFractalBrownianMotion(heatCoordinate(world_position));
+    return 1.0 - smoothstep(0.15, 0.65, heat_proxy);
+}
+
 void main() {
     vec3 local_camera = (cameraPosition - u_effect_position) / u_effect_scale;
     vec3 ray_direction = normalize(v_local_position - local_camera);
@@ -77,6 +89,11 @@ void main() {
         if (i >= u_raymarch_steps || t > t_exit) break;
         vec3 p = local_camera + ray_direction * t;
         float distance_to_surface = safeStepDistance(p);
+        // Biases the safe distance itself, so the raymarcher converges onto an actually bulged surface.
+        if (u_displacement > 0.0) {
+            vec3 world_p = u_effect_position + u_effect_scale * p;
+            distance_to_surface -= crustColdness(world_p) * u_displacement;
+        }
         if (distance_to_surface < SURFACE_EPSILON) {
             did_hit = true;
             break;
@@ -97,21 +114,6 @@ void main() {
     vec3 local_normal = normalize(-gradient);
 
     vec3 world_position = u_effect_position + u_effect_scale * hit_local;
-
-    // Displaces the hit point along its normal once, rather than per march step, to avoid the cost
-    // of a displaced isosurface search.
-    if (u_displacement > 0.0) {
-        vec3 noise_coordinate = world_position * 1.1 + vec3(0.0, -u_time * 0.12, u_time * 0.05);
-        float base_noise = normalizedFractalBrownianMotion(noise_coordinate);
-        float warped_noise = warpedFractalBrownianMotion(noise_coordinate, 0.7);
-        float crust_mask = 1.0 - smoothstep(0.15, 0.65, mix(base_noise, warped_noise, 0.5));
-
-        vec3 displacement_coordinate = world_position * 0.7 + vec3(u_time * 0.006, -u_time * 0.009, u_time * 0.004);
-        float displacement = normalizedFractalBrownianMotion(displacement_coordinate);
-
-        hit_local += local_normal * displacement * u_displacement * crust_mask;
-        world_position = u_effect_position + u_effect_scale * hit_local;
-    }
 
     vec3 view_position = (viewMatrix * vec4(world_position, 1.0)).xyz;
     // normalMatrix isn't declared in fragment shaders; with no rotation and uniform scale here,
@@ -142,7 +144,7 @@ void main() {
 
     float heat;
     if (u_noise_enabled > 0.5) {
-        vec3 heat_coordinate = world_position * 0.7 + vec3(0.0, -u_time * 0.012, u_time * 0.005);
+        vec3 heat_coordinate = heatCoordinate(world_position);
         float heat_base_noise = normalizedFractalBrownianMotion(heat_coordinate);
         float heat_warped_noise = warpedFractalBrownianMotion(heat_coordinate, 0.4);
         heat = smoothstep(0.15, 0.65, mix(heat_base_noise, heat_warped_noise, 0.5));

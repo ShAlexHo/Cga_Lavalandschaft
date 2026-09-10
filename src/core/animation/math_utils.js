@@ -23,6 +23,10 @@ export function worldAzimuth(center, point) {
     return Math.atan2(point.z - center.z, point.x - center.x);
 }
 
+export function horizontalDistance(a, b) {
+    return Math.hypot(a.x - b.x, a.z - b.z);
+}
+
 // 1 within CAMERA_VISIBLE_ARC_DEGREES facing the camera, smoothly fading to 0 past its edge.
 export function cameraArcVisibility(object_angle, camera_angle) {
     const angle_from_camera = Math.abs(angleDifference(object_angle, camera_angle));

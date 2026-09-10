@@ -47,6 +47,11 @@ import { createMetaballField } from '../metaball_field_object.js';
 import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
 import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
+import { METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE } from '../../config.js';
+
+const VOLCANO_POSITION = { x: 0, y: 0, z: 0 };
+const NEAR_CAMERA = { position: { x: METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE - 5, y: 3, z: 0 } };
+const FAR_CAMERA = { position: { x: METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE + 5, y: 3, z: 0 } };
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 };
 
@@ -68,17 +73,16 @@ describe('createMetaballField', () => {
     test('update() rebuilds only when the animation step returns balls', () => {
         const field = createMetaballField(makeScene());
         rebuildMetaballGeometry.mockClear();
-        const camera = {};
 
         stepMetaballAnimation.mockReturnValueOnce(null);
-        field.update(0, camera);
+        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
         expect(rebuildMetaballGeometry).not.toHaveBeenCalled();
 
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
-        field.update(1, camera);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls, camera);
-        expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), camera, 1);
+        field.update(1, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls, NEAR_CAMERA);
+        expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), NEAR_CAMERA, 1);
     });
 
     test('isPaused/setPaused forward to the animation settings', () => {
@@ -168,18 +172,38 @@ describe('createMetaballField', () => {
         expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(3);
     });
 
-    test('displacement toggle remembers the strength while disabled', () => {
+    test('getDisplacementStrength/getDisplacementEnabled reflect the configured values, unaffected by the applied uniform', () => {
         const field = createMetaballField(makeScene());
         expect(field.getDisplacementEnabled()).toBe(true);
-        expect(field.getDisplacementStrength()).toBeCloseTo(0.00005, 9);
+        expect(field.getDisplacementStrength()).toBeCloseTo(0.003, 9);
 
         field.setDisplacementEnabled(false);
         expect(field.getDisplacementEnabled()).toBe(false);
-        expect(field.getDisplacementStrength()).toBe(0.0);
+        expect(field.getDisplacementStrength()).toBeCloseTo(0.003, 9);
+
+        field.setDisplacementStrength(0.002);
+        expect(field.getDisplacementStrength()).toBe(0.002);
+        expect(field.getDisplacementEnabled()).toBe(false);
+    });
+
+    test('update() applies the configured strength only while enabled and within camera range', () => {
+        const field = createMetaballField(makeScene());
+        const uniform = () => field.effect.material.uniforms.u_displacement.value;
+
+        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(uniform()).toBeCloseTo(0.003, 9);
+
+        field.update(0, FAR_CAMERA, VOLCANO_POSITION);
+        expect(uniform()).toBe(0.0);
+
+        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
+        field.setDisplacementEnabled(false);
+        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(uniform()).toBe(0.0);
 
         field.setDisplacementEnabled(true);
-        expect(field.getDisplacementEnabled()).toBe(true);
-        expect(field.getDisplacementStrength()).toBeCloseTo(0.00005, 9);
+        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(uniform()).toBeCloseTo(0.003, 9);
     });
 
     test('color and noise getters/setters forward to the material uniforms', () => {

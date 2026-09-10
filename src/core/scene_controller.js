@@ -42,7 +42,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         update(time) {
             sun.update(time);
             ground.update(camera, volcano.mesh.position, sun.light.position, time);
-            metaball_field.update(time, camera);
+            metaball_field.update(time, camera, volcano.mesh.position);
             const { touch_points, smoke_bursts } = interaction.step(
                 time, camera,
                 () => metaball_field.getActiveWorldPositions(),

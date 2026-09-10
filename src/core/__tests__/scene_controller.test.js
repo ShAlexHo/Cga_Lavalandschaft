@@ -204,7 +204,7 @@ import { createImpactSmoke } from '../objects/impact_smoke_object.js';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeScene() { return { add: vi.fn(), background: makeColor('6b2f1a') }; }
-function makeCamera() { return { matrixWorldInverse: {} }; }
+function makeCamera() { return { matrixWorldInverse: {}, position: { x: 0, y: 0, z: 0 } }; }
 function makeRenderer() { return { domElement: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
@@ -359,18 +359,18 @@ describe('createSceneController – ground', () => {
 // ─── displacement enabled/last-value memory ──────────────────────────────────
 
 describe('createSceneController – displacement toggle', () => {
-    test('disabling remembers the strength, re-enabling restores it', () => {
+    test('getDisplacementStrength keeps the configured value regardless of the enabled toggle', () => {
         const controller = makeController();
         expect(controller.getDisplacementEnabled()).toBe(true);
-        expect(controller.getDisplacementStrength()).toBeCloseTo(0.00005, 9);
+        expect(controller.getDisplacementStrength()).toBeCloseTo(0.001, 9);
 
         controller.setDisplacementEnabled(false);
         expect(controller.getDisplacementEnabled()).toBe(false);
-        expect(controller.getDisplacementStrength()).toBe(0.0);
+        expect(controller.getDisplacementStrength()).toBeCloseTo(0.001, 9);
 
         controller.setDisplacementEnabled(true);
         expect(controller.getDisplacementEnabled()).toBe(true);
-        expect(controller.getDisplacementStrength()).toBeCloseTo(0.00005, 9);
+        expect(controller.getDisplacementStrength()).toBeCloseTo(0.001, 9);
     });
 });
 

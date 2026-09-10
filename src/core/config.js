@@ -41,6 +41,7 @@ export const METABALL_PROXY_HALF_EXTENT_Z = 1.0;
 export const METABALL_PROXY_CENTER_X = 0.0;
 export const METABALL_PROXY_CENTER_Y = -0.4;
 export const METABALL_PROXY_CENTER_Z = 0.0;
+export const METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE = CAMERA_MIN_DISTANCE + 0.5 * (CAMERA_MAX_DISTANCE - CAMERA_MIN_DISTANCE); // halfway through the zoom range, X/Z-plane distance to the volcano
 
 // ─── Metaball animation (lava flow simulation) ───────────────────────────────
 

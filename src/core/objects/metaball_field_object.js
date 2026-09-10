@@ -2,7 +2,8 @@ import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, b
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from '../rendering/color_utils.js';
-import { METABALL_GPU_MAX_BALLS } from '../config.js';
+import { horizontalDistance } from '../animation/math_utils.js';
+import { METABALL_GPU_MAX_BALLS, METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {
@@ -12,15 +13,18 @@ export function createMetaballField(scene) {
     rebuildMetaballGeometry(effect, getActiveBalls(), last_camera);
 
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
-    let displacement_last = material.uniforms.u_displacement.value;
+    let displacement_strength = DEFAULT_SETTINGS.displacementStrength;
 
     return {
         effect,
-        update(time, camera) {
+        update(time, camera, volcano_position) {
             last_camera = camera;
             const balls = stepMetaballAnimation(time);
             if (balls) rebuildMetaballGeometry(effect, balls, camera);
             updateMetaballLight(material, camera, time);
+
+            const camera_too_far = horizontalDistance(camera.position, volcano_position) > METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE;
+            material.uniforms.u_displacement.value = (displacement_enabled && !camera_too_far) ? displacement_strength : 0.0;
         },
 
         isPaused: () => settings.paused,
@@ -95,16 +99,8 @@ export function createMetaballField(scene) {
         getBumpEnabled: () => material.uniforms.u_bump_enabled.value === 1.0,
         setBumpEnabled: value => { material.uniforms.u_bump_enabled.value = value ? 1.0 : 0.0; },
         getDisplacementEnabled: () => displacement_enabled,
-        setDisplacementEnabled: value => {
-            displacement_enabled = value;
-            if (value) {
-                material.uniforms.u_displacement.value = displacement_last;
-            } else {
-                displacement_last = material.uniforms.u_displacement.value;
-                material.uniforms.u_displacement.value = 0.0;
-            }
-        },
-        getDisplacementStrength: () => material.uniforms.u_displacement.value,
-        setDisplacementStrength: value => { material.uniforms.u_displacement.value = value; },
+        setDisplacementEnabled: value => { displacement_enabled = value; },
+        getDisplacementStrength: () => displacement_strength,
+        setDisplacementStrength: value => { displacement_strength = value; },
     };
 }

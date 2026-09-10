@@ -118,7 +118,7 @@ export function setupGui(facade) {
     bind(noise_folder.add(displacement_parameters, 'displacement'))
         .name('Displacement')
         .onChange(value => facade.setDisplacementEnabled(value));
-    bind(noise_folder.add(displacement_parameters, 'strength', 0.0, 0.004, 0.0001))
+    bind(noise_folder.add(displacement_parameters, 'strength', 0.0, 0.08, 0.002))
         .name('Displacement Stärke')
         .onChange(value => facade.setDisplacementStrength(value));
 
