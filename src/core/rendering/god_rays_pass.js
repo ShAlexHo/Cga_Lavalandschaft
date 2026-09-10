@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { GOD_RAYS_RESOLUTION_SCALE } from '../config.js';
+import { GOD_RAYS_RESOLUTION_SCALE, GOD_RAYS_SKIP_VISIBILITY_THRESHOLD } from '../config.js';
 import { toHexColor } from './color_utils.js';
 import { smoothstep } from '../animation/math_utils.js';
 import {
@@ -74,39 +74,47 @@ class GodRaysPass extends Pass {
         const old_clear_alpha = renderer.getClearAlpha();
         renderer.autoClear = false;
 
-        // occlusion mask: hide all but ground/volcano, draw black, then add the sun as a depth-tested disc
-        const visibility_backup = this.scene.children.map(child => child.visible);
-        this.scene.children.forEach(child => { child.visible = this.occluder_meshes.includes(child); });
+        if (visibility > GOD_RAYS_SKIP_VISIBILITY_THRESHOLD) {
+            // occlusion mask: hide all but ground/volcano, draw black, then add the sun as a depth-tested disc
+            const visibility_backup = this.scene.children.map(child => child.visible);
+            this.scene.children.forEach(child => { child.visible = this.occluder_meshes.includes(child); });
 
-        // bypasses overrideMaterial, so it must be hidden or it floods the mask
-        const original_background = this.scene.background;
-        this.scene.background = null;
+            // bypasses overrideMaterial, so it must be hidden or it floods the mask
+            const original_background = this.scene.background;
+            this.scene.background = null;
 
-        this.scene.overrideMaterial = this.occlusion_material;
-        renderer.setRenderTarget(this.occlusion_target);
-        renderer.setClearColor(0x000000, 1);
-        renderer.clear(true, true, true);
-        renderer.render(this.scene, this.camera);
+            this.scene.overrideMaterial = this.occlusion_material;
+            renderer.setRenderTarget(this.occlusion_target);
+            renderer.setClearColor(0x000000, 1);
+            renderer.clear(true, true, true);
+            renderer.render(this.scene, this.camera);
 
-        this.scene.overrideMaterial = null;
-        this.scene.background = original_background;
+            this.scene.overrideMaterial = null;
+            this.scene.background = original_background;
 
-        const original_sun_material = this.sun_mesh.material;
-        const original_sun_visible = this.sun_mesh.visible;
-        this.sun_mesh.material = this.sun_disc_material;
-        this.sun_mesh.visible = true;
-        renderer.setRenderTarget(this.occlusion_target);
-        renderer.render(this.sun_mesh, this.camera);
-        this.sun_mesh.material = original_sun_material;
-        this.sun_mesh.visible = original_sun_visible;
+            const original_sun_material = this.sun_mesh.material;
+            const original_sun_visible = this.sun_mesh.visible;
+            this.sun_mesh.material = this.sun_disc_material;
+            this.sun_mesh.visible = true;
+            renderer.setRenderTarget(this.occlusion_target);
+            renderer.render(this.sun_mesh, this.camera);
+            this.sun_mesh.material = original_sun_material;
+            this.sun_mesh.visible = original_sun_visible;
 
-        this.scene.children.forEach((child, index) => { child.visible = visibility_backup[index]; });
+            this.scene.children.forEach((child, index) => { child.visible = visibility_backup[index]; });
 
-        this.generate_material.uniforms.u_occlusion.value = this.occlusion_target.texture;
-        renderer.setRenderTarget(this.god_rays_target);
-        renderer.clear();
-        this._quad.material = this.generate_material;
-        this._quad.render(renderer);
+            this.generate_material.uniforms.u_occlusion.value = this.occlusion_target.texture;
+            renderer.setRenderTarget(this.god_rays_target);
+            renderer.clear();
+            this._quad.material = this.generate_material;
+            this._quad.render(renderer);
+        } else {
+            // sun isn't facing the camera - skip the occlusion/sun/generate renders, a cleared
+            // (black) god_rays_target adds nothing in the combine pass below either way
+            renderer.setRenderTarget(this.god_rays_target);
+            renderer.setClearColor(0x000000, 1);
+            renderer.clear();
+        }
 
         this.combine_material.uniforms.u_base.value = read_buffer.texture;
         this.combine_material.uniforms.u_god_rays.value = this.god_rays_target.texture;

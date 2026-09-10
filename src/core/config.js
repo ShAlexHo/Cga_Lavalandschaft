@@ -172,6 +172,7 @@ export const KEY_LIGHT_SHADOW_BIAS = -0.0015; // avoids shadow acne
 
 export const GOD_RAYS_RESOLUTION_SCALE = 0.5; // occlusion/generation buffers render at half resolution
 export const GOD_RAYS_NUM_SAMPLES = 60;
+export const GOD_RAYS_SKIP_VISIBILITY_THRESHOLD = 0.02; // below this, the sun's contribution is imperceptible - skip the occlusion/generate render work entirely
 
 // ─── Bloom (post-processing) ─────────────────────────────────────────────────
 
