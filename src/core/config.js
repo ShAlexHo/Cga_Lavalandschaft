@@ -59,7 +59,7 @@ export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the 
 // ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
 
 export const INTERACTION_MAX_POINTS = 64; // GLSL array length - must match volcano.vert
-export const INTERACTION_DECAY_DURATION = 26.0; // seconds for a touch to fade out, wiping from nearest-to-the-volcano's-axis outward (see INTERACTION_DECAY_WIPE_BAND_FRACTION)
+export const INTERACTION_DECAY_DURATION = 78.0; // seconds for a touch to fade out, wiping from nearest-to-the-volcano's-axis outward (see INTERACTION_DECAY_WIPE_BAND_FRACTION)
 export const INTERACTION_BUMP_RADIUS = 0.5; // world units
 export const INTERACTION_PUSH_HEIGHT_SCALE = 2.0; // multiplies the raw touch-to-nearest-metaball distance that caps how far the surface (and its smoke) gets pushed, so the rise can go higher than that raw distance alone would allow
 export const INTERACTION_HOVER_RISE_RATE = 0.05; // world units per second added to an already-active touch point's push height while the mouse keeps hovering back over it, held down - lets repeatedly passing over the same spot build it up gradually beyond its initial cap
