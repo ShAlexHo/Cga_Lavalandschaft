@@ -15,6 +15,8 @@ export const CAMERA_MIN_DISTANCE = 16;
 export const CAMERA_MAX_DISTANCE = 36;
 export const CAMERA_MIN_POLAR_ANGLE = 1;
 export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
+export const CAMERA_VISIBLE_ARC_DEGREES = 270; // objects outside this arc, centered on the camera, are culled (metaballs, volcano touch points)
+export const CAMERA_VISIBILITY_FADE_DEGREES = 10; // fade width at the arc's edge, so an object fades out instead of popping as the camera orbits
 
 // ─── Ground (geometry / rendering) ───────────────────────────────────────────
 

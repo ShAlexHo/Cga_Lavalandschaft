@@ -114,4 +114,26 @@ describe('updateVolcanoInteraction', () => {
         updateVolcanoInteraction(material, [{ x: 1, y: 2, z: 3, strength: 0.5, radius: 0.3, decay_progress: 0.2 }]);
         expect(material.uniforms.u_interaction_strengths.value[3]).toBe(0.0);
     });
+
+    test('without a camera, a touch point keeps full strength regardless of position', () => {
+        const material = createVolcanoMaterial();
+        updateVolcanoInteraction(material, [{ x: -5, y: 0, z: 0, strength: 0.5, radius: 0.3, decay_progress: 0.2 }]);
+        expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0.5);
+    });
+
+    test('a touch point facing the camera keeps full strength', () => {
+        const material = createVolcanoMaterial();
+        const camera = { position: { x: 10, y: 0, z: 0 } }; // camera azimuth (from volcano_center) = 0
+        const volcano_center = { x: 0, y: 0, z: 0 };
+        updateVolcanoInteraction(material, [{ x: 5, y: 0, z: 0, strength: 0.5, radius: 0.3, decay_progress: 0.2 }], camera, volcano_center);
+        expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0.5);
+    });
+
+    test('a touch point on the far side of the volcano (180 deg from the camera) fades to zero strength', () => {
+        const material = createVolcanoMaterial();
+        const camera = { position: { x: 10, y: 0, z: 0 } };
+        const volcano_center = { x: 0, y: 0, z: 0 };
+        updateVolcanoInteraction(material, [{ x: -5, y: 0, z: 0, strength: 0.5, radius: 0.3, decay_progress: 0.2 }], camera, volcano_center);
+        expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0);
+    });
 });

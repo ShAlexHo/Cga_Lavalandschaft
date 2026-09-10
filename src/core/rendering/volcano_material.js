@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { cameraArcVisibility, worldAzimuth } from '../animation/math_utils.js';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/volcano.vert?raw';
 import fragment_glsl from '../shaders/volcano.frag?raw';
@@ -44,16 +45,19 @@ export function updateVolcanoLight(material, camera, sun_world_position) {
     updateKeyAndSunLightUniforms(material, camera, sun_world_position);
 }
 
-export function updateVolcanoInteraction(material, touch_points) {
+// camera/volcano_center are optional - omit them to skip visibility culling.
+export function updateVolcanoInteraction(material, touch_points, camera, volcano_center) {
     const positions = material.uniforms.u_interaction_positions.value;
     const strengths = material.uniforms.u_interaction_strengths.value;
     const radii = material.uniforms.u_interaction_radii.value;
     const decay = material.uniforms.u_interaction_decay.value;
+    const camera_azimuth = camera && worldAzimuth(volcano_center, camera.position);
     for (let i = 0; i < INTERACTION_MAX_POINTS; i++) {
         const point = touch_points[i];
         if (point) {
             positions[i].set(point.x, point.y, point.z);
-            strengths[i] = point.strength;
+            const visibility = camera ? cameraArcVisibility(worldAzimuth(volcano_center, point), camera_azimuth) : 1;
+            strengths[i] = point.strength * visibility;
             radii[i] = point.radius;
             decay[i] = point.decay_progress;
         } else {

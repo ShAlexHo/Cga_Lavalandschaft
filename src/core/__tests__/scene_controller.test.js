@@ -647,6 +647,6 @@ describe('createSceneController – update()', () => {
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         controller.update(1);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(expect.anything(), balls);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(expect.anything(), balls, expect.anything());
     });
 });

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { cameraArcVisibility, worldAzimuth } from '../animation/math_utils.js';
 import {
     METABALL_SCALE_XY,
     METABALL_SCALE_Z,
@@ -28,18 +29,20 @@ export function createMetaballGeometry(scene, material) {
 }
 
 // Field-space ball data, doubled into the raymarcher's local coordinate space (see metaball.frag);
-// unused slots get strength 0.
-export function rebuildMetaballGeometry(effect, balls) {
+// unused slots get strength 0. camera is optional - omit it to skip visibility culling.
+export function rebuildMetaballGeometry(effect, balls, camera) {
     const uniforms = effect.material.uniforms;
     const centers = uniforms.u_ball_center.value;
     const strengths = uniforms.u_ball_strength.value;
     const subtracts = uniforms.u_ball_subtract.value;
     const radius_scale_squared = effect.radius_scale * effect.radius_scale;
+    const camera_azimuth = camera && worldAzimuth(effect.position, camera.position);
     for (let i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
         const ball = balls[i];
         if (ball) {
             centers[i].set(2 * ball.x - 1, 2 * ball.y - 1, 2 * ball.z - 1);
-            strengths[i] = ball.strength * radius_scale_squared;
+            const visibility = camera ? cameraArcVisibility(ball.angle, camera_azimuth) : 1;
+            strengths[i] = ball.strength * radius_scale_squared * visibility;
             subtracts[i] = ball.subtract;
         } else {
             strengths[i] = 0.0;

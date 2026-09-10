@@ -8,7 +8,8 @@ import DEFAULT_SETTINGS from '../default_settings.json';
 export function createMetaballField(scene) {
     const material = createMetaballMaterial();
     const effect = createMetaballGeometry(scene, material);
-    rebuildMetaballGeometry(effect, getActiveBalls());
+    let last_camera = null;
+    rebuildMetaballGeometry(effect, getActiveBalls(), last_camera);
 
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_last = material.uniforms.u_displacement.value;
@@ -16,8 +17,9 @@ export function createMetaballField(scene) {
     return {
         effect,
         update(time, camera) {
+            last_camera = camera;
             const balls = stepMetaballAnimation(time);
-            if (balls) rebuildMetaballGeometry(effect, balls);
+            if (balls) rebuildMetaballGeometry(effect, balls, camera);
             updateMetaballLight(material, camera, time);
         },
 
@@ -57,13 +59,13 @@ export function createMetaballField(scene) {
         },
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
         // GUI/persistence max only, clamped to the GPU array size - settings.max_count itself stays uncapped.
         getMaxCount: () => Math.min(settings.max_count, METABALL_GPU_MAX_BALLS),
         getIsolation: () => effect.isolation,
-        setIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        setIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
         getRadius: () => effect.radius_scale,
-        setRadius: value => { effect.radius_scale = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        setRadius: value => { effect.radius_scale = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
         getSpread: () => settings.spread,
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,

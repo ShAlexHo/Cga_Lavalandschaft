@@ -13,7 +13,7 @@ export function createVolcano(scene) {
         mesh,
         update(camera, sun_world_position, interaction_points = []) {
             updateVolcanoLight(material, camera, sun_world_position);
-            updateVolcanoInteraction(material, interaction_points);
+            updateVolcanoInteraction(material, interaction_points, camera, mesh.position);
         },
 
         getVisible: () => mesh.visible,

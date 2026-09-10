@@ -106,6 +106,35 @@ describe('rebuildMetaballGeometry', () => {
         expect(effect.material.uniforms.u_ball_strength.value.every(strength => strength === 0)).toBe(true);
     });
 
+    test('without a camera, every ball keeps full strength regardless of its angle', () => {
+        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: Math.PI }]);
+        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
+    });
+
+    test('a ball facing the camera keeps full strength', () => {
+        effect.position = { x: 0, y: 0, z: 0 };
+        const camera = { position: { x: 10, y: 0, z: 0 } }; // camera azimuth (from effect center) = 0
+        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: 0 }], camera);
+        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
+    });
+
+    test('a ball on the far side of the crater (180 deg from the camera) fades to zero strength', () => {
+        effect.position = { x: 0, y: 0, z: 0 };
+        const camera = { position: { x: 10, y: 0, z: 0 } };
+        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: Math.PI }], camera);
+        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0);
+    });
+
+    test('a ball inside the fade buffer at the arc edge is partially visible', () => {
+        effect.position = { x: 0, y: 0, z: 0 };
+        const camera = { position: { x: 10, y: 0, z: 0 } };
+        const angle_at_fade_midpoint = (130 * Math.PI) / 180; // arc half is 135 deg, fade band is 125-135 deg
+        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: 40, angle: angle_at_fade_midpoint }], camera);
+        const strength = effect.material.uniforms.u_ball_strength.value[0];
+        expect(strength).toBeGreaterThan(0);
+        expect(strength).toBeLessThan(1.0);
+    });
+
     test('syncs isolation and the effect\'s transform into their own uniforms', () => {
         effect.isolation = 42;
         effect.position = new MockVector3(4, 5, 6);

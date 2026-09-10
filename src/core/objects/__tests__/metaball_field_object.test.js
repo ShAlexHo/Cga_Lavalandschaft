@@ -62,7 +62,7 @@ describe('createMetaballField', () => {
         expect(createMetaballMaterial).toHaveBeenCalledTimes(1);
         expect(createMetaballGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
         expect(scene.add).toHaveBeenCalledWith(field.effect);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, []);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, [], null);
     });
 
     test('update() rebuilds only when the animation step returns balls', () => {
@@ -77,7 +77,7 @@ describe('createMetaballField', () => {
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         field.update(1, camera);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls, camera);
         expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), camera, 1);
     });
 

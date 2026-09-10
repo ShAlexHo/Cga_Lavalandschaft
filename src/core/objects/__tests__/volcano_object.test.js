@@ -49,12 +49,13 @@ describe('createVolcano', () => {
 
     test('update() forwards interaction points to updateVolcanoInteraction, defaulting to an empty list', () => {
         const volcano = createVolcano(makeScene());
-        volcano.update({}, { x: 0, y: 0, z: 0 });
-        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), []);
+        const camera = {};
+        volcano.update(camera, { x: 0, y: 0, z: 0 });
+        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), [], camera, volcano.mesh.position);
 
         const points = [{ x: 1, y: 1, z: 1, strength: 0.4 }];
-        volcano.update({}, { x: 0, y: 0, z: 0 }, points);
-        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), points);
+        volcano.update(camera, { x: 0, y: 0, z: 0 }, points);
+        expect(updateVolcanoInteraction).toHaveBeenCalledWith(expect.any(Object), points, camera, volcano.mesh.position);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {
