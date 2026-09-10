@@ -69,6 +69,11 @@ export class MockVector3 {
     }
 }
 
+export class MockMatrix4 {
+    constructor() { this.elements = new Array(16).fill(0); }
+    copy(other) { this.elements = [...other.elements]; return this; }
+}
+
 export class MockShaderMaterial {
     constructor(parameters = {}) {
         this.uniforms = parameters.uniforms ?? {};
@@ -78,6 +83,7 @@ export class MockShaderMaterial {
         this.transparent = parameters.transparent ?? false;
         this.depthWrite = parameters.depthWrite ?? true;
         this.depthTest = parameters.depthTest ?? true;
+        this.glslVersion = parameters.glslVersion ?? null;
     }
 }
 
@@ -87,6 +93,7 @@ export class MockMesh {
         this.material = material;
         this.position = { x: 0, y: 0, z: 0 };
         this.rotation = { x: 0, y: 0, z: 0 };
+        this.scale = { set: vi.fn() };
         this.visible = true;
     }
 }
@@ -95,5 +102,12 @@ export class MockPlaneGeometry {
     constructor(width, height, width_segments, height_segments) {
         this.width = width; this.height = height;
         this.width_segments = width_segments; this.height_segments = height_segments;
+    }
+}
+
+export class MockBoxGeometry {
+    constructor(width, height, depth) {
+        this.width = width; this.height = height; this.depth = depth;
+        this.translate = vi.fn();
     }
 }

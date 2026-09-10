@@ -26,20 +26,30 @@ export const GROUND_CRACK_FREQUENCY = 0.06; // not yet exposed in the GUI
 
 export const METABALL_SCALE_XY = 30.0;
 export const METABALL_SCALE_Z = 30.0;
-export const METABALL_RESOLUTION = 180;
-export const METABALL_MAX_POLYGON_COUNT = 250_000;
 export const METABALL_LIGHT_POSITION = { x: 6, y: 8, z: 6 };
+
+export const METABALL_GPU_MAX_BALLS = 300; // GLSL array length - extra balls silently stop rendering
+export const METABALL_RAYMARCH_MAX_STEPS = 128; // compile-time GLSL loop bound - u_raymarch_steps must not exceed this
+export const METABALL_RAYMARCH_STEPS = 48;
+export const METABALL_RAYMARCH_NORMAL_EPSILON = 0.01;
+// Raymarch proxy box, local (2*field-1) space - Y tightened to the crater-to-ground range, X/Z at flow_z_radius's max.
+export const METABALL_PROXY_HALF_EXTENT_X = 1.0;
+export const METABALL_PROXY_HALF_EXTENT_Y = 0.4;
+export const METABALL_PROXY_HALF_EXTENT_Z = 1.0;
+export const METABALL_PROXY_CENTER_X = 0.0;
+export const METABALL_PROXY_CENTER_Y = -0.4;
+export const METABALL_PROXY_CENTER_Z = 0.0;
 
 // ─── Metaball animation (lava flow simulation) ───────────────────────────────
 
 export const METABALL_MAX_BALLS = 500;
-export const METABALL_LEGACY_EFFECT_SCALE = 6.0;
+export const METABALL_LEGACY_EFFECT_SCALE = 7.2; // scales ball strength; radius ∝ this linearly (see BALL_STRENGTH in metaball_animation.js)
 export const METABALL_CRATER_X = 0.5;
 export const METABALL_CRATER_Y = 0.45; // volcano tip: ground -6 + height 5 = -1 -> (-1 - 0.36) / 30 + 0.5
 export const METABALL_CRATER_Z = 0.5;
 export const METABALL_GROUND_Y = 0.288; // (-6 - 0.36) / 30 + 0.5
 export const METABALL_BALL_LIFETIME = 3.5; // seconds, crater to ground
-export const METABALL_SPAWN_INTERVAL = 40.0; // seconds between new metaballs joining a wave
+export const METABALL_SPAWN_INTERVAL = 36.0; // seconds between new metaballs joining a wave
 export const METABALL_SECTORS = 6;
 export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the smoke plume fades instead of snapping
 

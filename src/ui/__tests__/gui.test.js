@@ -38,6 +38,8 @@ function makeFacade(overrides = {}) {
         getMaxMetaballCount: vi.fn(() => 500),
         getMetaballIsolation: vi.fn(() => 50),
         setMetaballIsolation: vi.fn(),
+        getMetaballRadius: vi.fn(() => 1),
+        setMetaballRadius: vi.fn(),
         getMetaballSpread: vi.fn(() => 1.0),
         setMetaballSpread: vi.fn(),
         getMetaballSpeed: vi.fn(() => 0.003),
@@ -318,6 +320,7 @@ describe('setupGui – Metaballs folder', () => {
 
     test.each([
         ['isolation', 'setMetaballIsolation'],
+        ['radius', 'setMetaballRadius'],
         ['spread', 'setMetaballSpread'],
         ['speed_factor', 'setMetaballSpeed'],
         ['sink_speed', 'setMetaballSinkSpeed'],

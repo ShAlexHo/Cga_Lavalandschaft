@@ -53,11 +53,11 @@ void main() {
 
     float puff_opacity = smoothstep(0.0, 0.15, local_progress) * (1.0 - smoothstep(0.6, 1.0, local_progress));
 
-    // shape_seed (a_seed.w) still drives the edge-shape noise phase and a bit of glow-intensity
-    // variance below, but the base color is no longer keyed off it - the ember is confined to a small
-    // radius near the origin (early in each puff's own cycle), while the rest of the (larger) radius
-    // is already grey smoke, regardless of how long the burst has bloomed. That keeps grey smoke
-    // present - and gently rising - right from the first frame, alongside the small orange core.
+    // shape_seed (a_seed.w) drives the edge-shape noise phase and a bit of glow-intensity variance
+    // below; base color instead depends on radius/progress - the ember is confined to a small radius
+    // near the origin (early in each puff's own cycle), while the rest of the (larger) radius is
+    // already grey smoke, regardless of how long the burst has bloomed. That keeps grey smoke present
+    // - and gently rising - right from the first frame, alongside the small orange core.
     float shape_seed = a_seed.w;
     float radial_color = smoothstep(0.0, u_ember_radius_fraction, local_progress);
     float base_color_mix = clamp(max(bloom, radial_color), 0.0, 1.0);

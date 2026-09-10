@@ -24,7 +24,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
 
     const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
-    let metaball_y_offset = 1.4;
+    let metaball_y_offset = DEFAULT_SETTINGS.metaballHeight;
     let time_scale = DEFAULT_SETTINGS.timeScale;
 
     function applyY(ground_y) {
@@ -68,6 +68,8 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getMaxMetaballCount: () => metaball_field.getMaxCount(),
         getMetaballIsolation: () => metaball_field.getIsolation(),
         setMetaballIsolation: value => metaball_field.setIsolation(value),
+        getMetaballRadius: () => metaball_field.getRadius(),
+        setMetaballRadius: value => metaball_field.setRadius(value),
         getMetaballSpread: () => metaball_field.getSpread(),
         setMetaballSpread: value => metaball_field.setSpread(value),
         getMetaballSpeed: () => metaball_field.getSpeed(),
@@ -235,6 +237,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         { key: 'interactionSmokeVisible', get: () => controller.getInteractionSmokeVisible(), set: value => controller.setInteractionSmokeVisible(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },
         { key: 'metaballIsolation', get: () => controller.getMetaballIsolation(), set: value => controller.setMetaballIsolation(value) },
+        { key: 'metaballRadius', get: () => controller.getMetaballRadius(), set: value => controller.setMetaballRadius(value) },
         { key: 'metaballSpread', get: () => controller.getMetaballSpread(), set: value => controller.setMetaballSpread(value) },
         { key: 'metaballSpeed', get: () => controller.getMetaballSpeed(), set: value => controller.setMetaballSpeed(value) },
         { key: 'metaballSinkSpeed', get: () => controller.getMetaballSinkSpeed(), set: value => controller.setMetaballSinkSpeed(value) },

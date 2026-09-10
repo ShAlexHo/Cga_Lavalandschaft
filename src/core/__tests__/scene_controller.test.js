@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { makeColor, makeGroundMaterialUniformsMock, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
+import { METABALL_GPU_MAX_BALLS } from '../config.js';
 
 // vi.mock() factories hoist above this, so vi.hoisted() is needed to seed their initial state
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
@@ -232,10 +233,10 @@ beforeEach(() => {
 describe('createSceneController – initial positioning', () => {
     test('places ground, volcano and effect exactly like the previous hand-wired setup', () => {
         const controller = makeController();
-        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=1.4
+        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=DEFAULT_SETTINGS.metaballHeight(2.0, per the mock below)
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
-        expect(controller.getMetaballHeight()).toBeCloseTo(1.4, 9);
+        expect(controller.getMetaballHeight()).toBeCloseTo(2.0, 9);
     });
 });
 
@@ -254,7 +255,7 @@ describe('createSceneController – setGroundHeight / setOffsetY', () => {
         controller.setGroundHeight(-3);
         expect(controller.getGroundHeight()).toBe(-3);
         // volcano.y = ground_y + position.y = -3 + 0 = -3
-        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(1.4) = 4.76
+        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(2.0) = 5.36
         expect(controller.getGroundHeight()).toBeCloseTo(-3, 9);
     });
 
@@ -291,9 +292,16 @@ describe('createSceneController – metaballs', () => {
         expect(rebuildMetaballGeometry).toHaveBeenCalled();
     });
 
-    test('getMaxMetaballCount reflects settings.max_count', () => {
+    test('setMetaballRadius updates effect.radius_scale and rebuilds the field', () => {
         const controller = makeController();
-        expect(controller.getMaxMetaballCount()).toBe(500);
+        controller.setMetaballRadius(1.5);
+        expect(controller.getMetaballRadius()).toBe(1.5);
+        expect(rebuildMetaballGeometry).toHaveBeenCalled();
+    });
+
+    test('getMaxMetaballCount is capped at the GPU raymarcher\'s ball limit, even though the mocked pool reports a higher max_count', () => {
+        const controller = makeController();
+        expect(controller.getMaxMetaballCount()).toBe(METABALL_GPU_MAX_BALLS);
     });
 });
 
@@ -375,7 +383,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
         const controller = makeController();
         const snapshot = {
-            paused: true, timeScale: 2.5, interactionMode: true, interactionSmokeVisible: false, metaballCount: 33, metaballIsolation: 61, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
+            paused: true, timeScale: 2.5, interactionMode: true, interactionSmokeVisible: false, metaballCount: 33, metaballIsolation: 61, metaballRadius: 1.8, metaballSpread: 0.4, metaballSpeed: 0.0021, metaballSinkSpeed: 0.5, metaballDisappearY: 0.26,
             metaballHeight: 3.3, flowRadius: 7,
             colorHot: '#abcabc', colorCool: '#123123', glowEnabled: false, glowColor: '#ffffff',
             noiseEnabled: false, noiseColor1: '#000001', noiseColor2: '#000002', bumpEnabled: false,

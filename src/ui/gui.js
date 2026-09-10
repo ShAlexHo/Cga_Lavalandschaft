@@ -35,6 +35,7 @@ export function setupGui(facade) {
     const metaballs_parameters = makeParameters({
         count: facade.getMetaballCount,
         isolation: facade.getMetaballIsolation,
+        radius: facade.getMetaballRadius,
         spread: facade.getMetaballSpread,
         speed_factor: facade.getMetaballSpeed,
         sink_speed: facade.getMetaballSinkSpeed,
@@ -48,6 +49,9 @@ export function setupGui(facade) {
     bind(metaballs_folder.add(metaballs_parameters, 'isolation', 1, 100, 1))
         .name('Schwellenwert')
         .onChange(value => facade.setMetaballIsolation(value));
+    bind(metaballs_folder.add(metaballs_parameters, 'radius', 0.2, 3.0, 0.05))
+        .name('Radius')
+        .onChange(value => facade.setMetaballRadius(value));
     bind(metaballs_folder.add(metaballs_parameters, 'spread', 0.1, 2.0, 0.01))
         .name('Verteilung')
         .onChange(value => facade.setMetaballSpread(value));

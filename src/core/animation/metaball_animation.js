@@ -99,7 +99,7 @@ export function stepMetaballAnimation(time) {
         } else if (current_wave_count >= settings.count) {
             pausing = true;
             pause_start = time;
-            pause_end = time + random(20, 30);
+            pause_end = time + random(10, 18);
         }
     }
 

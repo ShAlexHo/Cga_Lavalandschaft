@@ -151,7 +151,7 @@ describe('createMetaballField', () => {
         expect(getEruptionIntensity).toHaveBeenCalledWith(7);
     });
 
-    test('setCount/setIsolation rebuild the geometry with the currently active balls', () => {
+    test('setCount/setIsolation/setRadius rebuild the geometry with the currently active balls', () => {
         const field = createMetaballField(makeScene());
         rebuildMetaballGeometry.mockClear();
 
@@ -162,6 +162,10 @@ describe('createMetaballField', () => {
         field.setIsolation(77);
         expect(field.getIsolation()).toBe(77);
         expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(2);
+
+        field.setRadius(1.5);
+        expect(field.getRadius()).toBe(1.5);
+        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(3);
     });
 
     test('displacement toggle remembers the strength while disabled', () => {

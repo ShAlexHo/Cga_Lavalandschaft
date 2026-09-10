@@ -2,6 +2,7 @@ import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, b
 import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
 import { toHexColor } from '../rendering/color_utils.js';
+import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {
@@ -23,8 +24,8 @@ export function createMetaballField(scene) {
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
         getEruptionIntensity: time => getEruptionIntensity(time),
-        // subtract/isolation ride along so the interaction layer can replicate MarchingCubes' own
-        // field equation and check whether a point is genuinely on the rendered lava surface -
+        // subtract/isolation ride along so the interaction layer can replicate the raymarcher's field
+        // equation (metaball.frag) and check whether a point is genuinely on the rendered lava surface -
         // accounting for multiple overlapping metaballs blending together, not just the nearest one.
         getActiveWorldPositions: () => getActiveBalls().map(ball => ({
             ...ballToWorldPosition(ball, effect),
@@ -57,9 +58,12 @@ export function createMetaballField(scene) {
 
         getCount: () => settings.count,
         setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
-        getMaxCount: () => settings.max_count,
+        // GUI/persistence max only, clamped to the GPU array size - settings.max_count itself stays uncapped.
+        getMaxCount: () => Math.min(settings.max_count, METABALL_GPU_MAX_BALLS),
         getIsolation: () => effect.isolation,
         setIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
+        getRadius: () => effect.radius_scale,
+        setRadius: value => { effect.radius_scale = value; rebuildMetaballGeometry(effect, getActiveBalls()); },
         getSpread: () => settings.spread,
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,

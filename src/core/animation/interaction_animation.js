@@ -83,9 +83,9 @@ let pool_head = 0;
 
 // ─── lava-presence gating (is hit_point actually on the rendered metaball surface) ──
 
-// Replicates MarchingCubes' own field equation (see ballToWorldRadius in metaball_geometry.js) in
-// world space: each ball contributes max(0, world_radius² * (isolation + subtract) / dist² -
-// subtract), summed across every ball. This correctly blends overlapping metaballs (a point outside
+// Replicates the metaball field equation (see ballToWorldRadius in metaball_geometry.js and metaball.frag)
+// in world space: each ball contributes max(0, world_radius² * (isolation + subtract) / dist² - subtract),
+// summed across every ball. This correctly blends overlapping metaballs (a point outside
 // any single ball's own reach can still be genuinely on lava once several overlapping balls are
 // summed). Compared against isolation * INTERACTION_LAVA_DETECTION_TOLERANCE rather than the raw
 // isolation - pinpointing hit_point against the true rendered surface is imprecise to begin with
