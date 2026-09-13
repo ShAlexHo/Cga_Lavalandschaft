@@ -31,6 +31,9 @@ uniform float u_sun_focus_radius;
 uniform float u_rock_variance_radius;
 uniform float u_crack_density_fade_start;
 uniform float u_crack_density_fade_end;
+uniform vec3  u_sky_color;
+uniform float u_edge_fade_start;
+uniform float u_edge_fade_end;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -66,9 +69,9 @@ void main() {
     vec3 varied_color = mix(rock_base_color * 0.6, rock_base_color, color_variation);
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
-    // hides whole vein patches on the ground's newly expanded outer ring, rather than eroding
-    // crack_mask directly - eroding a continuous vein breaks it into isolated dots long before
-    // it fully disappears, since its depth varies along its own length
+    // hides whole vein patches farther from the volcano, rather than eroding crack_mask directly -
+    // erosion breaks a continuous vein into isolated dots long before it fully disappears, since
+    // its depth varies along its own length
     float patch_noise = simplexNoise(v_world_position * 0.02) * 0.5 + 0.5;
     float patch_hide_threshold = smoothstep(u_crack_density_fade_start, u_crack_density_fade_end, volcano_distance);
     if (patch_noise < patch_hide_threshold) crack_mask = 1.0;
@@ -113,6 +116,13 @@ void main() {
     float glow_variation = normalizedFractalBrownianMotion(v_world_position * 5.0 + vec3(0.0, u_time * 0.3, 0.0));
     float crack_glow_strength = mix(0.4, 1.2, glow_variation);
     color += crack_color * (1.0 - crack_mask) * crack_glow_strength;
+
+    // fades to the sky color toward the plane's own radius, so its rectangular edge
+    // (corners included, since this uses radial rather than per-axis distance) never
+    // shows a hard silhouette against the sky at the horizon
+    float edge_distance = length(v_world_position.xz);
+    float edge_fade = smoothstep(u_edge_fade_start, u_edge_fade_end, edge_distance);
+    color = mix(color, u_sky_color, edge_fade);
 
     gl_FragColor = vec4(color, 1.0);
 }

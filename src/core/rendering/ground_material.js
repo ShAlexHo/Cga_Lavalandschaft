@@ -4,6 +4,7 @@ import vertex_glsl from '../shaders/ground.vert?raw';
 import fragment_glsl from '../shaders/ground.frag?raw';
 import {
     GROUND_CRACK_FREQUENCY, SUN_LIGHT_COLOR, GROUND_CRACK_DENSITY_FADE_START, GROUND_CRACK_DENSITY_FADE_END,
+    GROUND_EDGE_FADE_START, GROUND_EDGE_FADE_END,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { updateKeyAndSunLightUniforms } from './light_utils.js';
@@ -43,14 +44,18 @@ export function createGroundMaterial() {
             u_volcano_crack_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
             u_crack_density_fade_start: { value: GROUND_CRACK_DENSITY_FADE_START },
             u_crack_density_fade_end: { value: GROUND_CRACK_DENSITY_FADE_END },
+            u_sky_color: { value: new THREE.Color(DEFAULT_SETTINGS.skyColor) },
+            u_edge_fade_start: { value: GROUND_EDGE_FADE_START },
+            u_edge_fade_end: { value: GROUND_EDGE_FADE_END },
         },
         side: THREE.DoubleSide,
         precision: 'highp',
     });
 }
 
-export function updateGroundLight(material, camera, volcano_world_position, sun_world_position, time) {
+export function updateGroundLight(material, camera, volcano_world_position, sun_world_position, time, sky_color) {
     updateKeyAndSunLightUniforms(material, camera, sun_world_position);
     material.uniforms.u_volcano_position.value.copy(volcano_world_position);
     material.uniforms.u_time.value = time;
+    material.uniforms.u_sky_color.value.copy(sky_color);
 }

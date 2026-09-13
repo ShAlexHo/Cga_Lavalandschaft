@@ -30,13 +30,14 @@ describe('createGround', () => {
         expect(scene.add).toHaveBeenCalledWith(ground.mesh);
     });
 
-    test('update() forwards to updateGroundLight with the material, camera, volcano position, sun position and time', () => {
+    test('update() forwards to updateGroundLight with the material, camera, volcano position, sun position, time and sky color', () => {
         const ground = createGround(makeScene());
         const camera = {};
         const volcano_position = {};
         const sun_position = {};
-        ground.update(camera, volcano_position, sun_position, 3.5);
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position, sun_position, 3.5);
+        const sky_color = {};
+        ground.update(camera, volcano_position, sun_position, 3.5, sky_color);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, volcano_position, sun_position, 3.5, sky_color);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {

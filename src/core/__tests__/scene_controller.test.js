@@ -633,7 +633,7 @@ describe('createSceneController – update()', () => {
         controller.update(12.5);
 
         const sun = createSun.mock.results[0].value;
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), sun.light.position, 12.5);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), sun.light.position, 12.5, scene.background);
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);

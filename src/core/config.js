@@ -23,8 +23,10 @@ export const CAMERA_VISIBILITY_FADE_DEGREES = 10; // fade width at the arc's edg
 export const GROUND_SIZE = 160;
 export const GROUND_SEGMENTS = 160; // must be well above 1x1, or bumps read as a tilted flat plane
 export const GROUND_CRACK_FREQUENCY = 0.06; // not yet exposed in the GUI
-export const GROUND_CRACK_DENSITY_FADE_START = 40.0; // world-distance from the volcano where crack density starts thinning out (the old ground's edge, before GROUND_SIZE doubled)
-export const GROUND_CRACK_DENSITY_FADE_END = 80.0; // world-distance from the volcano beyond which no cracks remain (the new ground's edge)
+export const GROUND_CRACK_DENSITY_FADE_START = GROUND_SIZE / 4; // world-distance from the volcano where crack density starts thinning out
+export const GROUND_CRACK_DENSITY_FADE_END = GROUND_SIZE / 2; // world-distance from the volcano beyond which no cracks remain (the ground's own edge)
+export const GROUND_EDGE_FADE_START = GROUND_SIZE / 2 - 25; // world-distance from the center where the ground starts fading to the sky color
+export const GROUND_EDGE_FADE_END = GROUND_SIZE / 2 - 1; // world-distance from the center where it's fully sky-colored - inside GROUND_SIZE / 2 in every direction, so the plane's rectangular edge (corners included) never shows against the sky
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 

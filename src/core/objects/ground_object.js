@@ -25,9 +25,9 @@ export function createGround(scene) {
     return {
         mesh,
         rebakeDisplacement,
-        update(camera, volcano_world_position, sun_world_position, time) {
+        update(camera, volcano_world_position, sun_world_position, time, sky_color) {
             last_volcano_position = volcano_world_position;
-            updateGroundLight(material, camera, volcano_world_position, sun_world_position, time);
+            updateGroundLight(material, camera, volcano_world_position, sun_world_position, time, sky_color);
         },
 
         getVisible: () => mesh.visible,
