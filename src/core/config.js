@@ -9,7 +9,7 @@ export const RANDOM_SEED = 42; // fixed, so particle placement/variance is ident
 
 export const CAMERA_FOV = 75;
 export const CAMERA_NEAR = 0.1;
-export const CAMERA_FAR = 1000;
+export const CAMERA_FAR = 2000; // must clear SUN_LIGHT_POSITION's distance
 export const CAMERA_INITIAL_POSITION = { x: 0, y: 1.7, z: 7.5 };
 export const CAMERA_MIN_DISTANCE = 16;
 export const CAMERA_MAX_DISTANCE = 36;
@@ -119,14 +119,15 @@ export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
 
 // ─── Sun (red PointLight + matching volcano shader tint) ────────────────────
 
-export const SUN_LIGHT_POSITION = { x: 12, y: 10, z: -30 }; // stays inside the default camera frustum
+const SUN_DISTANCE_SCALE = 24; // u_sun_position only ever feeds a direction in ground.frag/volcano.frag, so scaling it uniformly leaves lighting unchanged
+export const SUN_LIGHT_POSITION = { x: 12 * SUN_DISTANCE_SCALE, y: 10 * SUN_DISTANCE_SCALE, z: -30 * SUN_DISTANCE_SCALE };
 export const SUN_LIGHT_COLOR = 0xff1020;
 export const SUN_CORE_COLOR = 0xff3311;
 export const SUN_BLOOD_ORANGE_COLOR = 0xcc2200; // second, independently-animated noise layer
 export const SUN_ASH_TINT_COLOR = 0xdd1100; // blue-free red, or it reads pink over the pale smoke
 export const SUN_LIGHT_INTENSITY = 4.0;
-export const SUN_LIGHT_DISTANCE = 60;
-export const SUN_VISUAL_RADIUS = 2.5;
+export const SUN_LIGHT_DISTANCE = 60 * SUN_DISTANCE_SCALE;
+export const SUN_VISUAL_RADIUS = 40; // smaller than SUN_DISTANCE_SCALE alone would give
 
 // orbits the volcano at a fixed height/radius derived from SUN_LIGHT_POSITION
 export const SUN_ORBIT_RADIUS = Math.sqrt(SUN_LIGHT_POSITION.x ** 2 + SUN_LIGHT_POSITION.z ** 2);
