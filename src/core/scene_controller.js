@@ -6,6 +6,7 @@ import { createSun } from './objects/sun_object.js';
 import { createSky } from './objects/sky_object.js';
 import { createInteractionController } from './objects/interaction_controller.js';
 import { createImpactSmoke } from './objects/impact_smoke_object.js';
+import { createVolcanoAudio } from './audio/volcano_audio.js';
 import { SMOKE_SPAWN_HEIGHT } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
@@ -18,6 +19,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const sky = createSky(scene);
     const interaction = createInteractionController(renderer, volcano.mesh);
     const impact_smoke = createImpactSmoke(scene);
+    const volcano_audio = createVolcanoAudio();
 
     metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
@@ -28,6 +30,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const position = { x: 0, y: 0, z: 0 };
     let metaball_y_offset = DEFAULT_SETTINGS.metaballHeight;
     let time_scale = DEFAULT_SETTINGS.timeScale;
+    let last_spawn_count = metaball_field.getSpawnCount();
 
     function applyY(ground_y) {
         ground.mesh.position.y = ground_y;
@@ -51,6 +54,13 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             volcano.update(camera, sun.light.position, touch_points);
             impact_smoke.update(smoke_bursts);
             smoke.update(time, metaball_field.getEruptionIntensity(time));
+            volcano_audio.update(time);
+
+            const spawn_count = metaball_field.getSpawnCount();
+            if (spawn_count !== last_spawn_count) {
+                last_spawn_count = spawn_count;
+                volcano_audio.playMetaballSpawn();
+            }
         },
 
         isPaused: () => metaball_field.isPaused(),
@@ -242,6 +252,12 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getGodRaysTintColor: () => god_rays_pass.getTintColor(),
         setGodRaysTintColor: value => god_rays_pass.setTintColor(value),
 
+        startAudio: () => volcano_audio.start(),
+        getSoundEnabled: () => volcano_audio.getEnabled(),
+        setSoundEnabled: value => volcano_audio.setEnabled(value),
+        getSoundVolume: () => volcano_audio.getVolume(),
+        setSoundVolume: value => volcano_audio.setVolume(value),
+
         getSnapshot,
         applySnapshot,
         resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
@@ -319,6 +335,8 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         { key: 'godRaysDecay', get: () => controller.getGodRaysDecay(), set: value => controller.setGodRaysDecay(value) },
         { key: 'godRaysDensity', get: () => controller.getGodRaysDensity(), set: value => controller.setGodRaysDensity(value) },
         { key: 'godRaysTintColor', get: () => controller.getGodRaysTintColor(), set: value => controller.setGodRaysTintColor(value) },
+        { key: 'soundEnabled', get: () => controller.getSoundEnabled(), set: value => controller.setSoundEnabled(value) },
+        { key: 'soundVolume', get: () => controller.getSoundVolume(), set: value => controller.setSoundVolume(value) },
     ];
 
     const SETTERS = Object.fromEntries(SETTINGS.map(({ key, set }) => [key, set]));

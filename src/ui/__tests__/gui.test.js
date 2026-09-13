@@ -178,6 +178,11 @@ function makeFacade(overrides = {}) {
         getGodRaysTintColor: vi.fn(() => '#ff2211'),
         setGodRaysTintColor: vi.fn(),
 
+        getSoundEnabled: vi.fn(() => true),
+        setSoundEnabled: vi.fn(),
+        getSoundVolume: vi.fn(() => 0.5),
+        setSoundVolume: vi.fn(),
+
         getSnapshot: vi.fn(() => ({ paused: false })),
         applySnapshot: vi.fn(),
         resetToDefaults: vi.fn(),
@@ -260,7 +265,7 @@ describe('setupGui – structure', () => {
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
             'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
-            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Lichtstrahlen', 'Speichern / Laden',
+            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Lichtstrahlen', 'Sound', 'Speichern / Laden',
         ]);
     });
 
@@ -526,6 +531,21 @@ describe('setupGui – Lichtstrahlen folder', () => {
         const facade = makeFacade();
         setupGui(facade);
         fire(registry, 'Lichtstrahlen', key, value);
+        expect(facade[setter]).toHaveBeenCalledWith(value);
+    });
+});
+
+// ─── Sound folder ────────────────────────────────────────────────────────────
+
+describe('setupGui – Sound folder', () => {
+    test.each([
+        ['enabled', false, 'setSoundEnabled'],
+        ['volume', 0.8, 'setSoundVolume'],
+    ])('%s onChange calls facade.%s', (key, value, setter) => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Sound', key, value);
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });

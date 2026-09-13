@@ -68,5 +68,7 @@
   "godRaysExposure": 0.64,
   "godRaysDecay": 0.898,
   "godRaysDensity": 1.2,
-  "godRaysTintColor": "#ff0000"
+  "godRaysTintColor": "#ff0000",
+  "soundEnabled": true,
+  "soundVolume": 0.7
 }

@@ -340,6 +340,18 @@ export function setupGui(facade) {
         .name('Farbe')
         .onChange(value => facade.setGodRaysTintColor(value));
 
+    const sound_folder = gui.addFolder('Sound');
+    const sound_parameters = makeParameters({
+        enabled: facade.getSoundEnabled,
+        volume: facade.getSoundVolume,
+    });
+    bind(sound_folder.add(sound_parameters, 'enabled'))
+        .name('Aktiviert')
+        .onChange(value => facade.setSoundEnabled(value));
+    bind(sound_folder.add(sound_parameters, 'volume', 0.0, 1.0, 0.01))
+        .name('Lautstärke')
+        .onChange(value => facade.setSoundVolume(value));
+
     function refreshDisplay() {
         refresh_bindings.forEach(update => update());
         all_controllers.forEach(controller => controller.updateDisplay());

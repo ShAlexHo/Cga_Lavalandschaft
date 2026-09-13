@@ -1,7 +1,7 @@
 import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../rendering/metaball_material.js';
 import { toHexColor } from '../rendering/color_utils.js';
-import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
+import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount } from '../animation/metaball_animation.js';
 import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
@@ -27,6 +27,7 @@ export function createMetaballField(scene) {
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
         getEruptionIntensity: time => getEruptionIntensity(time),
+        getSpawnCount: () => getSpawnCount(),
         // subtract/isolation let the interaction layer replicate metaball.frag's blended field, not
         // just nearest-ball distance.
         getActiveWorldPositions: () => getActiveBalls().map(ball => ({

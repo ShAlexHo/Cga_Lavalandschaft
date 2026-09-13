@@ -185,3 +185,40 @@ export const GOD_RAYS_SKIP_VISIBILITY_THRESHOLD = 0.02; // below this, the sun's
 // ─── Bloom (post-processing) ─────────────────────────────────────────────────
 
 export const BLOOM_TINT_COLOR = { x: 1.0, y: 0.45, z: 0.05 };
+
+// ─── Sound (procedural ambient audio - lava flow/crackle, volcano rumble) ───
+
+export const AUDIO_LAVA_NOISE_DURATION = 4.0;
+export const AUDIO_LAVA_LOWPASS_FREQUENCY = 300;
+export const AUDIO_LAVA_FLOW_GAIN = 0.5;
+export const AUDIO_LAVA_FLOW_LFO_FREQUENCY = 0.07;
+export const AUDIO_LAVA_FLOW_LFO_DEPTH = 0.15;
+
+export const AUDIO_CRACKLE_MIN_INTERVAL = 3.0;
+export const AUDIO_CRACKLE_MAX_INTERVAL = 12.0;
+export const AUDIO_CRACKLE_DURATION = 0.07;
+export const AUDIO_CRACKLE_BANDPASS_FREQUENCY = 1200;
+export const AUDIO_CRACKLE_GAIN = 0.27;
+export const AUDIO_CRACKLE_GAIN_VARIANCE_MIN = 0.3;
+export const AUDIO_CRACKLE_GAIN_VARIANCE_MAX = 1.2;
+export const AUDIO_CRACKLE_CLUSTER_CHANCE = 0.35;
+export const AUDIO_CRACKLE_CLUSTER_MIN_COUNT = 1;
+export const AUDIO_CRACKLE_CLUSTER_MAX_COUNT = 3;
+export const AUDIO_CRACKLE_CLUSTER_GAP_MIN = 0.05;
+export const AUDIO_CRACKLE_CLUSTER_GAP_MAX = 0.3;
+
+export const AUDIO_RUMBLE_MIN_INTERVAL = 9.0;
+export const AUDIO_RUMBLE_MAX_INTERVAL = 24.0;
+export const AUDIO_RUMBLE_FREQUENCY_START = 70;
+export const AUDIO_RUMBLE_FREQUENCY_END = 38;
+export const AUDIO_RUMBLE_DURATION = 1.6;
+export const AUDIO_RUMBLE_GAIN = 0.7;
+export const AUDIO_RUMBLE_SECOND_PULSE_DELAY = 0.32;
+export const AUDIO_RUMBLE_SECOND_PULSE_GAIN_SCALE = 0.55;
+
+export const AUDIO_METABALL_SPAWN_NOISE_DURATION = 0.2;
+export const AUDIO_METABALL_SPAWN_LOWPASS_FREQUENCY = 800;
+export const AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_START = 150;
+export const AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_END = 50;
+export const AUDIO_METABALL_SPAWN_DURATION = 0.25;
+export const AUDIO_METABALL_SPAWN_GAIN = 0.67;

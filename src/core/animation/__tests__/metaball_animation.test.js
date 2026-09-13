@@ -86,6 +86,26 @@ describe('stepMetaballAnimation', () => {
     });
 });
 
+describe('getSpawnCount', () => {
+    test('is 0 before the simulation has run', () => {
+        expect(animation_module.getSpawnCount()).toBe(0);
+    });
+
+    test('increments each time a ball actually spawns', () => {
+        animation_module.stepMetaballAnimation(0);
+        expect(animation_module.getSpawnCount()).toBe(1);
+
+        animation_module.stepMetaballAnimation(METABALL_SPAWN_INTERVAL);
+        expect(animation_module.getSpawnCount()).toBe(2);
+    });
+
+    test('does not increment on a step that repositions balls without spawning a new one', () => {
+        animation_module.stepMetaballAnimation(0);
+        animation_module.stepMetaballAnimation(METABALL_SPAWN_INTERVAL / 2);
+        expect(animation_module.getSpawnCount()).toBe(1);
+    });
+});
+
 describe('getEruptionIntensity', () => {
     test('is 1.0 while a wave is actively spawning', () => {
         expect(animation_module.getEruptionIntensity(0)).toBe(1.0);

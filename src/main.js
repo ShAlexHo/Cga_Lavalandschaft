@@ -42,6 +42,10 @@ post_processing.setOccluders({
 setupGui(controller);
 const fps_meter = createFpsMeter();
 
+// unlocks Web Audio, which browsers block until a user gesture
+window.addEventListener('pointerdown', controller.startAudio, { once: true });
+window.addEventListener('keydown', controller.startAudio, { once: true });
+
 window.addEventListener('resize', () => {
     camera_controller.resize(window.innerWidth, window.innerHeight);
     renderer.setSize(window.innerWidth, window.innerHeight);

@@ -51,6 +51,7 @@ let last_spawn_time = -Infinity;
 let pausing = false;
 let pause_start = -Infinity;
 let pause_end = -Infinity;
+let spawn_count = 0;
 
 const active_balls = [];
 
@@ -60,6 +61,10 @@ export function getActiveBalls() {
         if (ball_pool[i].active) active_balls.push(ball_pool[i]);
     }
     return active_balls;
+}
+
+export function getSpawnCount() {
+    return spawn_count;
 }
 
 // 1.0 while a wave spawns; eases toward 0 around a pause instead of snapping.
@@ -95,6 +100,7 @@ export function stepMetaballAnimation(time) {
                 current_wave_count++;
                 pool_head = (index + 1) % MAX_BALLS;
                 last_spawn_time = time;
+                spawn_count++;
             }
         } else if (current_wave_count >= settings.count) {
             pausing = true;

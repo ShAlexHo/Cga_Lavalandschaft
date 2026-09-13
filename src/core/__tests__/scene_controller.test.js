@@ -45,6 +45,7 @@ vi.mock('../animation/metaball_animation.js', () => {
         getActiveBalls: vi.fn(() => []),
         stepMetaballAnimation: vi.fn(),
         getEruptionIntensity: vi.fn(() => 1.0),
+        getSpawnCount: vi.fn(() => 0),
     };
 });
 
@@ -112,6 +113,21 @@ vi.mock('../objects/impact_smoke_object.js', () => ({
             setVisible: value => { visible = value; },
             setSunEnabled: vi.fn(),
             setSunStrength: vi.fn(),
+        };
+    }),
+}));
+
+vi.mock('../audio/volcano_audio.js', () => ({
+    createVolcanoAudio: vi.fn(() => {
+        const state = { enabled: true, volume: 0.5 };
+        return {
+            start: vi.fn(),
+            update: vi.fn(),
+            playMetaballSpawn: vi.fn(),
+            getEnabled: () => state.enabled,
+            setEnabled: value => { state.enabled = value; },
+            getVolume: () => state.volume,
+            setVolume: value => { state.volume = value; },
         };
     }),
 }));
@@ -191,8 +207,9 @@ vi.mock('../default_settings.json', () => ({
 }));
 
 import { createSceneController } from '../scene_controller.js';
-import { settings as mock_settings, stepMetaballAnimation, getActiveBalls } from '../animation/metaball_animation.js';
+import { settings as mock_settings, stepMetaballAnimation, getActiveBalls, getSpawnCount } from '../animation/metaball_animation.js';
 import { updateMetaballLight, updateMetaballBalls } from '../rendering/metaball_material.js';
+import { createVolcanoAudio } from '../audio/volcano_audio.js';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings } from '../animation/smoke_particles.js';
@@ -410,6 +427,7 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
             bloomEnabled: false, bloomStrength: 1.1, bloomRadius: 0.4, bloomThreshold: 0.2,
             skyColor: '#112233',
             godRaysWeight: 0.4, godRaysExposure: 0.7, godRaysDecay: 0.9, godRaysDensity: 1.0, godRaysTintColor: '#654321',
+            soundEnabled: false, soundVolume: 0.75,
         };
 
         controller.applySnapshot(snapshot);
@@ -658,5 +676,23 @@ describe('createSceneController – update()', () => {
         stepMetaballAnimation.mockReturnValueOnce(balls);
         controller.update(1);
         expect(updateMetaballBalls).toHaveBeenCalledWith(expect.anything(), balls, expect.anything());
+    });
+
+    test('plays a metaball-spawn sound only when the spawn count changes', () => {
+        getSpawnCount.mockReturnValueOnce(0);
+        const controller = makeController();
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+
+        getSpawnCount.mockReturnValueOnce(0);
+        controller.update(1);
+        expect(volcano_audio.playMetaballSpawn).not.toHaveBeenCalled();
+
+        getSpawnCount.mockReturnValueOnce(1);
+        controller.update(2);
+        expect(volcano_audio.playMetaballSpawn).toHaveBeenCalledTimes(1);
+
+        getSpawnCount.mockReturnValueOnce(1);
+        controller.update(3);
+        expect(volcano_audio.playMetaballSpawn).toHaveBeenCalledTimes(1);
     });
 });
