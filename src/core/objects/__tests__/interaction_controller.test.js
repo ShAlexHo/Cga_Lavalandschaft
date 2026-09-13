@@ -192,7 +192,36 @@ describe('createInteractionController', () => {
 
         expect(stepInteractionAnimation).toHaveBeenCalledWith(3);
         expect(stepInteractionSmoke).toHaveBeenCalledWith(3);
-        expect(result).toEqual({ touch_points, smoke_bursts });
+        expect(result).toEqual({ touch_points, smoke_bursts, is_touching_lava: false });
+    });
+
+    test('is_touching_lava is true while pressing on a metaball that is genuinely on lava', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        settings.enabled = true;
+        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+
+        raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
+        isOnLava.mockReturnValueOnce(true);
+
+        const { is_touching_lava } = controller.step(0, {}, () => [{ x: 1, y: 2, z: 3 }]);
+
+        expect(is_touching_lava).toBe(true);
+    });
+
+    test('is_touching_lava is false while pressing off lava, or not pressing at all', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        settings.enabled = true;
+
+        raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
+        isOnLava.mockReturnValueOnce(true);
+        expect(controller.step(0, {}, () => [{ x: 1, y: 2, z: 3 }]).is_touching_lava).toBe(false);
+
+        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
+        isOnLava.mockReturnValueOnce(false);
+        expect(controller.step(0, {}, () => [{ x: 1, y: 2, z: 3 }]).is_touching_lava).toBe(false);
     });
 
     test('getEnabled/setEnabled forward to the animation module settings', () => {

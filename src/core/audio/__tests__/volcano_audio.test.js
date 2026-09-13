@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createVolcanoAudio, pickNextEventTime } from '../volcano_audio.js';
 import {
     AUDIO_CRACKLE_MIN_INTERVAL, AUDIO_CRACKLE_MAX_INTERVAL, AUDIO_RUMBLE_MIN_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL,
-    AUDIO_METABALL_SPAWN_GAIN,
+    AUDIO_METABALL_SPAWN_GAIN, AUDIO_PRESS_GAIN,
 } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 
@@ -192,5 +192,22 @@ describe('createVolcanoAudio', () => {
         audio.playMetaballSpawn();
         const [noise_gain] = context._created.gains.slice(-2);
         expect(noise_gain.gain.value).toBeCloseTo(AUDIO_METABALL_SPAWN_GAIN, 9);
+    });
+
+    test('the press noise bed starts silent', () => {
+        createVolcanoAudio(context);
+        const press_gain = context._created.gains.at(-1);
+        expect(press_gain.gain.value).toBe(0);
+    });
+
+    test('setPressing(true) raises the press noise to AUDIO_PRESS_GAIN, setPressing(false) silences it again', () => {
+        const audio = createVolcanoAudio(context);
+        const press_gain = context._created.gains.at(-1);
+
+        audio.setPressing(true);
+        expect(press_gain.gain.value).toBeCloseTo(AUDIO_PRESS_GAIN, 9);
+
+        audio.setPressing(false);
+        expect(press_gain.gain.value).toBe(0);
     });
 });

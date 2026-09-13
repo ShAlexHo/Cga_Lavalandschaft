@@ -46,7 +46,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             sun.update(time);
             ground.update(camera, volcano.mesh.position, sun.light.position, time, scene.background);
             metaball_field.update(time, camera, volcano.mesh.position);
-            const { touch_points, smoke_bursts } = interaction.step(
+            const { touch_points, smoke_bursts, is_touching_lava } = interaction.step(
                 time, camera,
                 () => metaball_field.getActiveWorldPositions(),
                 metaball_squeeze => metaball_field.squeezeNearestBall(metaball_squeeze),
@@ -55,6 +55,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             impact_smoke.update(smoke_bursts);
             smoke.update(time, metaball_field.getEruptionIntensity(time));
             volcano_audio.update(time);
+            volcano_audio.setPressing(is_touching_lava);
 
             const spawn_count = metaball_field.getSpawnCount();
             if (spawn_count !== last_spawn_count) {

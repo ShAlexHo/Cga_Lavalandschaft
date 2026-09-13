@@ -24,18 +24,21 @@ export function createInteractionController(renderer, volcano_mesh) {
     return {
         // getMetaballWorldPositions/squeezeMetaballNear are thunks, only invoked on an actual hit.
         step(time, camera, getMetaballWorldPositions, squeezeMetaballNear) {
+            let is_touching_lava = false;
             if (settings.enabled) {
                 raycaster.setFromCamera(pointer_ndc, camera);
                 const hits = raycaster.intersectObject(volcano_mesh, false);
                 const metaballs = hits.length > 0 ? getMetaballWorldPositions() : null;
+                const on_lava = Boolean(metaballs && isOnLava(hits[0].point, metaballs));
 
                 // Hovering (not just pressing) over a metaball hints that it's interactive, whether
                 // or not the mouse is currently held down.
-                renderer.domElement.style.cursor = metaballs && isOnLava(hits[0].point, metaballs) ? 'pointer' : '';
+                renderer.domElement.style.cursor = on_lava ? 'pointer' : '';
 
                 if (is_mouse_down && hits.length > 0) {
                     const metaball_squeeze = registerTouch(time, hits[0].point, metaballs, camera.position);
                     if (metaball_squeeze) squeezeMetaballNear(metaball_squeeze);
+                    is_touching_lava = on_lava;
                 }
             } else {
                 renderer.domElement.style.cursor = '';
@@ -43,6 +46,7 @@ export function createInteractionController(renderer, volcano_mesh) {
             return {
                 touch_points: stepInteractionAnimation(time),
                 smoke_bursts: stepInteractionSmoke(time),
+                is_touching_lava,
             };
         },
         getEnabled: () => settings.enabled,

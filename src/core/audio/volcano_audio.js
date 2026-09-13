@@ -14,6 +14,7 @@ import {
     AUDIO_METABALL_SPAWN_NOISE_DURATION, AUDIO_METABALL_SPAWN_LOWPASS_FREQUENCY,
     AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_START, AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_END,
     AUDIO_METABALL_SPAWN_DURATION, AUDIO_METABALL_SPAWN_GAIN,
+    AUDIO_PRESS_NOISE_DURATION, AUDIO_PRESS_BANDPASS_FREQUENCY, AUDIO_PRESS_GAIN, AUDIO_PRESS_FADE_TIME_CONSTANT,
 } from '../config.js';
 
 export function pickNextEventTime(current_time, min_interval, max_interval) {
@@ -34,6 +35,10 @@ function fillCrackleBurst(data) {
         const decay = (1 - i / data.length) ** 3;
         data[i] = random(-1, 1) * decay;
     }
+}
+
+function fillWhiteNoise(data) {
+    for (let i = 0; i < data.length; i++) data[i] = random(-1, 1);
 }
 
 function createNoiseBuffer(audio_context, duration, fillData) {
@@ -146,6 +151,18 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         thump.stop(now + AUDIO_METABALL_SPAWN_DURATION + 0.05);
     }
 
+    const press_noise_buffer = createNoiseBuffer(audio_context, AUDIO_PRESS_NOISE_DURATION, fillWhiteNoise);
+    const press_noise_source = audio_context.createBufferSource();
+    press_noise_source.buffer = press_noise_buffer;
+    press_noise_source.loop = true;
+    const press_bandpass = audio_context.createBiquadFilter();
+    press_bandpass.type = 'bandpass';
+    press_bandpass.frequency.value = AUDIO_PRESS_BANDPASS_FREQUENCY;
+    const press_gain = audio_context.createGain();
+    press_gain.gain.value = 0;
+    press_noise_source.connect(press_bandpass).connect(press_gain).connect(master_gain);
+    press_noise_source.start();
+
     let next_crackle_time = pickNextEventTime(0, AUDIO_CRACKLE_MIN_INTERVAL, AUDIO_CRACKLE_MAX_INTERVAL);
     let next_rumble_time = pickNextEventTime(0, AUDIO_RUMBLE_MIN_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL);
 
@@ -162,6 +179,9 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
             }
         },
         playMetaballSpawn,
+        setPressing: is_pressing => {
+            press_gain.gain.setTargetAtTime(is_pressing ? AUDIO_PRESS_GAIN : 0, audio_context.currentTime, AUDIO_PRESS_FADE_TIME_CONSTANT);
+        },
         getEnabled: () => enabled,
         setEnabled: value => { enabled = value; applyMasterGain(); },
         getVolume: () => volume,

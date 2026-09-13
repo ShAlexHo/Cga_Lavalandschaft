@@ -96,7 +96,7 @@ vi.mock('../objects/interaction_controller.js', () => ({
     createInteractionController: vi.fn(() => {
         let enabled = false;
         return {
-            step: vi.fn(() => ({ touch_points: [], smoke_bursts: [] })),
+            step: vi.fn(() => ({ touch_points: [], smoke_bursts: [], is_touching_lava: false })),
             getEnabled: () => enabled,
             setEnabled: value => { enabled = value; },
         };
@@ -124,6 +124,7 @@ vi.mock('../audio/volcano_audio.js', () => ({
             start: vi.fn(),
             update: vi.fn(),
             playMetaballSpawn: vi.fn(),
+            setPressing: vi.fn(),
             getEnabled: () => state.enabled,
             setEnabled: value => { state.enabled = value; },
             getVolume: () => state.volume,
@@ -694,5 +695,19 @@ describe('createSceneController – update()', () => {
         getSpawnCount.mockReturnValueOnce(1);
         controller.update(3);
         expect(volcano_audio.playMetaballSpawn).toHaveBeenCalledTimes(1);
+    });
+
+    test('forwards is_touching_lava to volcano_audio.setPressing', () => {
+        const controller = makeController();
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+        const interaction = createInteractionController.mock.results.at(-1).value;
+
+        interaction.step.mockReturnValueOnce({ touch_points: [], smoke_bursts: [], is_touching_lava: true });
+        controller.update(1);
+        expect(volcano_audio.setPressing).toHaveBeenCalledWith(true);
+
+        interaction.step.mockReturnValueOnce({ touch_points: [], smoke_bursts: [], is_touching_lava: false });
+        controller.update(2);
+        expect(volcano_audio.setPressing).toHaveBeenCalledWith(false);
     });
 });
