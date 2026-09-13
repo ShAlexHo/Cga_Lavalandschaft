@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/ground.vert?raw';
 import fragment_glsl from '../shaders/ground.frag?raw';
-import { GROUND_CRACK_FREQUENCY, SUN_LIGHT_COLOR } from '../config.js';
+import {
+    GROUND_CRACK_FREQUENCY, SUN_LIGHT_COLOR, GROUND_CRACK_DENSITY_FADE_START, GROUND_CRACK_DENSITY_FADE_END,
+} from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { updateKeyAndSunLightUniforms } from './light_utils.js';
 
@@ -39,6 +41,8 @@ export function createGroundMaterial() {
             // volcano's own crack scale/frequency, so the blended pattern near its foot matches (ground.vert)
             u_volcano_crack_scale: { value: DEFAULT_SETTINGS.volcanoDisplacementScale },
             u_volcano_crack_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
+            u_crack_density_fade_start: { value: GROUND_CRACK_DENSITY_FADE_START },
+            u_crack_density_fade_end: { value: GROUND_CRACK_DENSITY_FADE_END },
         },
         side: THREE.DoubleSide,
         precision: 'highp',

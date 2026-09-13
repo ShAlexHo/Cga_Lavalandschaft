@@ -14,6 +14,8 @@ import {
     METABALL_PROXY_CENTER_X,
     METABALL_PROXY_CENTER_Y,
     METABALL_PROXY_CENTER_Z,
+    METABALL_BACKGROUND_FADE_NEAR,
+    METABALL_BACKGROUND_FADE_FAR,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { computeLightViewPosition } from './light_utils.js';
@@ -54,6 +56,8 @@ export function createMetaballMaterial() {
             u_raymarch_steps: { value: METABALL_RAYMARCH_STEPS },
             u_normal_epsilon: { value: METABALL_RAYMARCH_NORMAL_EPSILON },
             u_projection_matrix: { value: new THREE.Matrix4() },
+            u_background_fade_near: { value: METABALL_BACKGROUND_FADE_NEAR },
+            u_background_fade_far: { value: METABALL_BACKGROUND_FADE_FAR },
         },
         side: THREE.BackSide,
         precision: 'highp',

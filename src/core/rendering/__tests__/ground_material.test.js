@@ -8,7 +8,7 @@ vi.mock('../../shaders/ground.vert?raw', () => ({ default: '// vertex shader' })
 vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
-import { GROUND_CRACK_FREQUENCY } from '../../config.js';
+import { GROUND_CRACK_FREQUENCY, GROUND_CRACK_DENSITY_FADE_START, GROUND_CRACK_DENSITY_FADE_END } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 
 describe('createGroundMaterial', () => {
@@ -42,6 +42,8 @@ describe('createGroundMaterial', () => {
             'u_rock_variance_radius',
             'u_volcano_crack_scale',
             'u_volcano_crack_frequency',
+            'u_crack_density_fade_start',
+            'u_crack_density_fade_end',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
@@ -94,6 +96,12 @@ describe('createGroundMaterial', () => {
         const material = createGroundMaterial();
         expect(material.uniforms.u_volcano_crack_scale.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementScale);
         expect(material.uniforms.u_volcano_crack_frequency.value).toBe(DEFAULT_SETTINGS.volcanoDisplacementFrequency);
+    });
+
+    test('u_crack_density_fade_start/end start at their config defaults', () => {
+        const material = createGroundMaterial();
+        expect(material.uniforms.u_crack_density_fade_start.value).toBe(GROUND_CRACK_DENSITY_FADE_START);
+        expect(material.uniforms.u_crack_density_fade_end.value).toBe(GROUND_CRACK_DENSITY_FADE_END);
     });
 });
 

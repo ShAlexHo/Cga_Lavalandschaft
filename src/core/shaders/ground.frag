@@ -29,6 +29,8 @@ uniform vec3  u_proximity_noise_color;
 uniform float u_proximity_radius;
 uniform float u_sun_focus_radius;
 uniform float u_rock_variance_radius;
+uniform float u_crack_density_fade_start;
+uniform float u_crack_density_fade_end;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -64,6 +66,12 @@ void main() {
     vec3 varied_color = mix(rock_base_color * 0.6, rock_base_color, color_variation);
 
     float crack_mask = crackPattern(v_world_position, u_crack_frequency, u_crack_softness);
+    // hides whole vein patches on the ground's newly expanded outer ring, rather than eroding
+    // crack_mask directly - eroding a continuous vein breaks it into isolated dots long before
+    // it fully disappears, since its depth varies along its own length
+    float patch_noise = simplexNoise(v_world_position * 0.02) * 0.5 + 0.5;
+    float patch_hide_threshold = smoothstep(u_crack_density_fade_start, u_crack_density_fade_end, volcano_distance);
+    if (patch_noise < patch_hide_threshold) crack_mask = 1.0;
     vec3 crack_color = blendCrackColors(u_crack_color, u_crack_color_2, u_crack_color_3, v_world_position);
     // partial amplitude keeps per-crack variety visible instead of washing to one color at the peak
     float crack_time_pulse = 0.5 + 0.5 * sin(u_time * 0.9);

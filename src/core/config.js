@@ -20,9 +20,11 @@ export const CAMERA_VISIBILITY_FADE_DEGREES = 10; // fade width at the arc's edg
 
 // ─── Ground (geometry / rendering) ───────────────────────────────────────────
 
-export const GROUND_SIZE = 80;
+export const GROUND_SIZE = 160;
 export const GROUND_SEGMENTS = 160; // must be well above 1x1, or bumps read as a tilted flat plane
 export const GROUND_CRACK_FREQUENCY = 0.06; // not yet exposed in the GUI
+export const GROUND_CRACK_DENSITY_FADE_START = 40.0; // world-distance from the volcano where crack density starts thinning out (the old ground's edge, before GROUND_SIZE doubled)
+export const GROUND_CRACK_DENSITY_FADE_END = 80.0; // world-distance from the volcano beyond which no cracks remain (the new ground's edge)
 
 // ─── Metaball field (geometry / rendering) ───────────────────────────────────
 
@@ -42,6 +44,8 @@ export const METABALL_PROXY_CENTER_X = 0.0;
 export const METABALL_PROXY_CENTER_Y = -0.4;
 export const METABALL_PROXY_CENTER_Z = 0.0;
 export const METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE = CAMERA_MIN_DISTANCE + 0.5 * (CAMERA_MAX_DISTANCE - CAMERA_MIN_DISTANCE); // halfway through the zoom range, X/Z-plane distance to the volcano
+export const METABALL_BACKGROUND_FADE_NEAR = 18.0; // camera distance (world units) where lava starts dimming toward the background
+export const METABALL_BACKGROUND_FADE_FAR = 38.0; // camera distance beyond which lava is fully dimmed
 
 // ─── Metaball animation (lava flow simulation) ───────────────────────────────
 
