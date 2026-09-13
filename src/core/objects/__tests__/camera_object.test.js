@@ -1,30 +1,18 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { MockVector3 } from '../../test-utils/three_mocks.js';
 
 // vi.mock() factories hoist above this, so this array needs vi.hoisted() to be visible down here
 const { controls_instances } = vi.hoisted(() => ({ controls_instances: [] }));
 
 vi.mock('three', () => {
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) {
-            this.x = x; this.y = y; this.z = z;
-        }
-        set(x, y, z) {
-            this.x = x; this.y = y; this.z = z;
-            return this;
-        }
-        copy(other) {
-            this.x = other.x; this.y = other.y; this.z = other.z;
-            return this;
-        }
-    }
     class PerspectiveCamera {
         constructor(fov, aspect, near, far) {
             this.fov = fov; this.aspect = aspect; this.near = near; this.far = far;
-            this.position = new Vector3();
+            this.position = new MockVector3();
             this.updateProjectionMatrix = vi.fn();
         }
     }
-    return { Vector3, PerspectiveCamera };
+    return { Vector3: MockVector3, PerspectiveCamera };
 });
 
 vi.mock('three/addons/controls/OrbitControls.js', () => {

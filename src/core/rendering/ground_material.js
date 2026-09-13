@@ -39,7 +39,6 @@ export function createGroundMaterial() {
             u_proximity_radius: { value: DEFAULT_SETTINGS.groundProximityRadius },
             u_sun_focus_radius: { value: DEFAULT_SETTINGS.groundSunFocusRadius },
             u_rock_variance_radius: { value: DEFAULT_SETTINGS.groundRockVarianceRadius },
-            // volcano's own crack scale/frequency, so the blended pattern near its foot matches (ground.vert)
             u_volcano_crack_scale: { value: DEFAULT_SETTINGS.volcanoDisplacementScale },
             u_volcano_crack_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
             u_crack_density_fade_start: { value: GROUND_CRACK_DENSITY_FADE_START },

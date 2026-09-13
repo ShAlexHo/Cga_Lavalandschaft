@@ -11,7 +11,7 @@ import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createSmokeMaterial() {
     return new THREE.ShaderMaterial({
-        vertexShader: vertex_glsl,
+        vertexShader: noise_glsl + vertex_glsl,
         fragmentShader: noise_glsl + fragment_glsl,
         uniforms: {
             u_color_1: { value: new THREE.Color(DEFAULT_SETTINGS.smokeColor1) },

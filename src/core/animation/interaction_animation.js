@@ -33,8 +33,8 @@ export const settings = {
 
 // ─── shared helpers ───────────────────────────────────────────────────────────
 
-function distance(a, b) {
-    const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+function distance(point_a, point_b) {
+    const dx = point_a.x - point_b.x, dy = point_a.y - point_b.y, dz = point_a.z - point_b.z;
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
@@ -59,7 +59,6 @@ function distanceFromViewRay(camera_position, ray_point, point) {
     return distance(point, closest_on_ray);
 }
 
-// Returns the active pool entry closest to point, or null if the pool has none active.
 function findNearestActive(pool, point) {
     let nearest = null;
     let nearest_distance = Infinity;
@@ -83,14 +82,8 @@ let pool_head = 0;
 
 // ─── lava-presence gating (is hit_point actually on the rendered metaball surface) ──
 
-// Replicates the metaball field equation (see ballToWorldRadius in metaball_geometry.js and metaball.frag)
-// in world space: each ball contributes max(0, world_radius² * (isolation + subtract) / dist² - subtract),
-// summed across every ball. This correctly blends overlapping metaballs (a point outside
-// any single ball's own reach can still be genuinely on lava once several overlapping balls are
-// summed). Compared against isolation * INTERACTION_LAVA_DETECTION_TOLERANCE rather than the raw
-// isolation - pinpointing hit_point against the true rendered surface is imprecise to begin with
-// (raycasting a separate mesh, blended balls, shrinking radii mid-squeeze), so a bit of slack keeps
-// the gate from feeling overly strict without letting it register far from any metaball at all.
+// Mirrors metaball.frag's field equation (summed per-ball contributions), since raycasting a
+// separate mesh only approximates the true blended isosurface.
 export function isOnLava(point, metaballs) {
     let field_value = 0;
     for (const metaball of metaballs) {
@@ -103,13 +96,8 @@ export function isOnLava(point, metaballs) {
 
 // ─── metaball center-press tracking (how long the same metaball's center has been pressed) ──
 
-// Tracks how long the same metaball has been continuously pressed at its visual center, matched via
-// INTERACTION_DWELL_POSITION_TOLERANCE so drift as the ball itself flows along the surface doesn't
-// count as a new press. Returns how much MORE to shrink just this frame (zero on the very first frame
-// of a fresh press) rather than a total target fraction - a ball that was already shrunk in an
-// earlier press session keeps its size and resumes shrinking further, instead of popping back to
-// full size the instant it's pressed again.
-let center_press = null; // { x, y, z, last_press_time } - null whenever nothing is currently centered
+// { x, y, z, last_press_time } for the metaball currently under a centered press, or null.
+let center_press = null;
 
 function updateCenterPress(time, metaball) {
     if (!metaball) {
@@ -124,8 +112,7 @@ function updateCenterPress(time, metaball) {
     return { x: metaball.x, y: metaball.y, z: metaball.z, shrink_increment };
 }
 
-// Call on a fresh mouse-down so an in-progress center press doesn't carry over from an earlier,
-// unrelated press.
+// Call on mouse-down so a center press doesn't carry over from an earlier, unrelated press.
 export function resetTouchSession() {
     center_press = null;
 }
@@ -137,13 +124,8 @@ const smoke_burst_pool = Array.from({ length: INTERACTION_SMOKE_MAX_BURSTS }, ()
 }));
 let smoke_burst_head = 0;
 
-// Keeps a burst alive and following position for as long as it's called again before its fade
-// duration elapses (see stepInteractionSmoke); only once the calls stop does it fade out.
-// ember_start_time resets whenever the touch genuinely moves (beyond ordinary mouse jitter), so the
-// hot ember tint stays fresh while actively dragging and only cools to grey once the touch settles
-// on one spot - independent of first_active_time, which keeps the particle rise motion uninterrupted.
-// Each such refresh also weakens ember_strength, so repeated moving-then-stopping reads progressively
-// less fiery than the very first ember.
+// Keeps following position while touched; ember_start_time resets (and ember_strength decays)
+// only on genuine movement, so holding still cools the tint to grey.
 function updateSmokeBurst(time, position) {
     const { record: nearest, distance: nearest_distance } = findNearestActive(smoke_burst_pool, position);
     if (nearest && nearest_distance <= INTERACTION_DWELL_POSITION_TOLERANCE) {
@@ -170,11 +152,8 @@ function updateSmokeBurst(time, position) {
     smoke_burst_head = (smoke_burst_head + 1) % INTERACTION_SMOKE_MAX_BURSTS;
 }
 
-// hit_point comes from raycasting the volcano's raw, undisplaced geometry - it doesn't account for
-// the very push the vertex shader (volcano.vert) applies toward the camera at this exact spot while
-// it's being touched. Without this, the smoke would appear to originate from behind/below the bump
-// the touch itself just raised. push_amount is the touch's own height_cap, which is exactly what
-// volcano.vert's falloff reduces to at distance 0 from a touch's own center.
+// hit_point predates volcano.vert's own camera-ward push at this spot; nudges it back out by
+// push_amount so smoke doesn't spawn inside the bump the touch just raised.
 function pushedSurfacePoint(hit_point, camera_position, push_amount) {
     const direction_x = camera_position.x - hit_point.x;
     const direction_y = camera_position.y - hit_point.y;
@@ -200,14 +179,9 @@ function spawnSmokeAt(time, hit_point, camera_position, height_cap) {
 
 // ─── public API ───────────────────────────────────────────────────────────────
 
-// Only registers a bump/smoke where hit_point is genuinely on the rendered lava surface (isOnLava);
-// which metaball is nearest by surface distance (center minus radius) still picks the initial height
-// cap, so edge touches cap just as reliably as center ones, at the raw center distance rather than the
-// (near-zero) surface distance - see INTERACTION_HOVER_RISE_RATE for how that cap then keeps climbing
-// on repeated re-hovers. Returns a metaball squeeze signal ({x,y,z,shrink_increment}, by view-ray
-// distance) when the touch is on a metaball's visual center, else null - independent of whether a bump
-// was created, refreshed, or gated out. A touch that keeps landing on lava keeps its smoke burst
-// following and alive; moving off lava (or releasing) lets both fade out normally.
+// Registers a bump/smoke only where hit_point is on rendered lava (isOnLava); returns a metaball
+// squeeze signal ({x,y,z,shrink_increment}, by view-ray distance) when centered on a ball, regardless
+// of whether a bump was created, refreshed, or gated out.
 export function registerTouch(time, hit_point, metaballs, camera_position) {
     let nearest_metaball_by_view = null;
     let nearest_view_distance = Infinity;
@@ -229,18 +203,13 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
         time,
         nearest_view_distance <= INTERACTION_METABALL_CENTER_THRESHOLD ? nearest_metaball_by_view : null,
     );
-    // Squeezing a metaball (confirmed by view-ray distance) counts as being on lava too, even if the
-    // raw-distance field check alone briefly fails as the ball's own radius shrinks under repeated
-    // squeezing - it's still genuinely there, just thinner, and the touch is still precisely centered
-    // on it. Without this, a shrinking ball would abruptly cut off its own smoke mid-squeeze.
+    // Squeezing a ball counts as lava even if its shrinking radius briefly fails the field check.
     const on_lava = isOnLava(hit_point, metaballs) || metaball_squeeze !== null;
 
     const { record: nearest_point, distance: nearest_point_distance } = findNearestActive(touch_pool, hit_point);
     if (nearest_point && nearest_point_distance <= INTERACTION_MIN_POINT_SPACING) {
         if (on_lava) {
-            // Repeatedly hovering back over an already-raised spot while held down keeps nudging it a
-            // little higher still, on top of its initial metaball-distance cap - capped delta so
-            // returning after a long gap adds only a small bump, not a jump.
+            // Repeated hovers nudge height_cap higher, capped so a long gap adds only a small bump.
             const hover_delta_time = clamp(time - nearest_point.last_touched_time, 0, INTERACTION_HOVER_RISE_MAX_DELTA);
             nearest_point.height_cap += hover_delta_time * INTERACTION_HOVER_RISE_RATE;
             nearest_point.last_touched_time = time;
@@ -267,10 +236,7 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
 
 const active_touch_points = [];
 
-// The radius itself stays constant; decay_progress (0 to 1 as a point ages past INTERACTION_DECAY_DURATION)
-// instead drives a wipe in volcano.vert from the volcano's own central axis outward, so the bump
-// reads as draining away from the crater side first rather than shrinking evenly in every direction.
-// Evicted once decay_progress would reach 1.
+// decay_progress drives volcano.vert's axis-outward wipe rather than shrinking the radius itself.
 export function stepInteractionAnimation(time) {
     active_touch_points.length = 0;
     for (let i = 0; i < MAX_POINTS; i++) {
@@ -292,13 +258,8 @@ export function stepInteractionAnimation(time) {
 
 const active_smoke_bursts = [];
 
-// bloom tracks the hot-ember-to-smoke color cooldown since ember_start_time (which resets on genuine
-// movement, so dragging keeps showing fresh ember color and only holding still lets it cool to grey);
-// fade only starts once the burst stops being touched, reaching 0 - and eviction - after
-// fade_duration, which scales with how long the touch was actually held (last_active_time minus
-// first_active_time) so a longer press leaves the smoke lingering longer once released. elapsed is
-// unbounded and drives the shader's per-particle rise-and-fade cycling (see impact_smoke.vert), so
-// staying longer keeps adding more overlapping puffs instead of growing one single mass.
+// bloom cools the ember-to-smoke tint since ember_start_time; fade begins only once released and
+// scales with how long the burst was held (see impact_smoke.vert for elapsed's per-puff cycling).
 export function stepInteractionSmoke(time) {
     active_smoke_bursts.length = 0;
     for (const burst of smoke_burst_pool) {

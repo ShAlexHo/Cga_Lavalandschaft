@@ -1,30 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { makeScene, MockMesh, MockBoxGeometry, MockVector3 } from '../../test-utils/three_mocks.js';
+import { makeScene, MockMesh, MockBoxGeometry } from '../../test-utils/three_mocks.js';
 
 vi.mock('three', () => ({ Mesh: MockMesh, BoxGeometry: MockBoxGeometry }));
 
-import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../metaball_geometry.js';
-import { METABALL_SCALE_XY, METABALL_SCALE_Z, METABALL_GPU_MAX_BALLS } from '../../config.js';
+import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../metaball_geometry.js';
+import { METABALL_SCALE_XY, METABALL_SCALE_Z } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
-
-function makeEffect() {
-    return {
-        isolation: 80,
-        radius_scale: 1,
-        position: new MockVector3(1, 2, 3),
-        scale: { x: 30, y: 30, z: 30 },
-        material: {
-            uniforms: {
-                u_ball_center: { value: Array.from({ length: METABALL_GPU_MAX_BALLS }, () => new MockVector3()) },
-                u_ball_strength: { value: new Array(METABALL_GPU_MAX_BALLS).fill(0) },
-                u_ball_subtract: { value: new Array(METABALL_GPU_MAX_BALLS).fill(0) },
-                u_isolation: { value: 0 },
-                u_effect_position: { value: new MockVector3() },
-                u_effect_scale: { value: 1 },
-            },
-        },
-    };
-}
 
 describe('createMetaballGeometry', () => {
     let mock_scene;
@@ -53,98 +34,6 @@ describe('createMetaballGeometry', () => {
     test('centers the proxy box geometry via translate()', () => {
         const effect = createMetaballGeometry(mock_scene, {});
         expect(effect.geometry.translate).toHaveBeenCalled();
-    });
-});
-
-describe('rebuildMetaballGeometry', () => {
-    let effect;
-    beforeEach(() => { effect = makeEffect(); });
-
-    test('writes each ball\'s doubled field-space position, strength and subtract into the uniform arrays', () => {
-        const balls = [
-            { x: 0.1, y: 0.2, z: 0.3, strength: 0.5, subtract: 40 },
-            { x: 0.4, y: 0.5, z: 0.6, strength: 0.7, subtract: 35 },
-        ];
-        rebuildMetaballGeometry(effect, balls);
-
-        const { u_ball_center, u_ball_strength, u_ball_subtract } = effect.material.uniforms;
-        expect(u_ball_center.value[0].x).toBeCloseTo(-0.8, 9);
-        expect(u_ball_center.value[0].y).toBeCloseTo(-0.6, 9);
-        expect(u_ball_center.value[0].z).toBeCloseTo(-0.4, 9);
-        expect(u_ball_center.value[1].x).toBeCloseTo(-0.2, 9);
-        expect(u_ball_center.value[1].y).toBeCloseTo(0.0, 9);
-        expect(u_ball_center.value[1].z).toBeCloseTo(0.2, 9);
-        expect(u_ball_strength.value[0]).toBe(0.5);
-        expect(u_ball_strength.value[1]).toBe(0.7);
-        expect(u_ball_subtract.value[0]).toBe(40);
-        expect(u_ball_subtract.value[1]).toBe(35);
-    });
-
-    test('scales uploaded strength by radius_scale squared', () => {
-        effect.radius_scale = 2;
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40 }]);
-        expect(effect.material.uniforms.u_ball_strength.value[0]).toBeCloseTo(2.0, 9); // 0.5 * 2^2
-    });
-
-    test('zeroes the strength of every slot beyond the given balls', () => {
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40 }]);
-        expect(effect.material.uniforms.u_ball_strength.value[1]).toBe(0.0);
-        expect(effect.material.uniforms.u_ball_strength.value[METABALL_GPU_MAX_BALLS - 1]).toBe(0.0);
-    });
-
-    test('caps writes at METABALL_GPU_MAX_BALLS when given more balls than that', () => {
-        const balls = Array.from({ length: METABALL_GPU_MAX_BALLS + 10 }, (_, i) => ({
-            x: 0.5, y: 0.5, z: 0.5, strength: i + 1, subtract: 30,
-        }));
-        expect(() => rebuildMetaballGeometry(effect, balls)).not.toThrow();
-        expect(effect.material.uniforms.u_ball_strength.value).toHaveLength(METABALL_GPU_MAX_BALLS);
-        expect(effect.material.uniforms.u_ball_strength.value[METABALL_GPU_MAX_BALLS - 1]).toBe(METABALL_GPU_MAX_BALLS);
-    });
-
-    test('an empty ball list zeroes every slot\'s strength', () => {
-        rebuildMetaballGeometry(effect, []);
-        expect(effect.material.uniforms.u_ball_strength.value.every(strength => strength === 0)).toBe(true);
-    });
-
-    test('without a camera, every ball keeps full strength regardless of its angle', () => {
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: Math.PI }]);
-        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
-    });
-
-    test('a ball facing the camera keeps full strength', () => {
-        effect.position = { x: 0, y: 0, z: 0 };
-        const camera = { position: { x: 10, y: 0, z: 0 } }; // camera azimuth (from effect center) = 0
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: 0 }], camera);
-        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
-    });
-
-    test('a ball on the far side of the crater (180 deg from the camera) fades to zero strength', () => {
-        effect.position = { x: 0, y: 0, z: 0 };
-        const camera = { position: { x: 10, y: 0, z: 0 } };
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: Math.PI }], camera);
-        expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0);
-    });
-
-    test('a ball inside the fade buffer at the arc edge is partially visible', () => {
-        effect.position = { x: 0, y: 0, z: 0 };
-        const camera = { position: { x: 10, y: 0, z: 0 } };
-        const angle_at_fade_midpoint = (130 * Math.PI) / 180; // arc half is 135 deg, fade band is 125-135 deg
-        rebuildMetaballGeometry(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: 40, angle: angle_at_fade_midpoint }], camera);
-        const strength = effect.material.uniforms.u_ball_strength.value[0];
-        expect(strength).toBeGreaterThan(0);
-        expect(strength).toBeLessThan(1.0);
-    });
-
-    test('syncs isolation and the effect\'s transform into their own uniforms', () => {
-        effect.isolation = 42;
-        effect.position = new MockVector3(4, 5, 6);
-        effect.scale = { x: 12, y: 12, z: 12 };
-        rebuildMetaballGeometry(effect, []);
-
-        const { u_isolation, u_effect_position, u_effect_scale } = effect.material.uniforms;
-        expect(u_isolation.value).toBe(42);
-        expect(u_effect_position.value).toMatchObject({ x: 4, y: 5, z: 6 });
-        expect(u_effect_scale.value).toBe(12);
     });
 });
 

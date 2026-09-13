@@ -9,7 +9,7 @@ uniform float u_sun_strength;
 varying float v_opacity;
 varying float v_color_mix;
 varying float v_accent_mix;
-varying float v_glow_mult;
+varying float v_glow_multiplier;
 varying float v_shape_seed;
 
 void main() {
@@ -22,7 +22,7 @@ void main() {
     float mask = smoothstep(0.5, 0.05, warped_radius);
     vec3 color = mix(u_color_1, u_color_2, v_color_mix);
     color = mix(color, u_color_3, v_accent_mix);
-    color += u_color_3 * u_ember_glow_strength * v_glow_mult * v_accent_mix;
+    color += u_color_3 * u_ember_glow_strength * v_glow_multiplier * v_accent_mix;
     color += u_sun_color * u_sun_strength * u_sun_enabled;
     gl_FragColor = vec4(color, v_opacity * mask);
 }

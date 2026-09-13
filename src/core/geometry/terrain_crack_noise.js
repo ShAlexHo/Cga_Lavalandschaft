@@ -1,247 +1,247 @@
-const f = Math.fround;
-const fadd = (a, b) => f(a + b);
-const fsub = (a, b) => f(a - b);
-const fmul = (a, b) => f(a * b);
-const ffloor = a => f(Math.floor(a));
-const fabs = a => f(Math.abs(a));
-const fmin = (a, b) => f(Math.min(a, b));
-const fmax = (a, b) => f(Math.max(a, b));
-const fstep = (edge, x) => (x >= edge ? f(1.0) : f(0.0));
-const selfDot = (x, y, z) => fadd(fadd(fmul(x, x), fmul(y, y)), fmul(z, z));
+const toFloat32 = Math.fround;
+const floatAdd = (a, b) => toFloat32(a + b);
+const floatSubtract = (a, b) => toFloat32(a - b);
+const floatMultiply = (a, b) => toFloat32(a * b);
+const floatFloor = a => toFloat32(Math.floor(a));
+const floatAbs = a => toFloat32(Math.abs(a));
+const floatMin = (a, b) => toFloat32(Math.min(a, b));
+const floatMax = (a, b) => toFloat32(Math.max(a, b));
+const floatStep = (edge, x) => (x >= edge ? toFloat32(1.0) : toFloat32(0.0));
+const selfDot = (x, y, z) => floatAdd(floatAdd(floatMultiply(x, x), floatMultiply(y, y)), floatMultiply(z, z));
 
-const SKEW_X = f(1.0 / 6.0);
-const SKEW_Y = f(1.0 / 3.0);
-const ONE_SEVENTH = f(0.142857142857);
+const SKEW_X = toFloat32(1.0 / 6.0);
+const SKEW_Y = toFloat32(1.0 / 3.0);
+const ONE_SEVENTH = toFloat32(0.142857142857);
 
 function modulo289(value) {
-    return fsub(value, fmul(ffloor(fmul(value, f(1.0 / 289.0))), f(289.0)));
+    return floatSubtract(value, floatMultiply(floatFloor(floatMultiply(value, toFloat32(1.0 / 289.0))), toFloat32(289.0)));
 }
 
 function permute(value) {
-    return modulo289(fmul(fadd(fmul(value, f(34.0)), f(10.0)), value));
+    return modulo289(floatMultiply(floatAdd(floatMultiply(value, toFloat32(34.0)), toFloat32(10.0)), value));
 }
 
 function taylorInverseSqrt(value) {
-    return fsub(f(1.79284291400159), fmul(f(0.85373472095314), value));
+    return floatSubtract(toFloat32(1.79284291400159), floatMultiply(toFloat32(0.85373472095314), value));
 }
 
 function gradientIndexOf(permutation, gradient_scale_z) {
-    return fsub(permutation, fmul(f(49.0), ffloor(fmul(permutation, fmul(gradient_scale_z, gradient_scale_z)))));
+    return floatSubtract(permutation, floatMultiply(toFloat32(49.0), floatFloor(floatMultiply(permutation, floatMultiply(gradient_scale_z, gradient_scale_z)))));
 }
 
 function simplexNoise(px, py, pz) {
-    px = f(px); py = f(py); pz = f(pz);
+    px = toFloat32(px); py = toFloat32(py); pz = toFloat32(pz);
 
-    const skew_offset = fmul(fadd(fadd(px, py), pz), SKEW_Y);
-    const lattice_point_x = ffloor(fadd(px, skew_offset));
-    const lattice_point_y = ffloor(fadd(py, skew_offset));
-    const lattice_point_z = ffloor(fadd(pz, skew_offset));
+    const skew_offset = floatMultiply(floatAdd(floatAdd(px, py), pz), SKEW_Y);
+    const lattice_point_x = floatFloor(floatAdd(px, skew_offset));
+    const lattice_point_y = floatFloor(floatAdd(py, skew_offset));
+    const lattice_point_z = floatFloor(floatAdd(pz, skew_offset));
 
-    const unskew_offset = fmul(fadd(fadd(lattice_point_x, lattice_point_y), lattice_point_z), SKEW_X);
-    const offset_0_x = fadd(fsub(px, lattice_point_x), unskew_offset);
-    const offset_0_y = fadd(fsub(py, lattice_point_y), unskew_offset);
-    const offset_0_z = fadd(fsub(pz, lattice_point_z), unskew_offset);
+    const unskew_offset = floatMultiply(floatAdd(floatAdd(lattice_point_x, lattice_point_y), lattice_point_z), SKEW_X);
+    const offset_0_x = floatAdd(floatSubtract(px, lattice_point_x), unskew_offset);
+    const offset_0_y = floatAdd(floatSubtract(py, lattice_point_y), unskew_offset);
+    const offset_0_z = floatAdd(floatSubtract(pz, lattice_point_z), unskew_offset);
 
-    const greater_mask_x = fstep(offset_0_y, offset_0_x);
-    const greater_mask_y = fstep(offset_0_z, offset_0_y);
-    const greater_mask_z = fstep(offset_0_x, offset_0_z);
-    const lesser_mask_x = fsub(f(1.0), greater_mask_x);
-    const lesser_mask_y = fsub(f(1.0), greater_mask_y);
-    const lesser_mask_z = fsub(f(1.0), greater_mask_z);
+    const greater_mask_x = floatStep(offset_0_y, offset_0_x);
+    const greater_mask_y = floatStep(offset_0_z, offset_0_y);
+    const greater_mask_z = floatStep(offset_0_x, offset_0_z);
+    const lesser_mask_x = floatSubtract(toFloat32(1.0), greater_mask_x);
+    const lesser_mask_y = floatSubtract(toFloat32(1.0), greater_mask_y);
+    const lesser_mask_z = floatSubtract(toFloat32(1.0), greater_mask_z);
 
-    const corner_offset_1_x = fmin(greater_mask_x, lesser_mask_z);
-    const corner_offset_1_y = fmin(greater_mask_y, lesser_mask_x);
-    const corner_offset_1_z = fmin(greater_mask_z, lesser_mask_y);
-    const corner_offset_2_x = fmax(greater_mask_x, lesser_mask_z);
-    const corner_offset_2_y = fmax(greater_mask_y, lesser_mask_x);
-    const corner_offset_2_z = fmax(greater_mask_z, lesser_mask_y);
+    const corner_offset_1_x = floatMin(greater_mask_x, lesser_mask_z);
+    const corner_offset_1_y = floatMin(greater_mask_y, lesser_mask_x);
+    const corner_offset_1_z = floatMin(greater_mask_z, lesser_mask_y);
+    const corner_offset_2_x = floatMax(greater_mask_x, lesser_mask_z);
+    const corner_offset_2_y = floatMax(greater_mask_y, lesser_mask_x);
+    const corner_offset_2_z = floatMax(greater_mask_z, lesser_mask_y);
 
-    const offset_1_x = fadd(fsub(offset_0_x, corner_offset_1_x), SKEW_X);
-    const offset_1_y = fadd(fsub(offset_0_y, corner_offset_1_y), SKEW_X);
-    const offset_1_z = fadd(fsub(offset_0_z, corner_offset_1_z), SKEW_X);
-    const offset_2_x = fadd(fsub(offset_0_x, corner_offset_2_x), SKEW_Y);
-    const offset_2_y = fadd(fsub(offset_0_y, corner_offset_2_y), SKEW_Y);
-    const offset_2_z = fadd(fsub(offset_0_z, corner_offset_2_z), SKEW_Y);
-    const offset_3_x = fsub(offset_0_x, f(0.5));
-    const offset_3_y = fsub(offset_0_y, f(0.5));
-    const offset_3_z = fsub(offset_0_z, f(0.5));
+    const offset_1_x = floatAdd(floatSubtract(offset_0_x, corner_offset_1_x), SKEW_X);
+    const offset_1_y = floatAdd(floatSubtract(offset_0_y, corner_offset_1_y), SKEW_X);
+    const offset_1_z = floatAdd(floatSubtract(offset_0_z, corner_offset_1_z), SKEW_X);
+    const offset_2_x = floatAdd(floatSubtract(offset_0_x, corner_offset_2_x), SKEW_Y);
+    const offset_2_y = floatAdd(floatSubtract(offset_0_y, corner_offset_2_y), SKEW_Y);
+    const offset_2_z = floatAdd(floatSubtract(offset_0_z, corner_offset_2_z), SKEW_Y);
+    const offset_3_x = floatSubtract(offset_0_x, toFloat32(0.5));
+    const offset_3_y = floatSubtract(offset_0_y, toFloat32(0.5));
+    const offset_3_z = floatSubtract(offset_0_z, toFloat32(0.5));
 
     const lattice_point_mod_x = modulo289(lattice_point_x);
     const lattice_point_mod_y = modulo289(lattice_point_y);
     const lattice_point_mod_z = modulo289(lattice_point_z);
 
-    let permutation_0 = permute(fadd(lattice_point_mod_z, f(0.0)));
-    let permutation_1 = permute(fadd(lattice_point_mod_z, corner_offset_1_z));
-    let permutation_2 = permute(fadd(lattice_point_mod_z, corner_offset_2_z));
-    let permutation_3 = permute(fadd(lattice_point_mod_z, f(1.0)));
+    let permutation_0 = permute(floatAdd(lattice_point_mod_z, toFloat32(0.0)));
+    let permutation_1 = permute(floatAdd(lattice_point_mod_z, corner_offset_1_z));
+    let permutation_2 = permute(floatAdd(lattice_point_mod_z, corner_offset_2_z));
+    let permutation_3 = permute(floatAdd(lattice_point_mod_z, toFloat32(1.0)));
 
-    permutation_0 = permute(fadd(fadd(permutation_0, lattice_point_mod_y), f(0.0)));
-    permutation_1 = permute(fadd(fadd(permutation_1, lattice_point_mod_y), corner_offset_1_y));
-    permutation_2 = permute(fadd(fadd(permutation_2, lattice_point_mod_y), corner_offset_2_y));
-    permutation_3 = permute(fadd(fadd(permutation_3, lattice_point_mod_y), f(1.0)));
+    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_mod_y), toFloat32(0.0)));
+    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_mod_y), corner_offset_1_y));
+    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_mod_y), corner_offset_2_y));
+    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_mod_y), toFloat32(1.0)));
 
-    permutation_0 = permute(fadd(fadd(permutation_0, lattice_point_mod_x), f(0.0)));
-    permutation_1 = permute(fadd(fadd(permutation_1, lattice_point_mod_x), corner_offset_1_x));
-    permutation_2 = permute(fadd(fadd(permutation_2, lattice_point_mod_x), corner_offset_2_x));
-    permutation_3 = permute(fadd(fadd(permutation_3, lattice_point_mod_x), f(1.0)));
+    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_mod_x), toFloat32(0.0)));
+    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_mod_x), corner_offset_1_x));
+    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_mod_x), corner_offset_2_x));
+    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_mod_x), toFloat32(1.0)));
 
-    const gradient_scale_x = fsub(fmul(ONE_SEVENTH, f(2.0)), f(0.0));
-    const gradient_scale_y = fsub(fmul(ONE_SEVENTH, f(0.5)), f(1.0));
-    const gradient_scale_z = fsub(fmul(ONE_SEVENTH, f(1.0)), f(0.0));
+    const gradient_scale_x = floatSubtract(floatMultiply(ONE_SEVENTH, toFloat32(2.0)), toFloat32(0.0));
+    const gradient_scale_y = floatSubtract(floatMultiply(ONE_SEVENTH, toFloat32(0.5)), toFloat32(1.0));
+    const gradient_scale_z = floatSubtract(floatMultiply(ONE_SEVENTH, toFloat32(1.0)), toFloat32(0.0));
 
     const gradient_index_0 = gradientIndexOf(permutation_0, gradient_scale_z);
     const gradient_index_1 = gradientIndexOf(permutation_1, gradient_scale_z);
     const gradient_index_2 = gradientIndexOf(permutation_2, gradient_scale_z);
     const gradient_index_3 = gradientIndexOf(permutation_3, gradient_scale_z);
 
-    const floor_x_0 = ffloor(fmul(gradient_index_0, gradient_scale_z));
-    const floor_x_1 = ffloor(fmul(gradient_index_1, gradient_scale_z));
-    const floor_x_2 = ffloor(fmul(gradient_index_2, gradient_scale_z));
-    const floor_x_3 = ffloor(fmul(gradient_index_3, gradient_scale_z));
+    const floor_x_0 = floatFloor(floatMultiply(gradient_index_0, gradient_scale_z));
+    const floor_x_1 = floatFloor(floatMultiply(gradient_index_1, gradient_scale_z));
+    const floor_x_2 = floatFloor(floatMultiply(gradient_index_2, gradient_scale_z));
+    const floor_x_3 = floatFloor(floatMultiply(gradient_index_3, gradient_scale_z));
 
-    const floor_y_0 = ffloor(fsub(gradient_index_0, fmul(f(7.0), floor_x_0)));
-    const floor_y_1 = ffloor(fsub(gradient_index_1, fmul(f(7.0), floor_x_1)));
-    const floor_y_2 = ffloor(fsub(gradient_index_2, fmul(f(7.0), floor_x_2)));
-    const floor_y_3 = ffloor(fsub(gradient_index_3, fmul(f(7.0), floor_x_3)));
+    const floor_y_0 = floatFloor(floatSubtract(gradient_index_0, floatMultiply(toFloat32(7.0), floor_x_0)));
+    const floor_y_1 = floatFloor(floatSubtract(gradient_index_1, floatMultiply(toFloat32(7.0), floor_x_1)));
+    const floor_y_2 = floatFloor(floatSubtract(gradient_index_2, floatMultiply(toFloat32(7.0), floor_x_2)));
+    const floor_y_3 = floatFloor(floatSubtract(gradient_index_3, floatMultiply(toFloat32(7.0), floor_x_3)));
 
-    const gradient_x_0 = fadd(fmul(floor_x_0, gradient_scale_x), gradient_scale_y);
-    const gradient_x_1 = fadd(fmul(floor_x_1, gradient_scale_x), gradient_scale_y);
-    const gradient_x_2 = fadd(fmul(floor_x_2, gradient_scale_x), gradient_scale_y);
-    const gradient_x_3 = fadd(fmul(floor_x_3, gradient_scale_x), gradient_scale_y);
+    const gradient_x_0 = floatAdd(floatMultiply(floor_x_0, gradient_scale_x), gradient_scale_y);
+    const gradient_x_1 = floatAdd(floatMultiply(floor_x_1, gradient_scale_x), gradient_scale_y);
+    const gradient_x_2 = floatAdd(floatMultiply(floor_x_2, gradient_scale_x), gradient_scale_y);
+    const gradient_x_3 = floatAdd(floatMultiply(floor_x_3, gradient_scale_x), gradient_scale_y);
 
-    const gradient_y_0 = fadd(fmul(floor_y_0, gradient_scale_x), gradient_scale_y);
-    const gradient_y_1 = fadd(fmul(floor_y_1, gradient_scale_x), gradient_scale_y);
-    const gradient_y_2 = fadd(fmul(floor_y_2, gradient_scale_x), gradient_scale_y);
-    const gradient_y_3 = fadd(fmul(floor_y_3, gradient_scale_x), gradient_scale_y);
+    const gradient_y_0 = floatAdd(floatMultiply(floor_y_0, gradient_scale_x), gradient_scale_y);
+    const gradient_y_1 = floatAdd(floatMultiply(floor_y_1, gradient_scale_x), gradient_scale_y);
+    const gradient_y_2 = floatAdd(floatMultiply(floor_y_2, gradient_scale_x), gradient_scale_y);
+    const gradient_y_3 = floatAdd(floatMultiply(floor_y_3, gradient_scale_x), gradient_scale_y);
 
-    const gradient_z_0 = fsub(fsub(f(1.0), fabs(gradient_x_0)), fabs(gradient_y_0));
-    const gradient_z_1 = fsub(fsub(f(1.0), fabs(gradient_x_1)), fabs(gradient_y_1));
-    const gradient_z_2 = fsub(fsub(f(1.0), fabs(gradient_x_2)), fabs(gradient_y_2));
-    const gradient_z_3 = fsub(fsub(f(1.0), fabs(gradient_x_3)), fabs(gradient_y_3));
+    const gradient_z_0 = floatSubtract(floatSubtract(toFloat32(1.0), floatAbs(gradient_x_0)), floatAbs(gradient_y_0));
+    const gradient_z_1 = floatSubtract(floatSubtract(toFloat32(1.0), floatAbs(gradient_x_1)), floatAbs(gradient_y_1));
+    const gradient_z_2 = floatSubtract(floatSubtract(toFloat32(1.0), floatAbs(gradient_x_2)), floatAbs(gradient_y_2));
+    const gradient_z_3 = floatSubtract(floatSubtract(toFloat32(1.0), floatAbs(gradient_x_3)), floatAbs(gradient_y_3));
 
-    const sign_correction_0_0 = fadd(fmul(ffloor(gradient_x_0), f(2.0)), f(1.0));
-    const sign_correction_0_1 = fadd(fmul(ffloor(gradient_x_1), f(2.0)), f(1.0));
-    const sign_correction_0_2 = fadd(fmul(ffloor(gradient_y_0), f(2.0)), f(1.0));
-    const sign_correction_0_3 = fadd(fmul(ffloor(gradient_y_1), f(2.0)), f(1.0));
-    const sign_correction_1_0 = fadd(fmul(ffloor(gradient_x_2), f(2.0)), f(1.0));
-    const sign_correction_1_1 = fadd(fmul(ffloor(gradient_x_3), f(2.0)), f(1.0));
-    const sign_correction_1_2 = fadd(fmul(ffloor(gradient_y_2), f(2.0)), f(1.0));
-    const sign_correction_1_3 = fadd(fmul(ffloor(gradient_y_3), f(2.0)), f(1.0));
+    const sign_correction_0_0 = floatAdd(floatMultiply(floatFloor(gradient_x_0), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_0_1 = floatAdd(floatMultiply(floatFloor(gradient_x_1), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_0_2 = floatAdd(floatMultiply(floatFloor(gradient_y_0), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_0_3 = floatAdd(floatMultiply(floatFloor(gradient_y_1), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_1_0 = floatAdd(floatMultiply(floatFloor(gradient_x_2), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_1_1 = floatAdd(floatMultiply(floatFloor(gradient_x_3), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_1_2 = floatAdd(floatMultiply(floatFloor(gradient_y_2), toFloat32(2.0)), toFloat32(1.0));
+    const sign_correction_1_3 = floatAdd(floatMultiply(floatFloor(gradient_y_3), toFloat32(2.0)), toFloat32(1.0));
 
-    const height_sign_0 = gradient_z_0 <= 0.0 ? f(-1.0) : f(0.0);
-    const height_sign_1 = gradient_z_1 <= 0.0 ? f(-1.0) : f(0.0);
-    const height_sign_2 = gradient_z_2 <= 0.0 ? f(-1.0) : f(0.0);
-    const height_sign_3 = gradient_z_3 <= 0.0 ? f(-1.0) : f(0.0);
+    const height_sign_0 = gradient_z_0 <= 0.0 ? toFloat32(-1.0) : toFloat32(0.0);
+    const height_sign_1 = gradient_z_1 <= 0.0 ? toFloat32(-1.0) : toFloat32(0.0);
+    const height_sign_2 = gradient_z_2 <= 0.0 ? toFloat32(-1.0) : toFloat32(0.0);
+    const height_sign_3 = gradient_z_3 <= 0.0 ? toFloat32(-1.0) : toFloat32(0.0);
 
-    const adjusted_gradient_0_x = fadd(gradient_x_0, fmul(sign_correction_0_0, height_sign_0));
-    const adjusted_gradient_0_y = fadd(gradient_y_0, fmul(sign_correction_0_2, height_sign_0));
-    const adjusted_gradient_0_z = fadd(gradient_x_1, fmul(sign_correction_0_1, height_sign_1));
-    const adjusted_gradient_0_w = fadd(gradient_y_1, fmul(sign_correction_0_3, height_sign_1));
+    const adjusted_gradient_0_x = floatAdd(gradient_x_0, floatMultiply(sign_correction_0_0, height_sign_0));
+    const adjusted_gradient_0_y = floatAdd(gradient_y_0, floatMultiply(sign_correction_0_2, height_sign_0));
+    const adjusted_gradient_0_z = floatAdd(gradient_x_1, floatMultiply(sign_correction_0_1, height_sign_1));
+    const adjusted_gradient_0_w = floatAdd(gradient_y_1, floatMultiply(sign_correction_0_3, height_sign_1));
 
-    const adjusted_gradient_1_x = fadd(gradient_x_2, fmul(sign_correction_1_0, height_sign_2));
-    const adjusted_gradient_1_y = fadd(gradient_y_2, fmul(sign_correction_1_2, height_sign_2));
-    const adjusted_gradient_1_z = fadd(gradient_x_3, fmul(sign_correction_1_1, height_sign_3));
-    const adjusted_gradient_1_w = fadd(gradient_y_3, fmul(sign_correction_1_3, height_sign_3));
+    const adjusted_gradient_1_x = floatAdd(gradient_x_2, floatMultiply(sign_correction_1_0, height_sign_2));
+    const adjusted_gradient_1_y = floatAdd(gradient_y_2, floatMultiply(sign_correction_1_2, height_sign_2));
+    const adjusted_gradient_1_z = floatAdd(gradient_x_3, floatMultiply(sign_correction_1_1, height_sign_3));
+    const adjusted_gradient_1_w = floatAdd(gradient_y_3, floatMultiply(sign_correction_1_3, height_sign_3));
 
     const normalization_0 = taylorInverseSqrt(selfDot(adjusted_gradient_0_x, adjusted_gradient_0_y, gradient_z_0));
     const normalization_1 = taylorInverseSqrt(selfDot(adjusted_gradient_0_z, adjusted_gradient_0_w, gradient_z_1));
     const normalization_2 = taylorInverseSqrt(selfDot(adjusted_gradient_1_x, adjusted_gradient_1_y, gradient_z_2));
     const normalization_3 = taylorInverseSqrt(selfDot(adjusted_gradient_1_z, adjusted_gradient_1_w, gradient_z_3));
 
-    const corner_gradient_0_x = fmul(adjusted_gradient_0_x, normalization_0);
-    const corner_gradient_0_y = fmul(adjusted_gradient_0_y, normalization_0);
-    const corner_gradient_0_z = fmul(gradient_z_0, normalization_0);
-    const corner_gradient_1_x = fmul(adjusted_gradient_0_z, normalization_1);
-    const corner_gradient_1_y = fmul(adjusted_gradient_0_w, normalization_1);
-    const corner_gradient_1_z = fmul(gradient_z_1, normalization_1);
-    const corner_gradient_2_x = fmul(adjusted_gradient_1_x, normalization_2);
-    const corner_gradient_2_y = fmul(adjusted_gradient_1_y, normalization_2);
-    const corner_gradient_2_z = fmul(gradient_z_2, normalization_2);
-    const corner_gradient_3_x = fmul(adjusted_gradient_1_z, normalization_3);
-    const corner_gradient_3_y = fmul(adjusted_gradient_1_w, normalization_3);
-    const corner_gradient_3_z = fmul(gradient_z_3, normalization_3);
+    const corner_gradient_0_x = floatMultiply(adjusted_gradient_0_x, normalization_0);
+    const corner_gradient_0_y = floatMultiply(adjusted_gradient_0_y, normalization_0);
+    const corner_gradient_0_z = floatMultiply(gradient_z_0, normalization_0);
+    const corner_gradient_1_x = floatMultiply(adjusted_gradient_0_z, normalization_1);
+    const corner_gradient_1_y = floatMultiply(adjusted_gradient_0_w, normalization_1);
+    const corner_gradient_1_z = floatMultiply(gradient_z_1, normalization_1);
+    const corner_gradient_2_x = floatMultiply(adjusted_gradient_1_x, normalization_2);
+    const corner_gradient_2_y = floatMultiply(adjusted_gradient_1_y, normalization_2);
+    const corner_gradient_2_z = floatMultiply(gradient_z_2, normalization_2);
+    const corner_gradient_3_x = floatMultiply(adjusted_gradient_1_z, normalization_3);
+    const corner_gradient_3_y = floatMultiply(adjusted_gradient_1_w, normalization_3);
+    const corner_gradient_3_z = floatMultiply(gradient_z_3, normalization_3);
 
     const offset_dot_0 = selfDot(offset_0_x, offset_0_y, offset_0_z);
     const offset_dot_1 = selfDot(offset_1_x, offset_1_y, offset_1_z);
     const offset_dot_2 = selfDot(offset_2_x, offset_2_y, offset_2_z);
     const offset_dot_3 = selfDot(offset_3_x, offset_3_y, offset_3_z);
 
-    let falloff_0 = fmax(fsub(f(0.6), offset_dot_0), f(0.0));
-    let falloff_1 = fmax(fsub(f(0.6), offset_dot_1), f(0.0));
-    let falloff_2 = fmax(fsub(f(0.6), offset_dot_2), f(0.0));
-    let falloff_3 = fmax(fsub(f(0.6), offset_dot_3), f(0.0));
-    falloff_0 = fmul(falloff_0, falloff_0);
-    falloff_1 = fmul(falloff_1, falloff_1);
-    falloff_2 = fmul(falloff_2, falloff_2);
-    falloff_3 = fmul(falloff_3, falloff_3);
+    let falloff_0 = floatMax(floatSubtract(toFloat32(0.6), offset_dot_0), toFloat32(0.0));
+    let falloff_1 = floatMax(floatSubtract(toFloat32(0.6), offset_dot_1), toFloat32(0.0));
+    let falloff_2 = floatMax(floatSubtract(toFloat32(0.6), offset_dot_2), toFloat32(0.0));
+    let falloff_3 = floatMax(floatSubtract(toFloat32(0.6), offset_dot_3), toFloat32(0.0));
+    falloff_0 = floatMultiply(falloff_0, falloff_0);
+    falloff_1 = floatMultiply(falloff_1, falloff_1);
+    falloff_2 = floatMultiply(falloff_2, falloff_2);
+    falloff_3 = floatMultiply(falloff_3, falloff_3);
 
-    const gradient_dot_0 = fadd(fadd(fmul(corner_gradient_0_x, offset_0_x), fmul(corner_gradient_0_y, offset_0_y)), fmul(corner_gradient_0_z, offset_0_z));
-    const gradient_dot_1 = fadd(fadd(fmul(corner_gradient_1_x, offset_1_x), fmul(corner_gradient_1_y, offset_1_y)), fmul(corner_gradient_1_z, offset_1_z));
-    const gradient_dot_2 = fadd(fadd(fmul(corner_gradient_2_x, offset_2_x), fmul(corner_gradient_2_y, offset_2_y)), fmul(corner_gradient_2_z, offset_2_z));
-    const gradient_dot_3 = fadd(fadd(fmul(corner_gradient_3_x, offset_3_x), fmul(corner_gradient_3_y, offset_3_y)), fmul(corner_gradient_3_z, offset_3_z));
+    const gradient_dot_0 = floatAdd(floatAdd(floatMultiply(corner_gradient_0_x, offset_0_x), floatMultiply(corner_gradient_0_y, offset_0_y)), floatMultiply(corner_gradient_0_z, offset_0_z));
+    const gradient_dot_1 = floatAdd(floatAdd(floatMultiply(corner_gradient_1_x, offset_1_x), floatMultiply(corner_gradient_1_y, offset_1_y)), floatMultiply(corner_gradient_1_z, offset_1_z));
+    const gradient_dot_2 = floatAdd(floatAdd(floatMultiply(corner_gradient_2_x, offset_2_x), floatMultiply(corner_gradient_2_y, offset_2_y)), floatMultiply(corner_gradient_2_z, offset_2_z));
+    const gradient_dot_3 = floatAdd(floatAdd(floatMultiply(corner_gradient_3_x, offset_3_x), floatMultiply(corner_gradient_3_y, offset_3_y)), floatMultiply(corner_gradient_3_z, offset_3_z));
 
-    const weighted_sum = fadd(
-        fadd(fmul(fmul(falloff_0, falloff_0), gradient_dot_0), fmul(fmul(falloff_1, falloff_1), gradient_dot_1)),
-        fadd(fmul(fmul(falloff_2, falloff_2), gradient_dot_2), fmul(fmul(falloff_3, falloff_3), gradient_dot_3)),
+    const weighted_sum = floatAdd(
+        floatAdd(floatMultiply(floatMultiply(falloff_0, falloff_0), gradient_dot_0), floatMultiply(floatMultiply(falloff_1, falloff_1), gradient_dot_1)),
+        floatAdd(floatMultiply(floatMultiply(falloff_2, falloff_2), gradient_dot_2), floatMultiply(floatMultiply(falloff_3, falloff_3), gradient_dot_3)),
     );
-    return fmul(f(42.0), weighted_sum);
+    return floatMultiply(toFloat32(42.0), weighted_sum);
 }
 
 function fractalBrownianMotion(x, y, z) {
-    let value = f(0.0);
-    let amplitude = f(0.5);
+    let value = toFloat32(0.0);
+    let amplitude = toFloat32(0.5);
     let px = x, py = y, pz = z;
     for (let octave = 0; octave < 4; octave++) {
-        value = fadd(value, fmul(amplitude, simplexNoise(px, py, pz)));
-        px = fmul(px, f(2.1)); py = fmul(py, f(2.1)); pz = fmul(pz, f(2.1));
-        amplitude = fmul(amplitude, f(0.5));
+        value = floatAdd(value, floatMultiply(amplitude, simplexNoise(px, py, pz)));
+        px = floatMultiply(px, toFloat32(2.1)); py = floatMultiply(py, toFloat32(2.1)); pz = floatMultiply(pz, toFloat32(2.1));
+        amplitude = floatMultiply(amplitude, toFloat32(0.5));
     }
     return value;
 }
 
 function normalizedFractalBrownianMotion(x, y, z) {
-    return fadd(fmul(fractalBrownianMotion(x, y, z), f(0.5)), f(0.5));
+    return floatAdd(floatMultiply(fractalBrownianMotion(x, y, z), toFloat32(0.5)), toFloat32(0.5));
 }
 
 export function warpedFractalBrownianMotion(x, y, z, warp_strength) {
-    x = f(x); y = f(y); z = f(z); warp_strength = f(warp_strength);
-    const warp_x = simplexNoise(fadd(x, f(1.7)), fadd(y, f(9.2)), fadd(z, f(0.0)));
-    const warp_y = simplexNoise(fadd(x, f(8.3)), fadd(y, f(2.8)), fadd(z, f(0.0)));
-    const warp_z = simplexNoise(fadd(x, f(0.0)), fadd(y, f(5.1)), fadd(z, f(3.4)));
-    const warped_x = fadd(x, fmul(warp_strength, warp_x));
-    const warped_y = fadd(y, fmul(warp_strength, warp_y));
-    const warped_z = fadd(z, fmul(warp_strength, warp_z));
+    x = toFloat32(x); y = toFloat32(y); z = toFloat32(z); warp_strength = toFloat32(warp_strength);
+    const warp_x = simplexNoise(floatAdd(x, toFloat32(1.7)), floatAdd(y, toFloat32(9.2)), floatAdd(z, toFloat32(0.0)));
+    const warp_y = simplexNoise(floatAdd(x, toFloat32(8.3)), floatAdd(y, toFloat32(2.8)), floatAdd(z, toFloat32(0.0)));
+    const warp_z = simplexNoise(floatAdd(x, toFloat32(0.0)), floatAdd(y, toFloat32(5.1)), floatAdd(z, toFloat32(3.4)));
+    const warped_x = floatAdd(x, floatMultiply(warp_strength, warp_x));
+    const warped_y = floatAdd(y, floatMultiply(warp_strength, warp_y));
+    const warped_z = floatAdd(z, floatMultiply(warp_strength, warp_z));
     return normalizedFractalBrownianMotion(warped_x, warped_y, warped_z);
 }
 
 function crackWarpOffset(x, y, z, frequency) {
-    const scale = fmul(frequency, f(0.6));
+    const scale = floatMultiply(frequency, toFloat32(0.6));
     return [
-        simplexNoise(fadd(fmul(x, scale), f(1.7)), fadd(fmul(y, scale), f(9.2)), fadd(fmul(z, scale), f(0.0))),
-        simplexNoise(fadd(fmul(x, scale), f(8.3)), fadd(fmul(y, scale), f(2.8)), fadd(fmul(z, scale), f(0.0))),
-        simplexNoise(fadd(fmul(x, scale), f(3.1)), fadd(fmul(y, scale), f(0.0)), fadd(fmul(z, scale), f(5.4))),
+        simplexNoise(floatAdd(floatMultiply(x, scale), toFloat32(1.7)), floatAdd(floatMultiply(y, scale), toFloat32(9.2)), floatAdd(floatMultiply(z, scale), toFloat32(0.0))),
+        simplexNoise(floatAdd(floatMultiply(x, scale), toFloat32(8.3)), floatAdd(floatMultiply(y, scale), toFloat32(2.8)), floatAdd(floatMultiply(z, scale), toFloat32(0.0))),
+        simplexNoise(floatAdd(floatMultiply(x, scale), toFloat32(3.1)), floatAdd(floatMultiply(y, scale), toFloat32(0.0)), floatAdd(floatMultiply(z, scale), toFloat32(5.4))),
     ];
 }
 
 function crackDisplacementLayer(x, y, z, frequency) {
     const [warp_x, warp_y, warp_z] = crackWarpOffset(x, y, z, frequency);
-    const noise_value = fabs(simplexNoise(
-        fmul(fadd(x, fmul(warp_x, f(1.2))), frequency),
-        fmul(fadd(y, fmul(warp_y, f(1.2))), frequency),
-        fmul(fadd(z, fmul(warp_z, f(1.2))), frequency),
+    const noise_value = floatAbs(simplexNoise(
+        floatMultiply(floatAdd(x, floatMultiply(warp_x, toFloat32(1.2))), frequency),
+        floatMultiply(floatAdd(y, floatMultiply(warp_y, toFloat32(1.2))), frequency),
+        floatMultiply(floatAdd(z, floatMultiply(warp_z, toFloat32(1.2))), frequency),
     ));
-    return f(Math.pow(noise_value, 0.18));
+    return toFloat32(Math.pow(noise_value, 0.18));
 }
 
 export function crackDisplacementNoise(x, y, z, frequency) {
-    let accumulated_noise = f(0.0), amplitude = f(1.0), weight_total = f(0.0);
-    let px = f(x), py = f(y), pz = f(z);
-    frequency = f(frequency);
+    let accumulated_noise = toFloat32(0.0), amplitude = toFloat32(1.0), weight_total = toFloat32(0.0);
+    let px = toFloat32(x), py = toFloat32(y), pz = toFloat32(z);
+    frequency = toFloat32(frequency);
     for (let i = 0; i < 3; i++) {
-        accumulated_noise = fadd(accumulated_noise, fmul(crackDisplacementLayer(px, py, pz, frequency), amplitude));
-        weight_total = fadd(weight_total, amplitude);
-        px = fmul(px, f(2.1)); py = fmul(py, f(2.1)); pz = fmul(pz, f(2.1));
-        amplitude = fmul(amplitude, f(0.45));
+        accumulated_noise = floatAdd(accumulated_noise, floatMultiply(crackDisplacementLayer(px, py, pz, frequency), amplitude));
+        weight_total = floatAdd(weight_total, amplitude);
+        px = floatMultiply(px, toFloat32(2.1)); py = floatMultiply(py, toFloat32(2.1)); pz = floatMultiply(pz, toFloat32(2.1));
+        amplitude = floatMultiply(amplitude, toFloat32(0.45));
     }
-    return f(accumulated_noise / weight_total);
+    return toFloat32(accumulated_noise / weight_total);
 }

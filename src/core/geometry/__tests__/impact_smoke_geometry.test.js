@@ -21,51 +21,40 @@ vi.mock('three', () => {
 
 import { createImpactSmokeGeometry } from '../impact_smoke_geometry.js';
 import { makeScene } from '../../test-utils/three_mocks.js';
-import {
-    INTERACTION_SMOKE_MAX_BURSTS, INTERACTION_SMOKE_PARTICLES_PER_BURST, INTERACTION_SMOKE_PARTICLE_LIFETIME,
-} from '../../config.js';
+
+function makeParticleSeeds(particle_count) {
+    return {
+        burst_index: new Float32Array(particle_count),
+        seed: new Float32Array(particle_count * 4),
+        phase_offset: new Float32Array(particle_count),
+    };
+}
 
 describe('createImpactSmokeGeometry', () => {
     test('adds the points object to the scene', () => {
         const scene = makeScene();
-        const points = createImpactSmokeGeometry(scene, {});
+        const points = createImpactSmokeGeometry(scene, {}, makeParticleSeeds(10));
         expect(scene.add).toHaveBeenCalledWith(points);
     });
 
     test('uses the given material', () => {
         const material = {};
-        const points = createImpactSmokeGeometry(makeScene(), material);
+        const points = createImpactSmokeGeometry(makeScene(), material, makeParticleSeeds(10));
         expect(points.material).toBe(material);
     });
 
     test('disables frustum culling, since positions are computed on the GPU', () => {
-        const points = createImpactSmokeGeometry(makeScene(), {});
+        const points = createImpactSmokeGeometry(makeScene(), {}, makeParticleSeeds(10));
         expect(points.frustumCulled).toBe(false);
     });
 
-    test('sizes buffers for INTERACTION_SMOKE_MAX_BURSTS * INTERACTION_SMOKE_PARTICLES_PER_BURST particles', () => {
-        const points = createImpactSmokeGeometry(makeScene(), {});
-        const particle_count = INTERACTION_SMOKE_MAX_BURSTS * INTERACTION_SMOKE_PARTICLES_PER_BURST;
-        expect(points.geometry.attributes.position.array).toHaveLength(particle_count * 3);
-        expect(points.geometry.attributes.a_burst_index.array).toHaveLength(particle_count);
-        expect(points.geometry.attributes.a_seed.array).toHaveLength(particle_count * 4);
+    test('wires every seed array into its own attribute, sized for the full particle pool', () => {
+        const particle_seeds = makeParticleSeeds(40);
+        const points = createImpactSmokeGeometry(makeScene(), {}, particle_seeds);
+        expect(points.geometry.attributes.position.array).toHaveLength(40 * 3);
+        expect(points.geometry.attributes.a_burst_index.array).toBe(particle_seeds.burst_index);
+        expect(points.geometry.attributes.a_seed.array).toBe(particle_seeds.seed);
         expect(points.geometry.attributes.a_seed.itemSize).toBe(4);
-        expect(points.geometry.attributes.a_phase_offset.array).toHaveLength(particle_count);
-    });
-
-    test('spreads a_phase_offset across [0, INTERACTION_SMOKE_PARTICLE_LIFETIME)', () => {
-        const points = createImpactSmokeGeometry(makeScene(), {});
-        for (const value of points.geometry.attributes.a_phase_offset.array) {
-            expect(value).toBeGreaterThanOrEqual(0);
-            expect(value).toBeLessThan(INTERACTION_SMOKE_PARTICLE_LIFETIME);
-        }
-    });
-
-    test('assigns burst_index 0..MAX_BURSTS-1 evenly across the particle pool', () => {
-        const points = createImpactSmokeGeometry(makeScene(), {});
-        const burst_index = points.geometry.attributes.a_burst_index.array;
-        expect(burst_index[0]).toBe(0);
-        expect(burst_index[INTERACTION_SMOKE_PARTICLES_PER_BURST]).toBe(1);
-        expect(burst_index[burst_index.length - 1]).toBe(INTERACTION_SMOKE_MAX_BURSTS - 1);
+        expect(points.geometry.attributes.a_phase_offset.array).toBe(particle_seeds.phase_offset);
     });
 });

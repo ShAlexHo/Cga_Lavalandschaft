@@ -113,32 +113,13 @@ float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
 }
 
 // Displaces `position` (already scaled by `frequency`) so crack patterns read as jagged veins
-// instead of straight lines. Shared by the ground/metaball/volcano crack layers.
+// instead of straight lines.
 vec3 crackWarpOffset(vec3 position, float frequency) {
     return vec3(
         simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
         simplexNoise(position * frequency * 0.6 + vec3(8.3, 2.8, 0.0)),
         simplexNoise(position * frequency * 0.6 + vec3(3.1, 0.0, 5.4))
     );
-}
-
-// One-sided crack-vein displacement driving the volcano's jagged rock geometry. Also blended
-// into the ground near the volcano's foot so the terrain shape matches at the seam.
-float crackDisplacementLayer(vec3 position, float frequency) {
-    vec3 warp = crackWarpOffset(position, frequency);
-    float noise_value = abs(simplexNoise((position + warp * 1.2) * frequency));
-    return pow(noise_value, 0.18);
-}
-
-float crackDisplacementNoise(vec3 position, float frequency) {
-    float accumulated_noise = 0.0, amplitude = 1.0, weight_total = 0.0;
-    for (int i = 0; i < 3; i++) {
-        accumulated_noise += crackDisplacementLayer(position, frequency) * amplitude;
-        weight_total += amplitude;
-        position  *= 2.1;
-        amplitude *= 0.45;
-    }
-    return accumulated_noise / weight_total;
 }
 
 // `crack_width` is solid around the noise's zero-crossing, blending to rock only in its outer 15%.
@@ -213,6 +194,13 @@ float heightAmbientOcclusion(float height) {
     const float MIN_OCCLUSION = 0.6;
     const float CONTRAST_BAND = 0.35;
     return mix(MIN_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
+}
+
+// Perspective point-size falloff for gl_PointSize, referenced against REFERENCE_DISTANCE. Shared
+// by the smoke and impact-smoke particle vertex shaders.
+float pointSizeAttenuation(vec3 view_position) {
+    const float REFERENCE_DISTANCE = 10.0;
+    return REFERENCE_DISTANCE / max(-view_position.z, 0.001);
 }
 
 // Independent simplex sample per axis, for a shading-normal perturbation. Shared by the ground

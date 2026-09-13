@@ -22,7 +22,7 @@ uniform float u_burst_ember_strength[INTERACTION_SMOKE_MAX_BURSTS];
 varying float v_opacity;
 varying float v_color_mix;
 varying float v_accent_mix;
-varying float v_glow_mult;
+varying float v_glow_multiplier;
 varying float v_shape_seed;
 
 void main() {
@@ -66,7 +66,7 @@ void main() {
     float grey_ceiling = mix(u_grey_variance_min, 1.0, shape_seed);
     v_color_mix = min(base_color_mix, grey_ceiling);
     v_accent_mix = (1.0 - v_color_mix) * mix(1.0, 0.4, shape_seed) * ember_strength;
-    v_glow_mult = 1.0;
+    v_glow_multiplier = 1.0;
     v_shape_seed = shape_seed;
 
     // The longer this spot keeps being pressed, the more grey haze lingers in the background: only
@@ -78,8 +78,6 @@ void main() {
     v_opacity = max(puff_opacity, haze_opacity) * fade;
 
     vec4 view_position = modelViewMatrix * vec4(world_position, 1.0);
-    const float REFERENCE_DISTANCE = 10.0;
-    float attenuation = REFERENCE_DISTANCE / max(-view_position.z, 0.001);
-    gl_PointSize = clamp(u_size * attenuation, 1.0, 150.0);
+    gl_PointSize = clamp(u_size * pointSizeAttenuation(view_position.xyz), 1.0, 150.0);
     gl_Position = projectionMatrix * view_position;
 }

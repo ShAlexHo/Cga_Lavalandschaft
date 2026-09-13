@@ -3,6 +3,7 @@ import { createGroundMaterial, updateGroundLight } from '../rendering/ground_mat
 import { toHexColor } from '../rendering/color_utils.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 import { bindDisplacementUniforms, bindCrackColorUniforms, bindSunFocusUniform } from './terrain_uniform_utils.js';
+import { bindVisibility } from './visibility_utils.js';
 
 export function createGround(scene) {
     const material = createGroundMaterial();
@@ -30,8 +31,7 @@ export function createGround(scene) {
             updateGroundLight(material, camera, volcano_world_position, sun_world_position, time, sky_color);
         },
 
-        getVisible: () => mesh.visible,
-        setVisible: value => { mesh.visible = value; },
+        ...bindVisibility(mesh),
         getColor: () => toHexColor(material.uniforms.u_rock_color.value),
         setColor: value => material.uniforms.u_rock_color.value.set(value),
         getColor2: () => toHexColor(material.uniforms.u_rock_color_2.value),

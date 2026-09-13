@@ -1,13 +1,10 @@
 import { describe, test, expect, vi } from 'vitest';
+import { MockVector3 } from '../../test-utils/three_mocks.js';
 
 vi.mock('three', () => {
     class Vector2 {
         constructor(x = 0, y = 0) { this.x = x; this.y = y; }
         set(x, y) { this.x = x; this.y = y; return this; }
-    }
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
-        set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
     }
     class AmbientLight {
         constructor(color, intensity) { this.color = color; this.intensity = intensity; }
@@ -16,7 +13,7 @@ vi.mock('three', () => {
         constructor(color, intensity) {
             this.color = color;
             this.intensity = intensity;
-            this.position = new Vector3();
+            this.position = new MockVector3();
             this.castShadow = false;
             this.shadow = {
                 mapSize: new Vector2(),
@@ -25,7 +22,7 @@ vi.mock('three', () => {
             };
         }
     }
-    return { Vector2, Vector3, AmbientLight, DirectionalLight };
+    return { Vector2, Vector3: MockVector3, AmbientLight, DirectionalLight };
 });
 
 import { createKeyLight } from '../key_light_object.js';

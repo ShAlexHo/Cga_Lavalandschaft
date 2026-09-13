@@ -19,6 +19,10 @@ vi.mock('../../rendering/impact_smoke_material.js', () => ({
     updateImpactSmoke: vi.fn(),
 }));
 
+vi.mock('../../animation/impact_smoke_particles.js', () => ({
+    particle_seeds: { burst_index: new Float32Array(4), seed: new Float32Array(16), phase_offset: new Float32Array(4) },
+}));
+
 import { createImpactSmoke } from '../impact_smoke_object.js';
 import { createImpactSmokeGeometry } from '../../geometry/impact_smoke_geometry.js';
 import { createImpactSmokeMaterial, updateImpactSmoke } from '../../rendering/impact_smoke_material.js';
@@ -30,7 +34,7 @@ describe('createImpactSmoke', () => {
         const scene = makeScene();
         const impact_smoke = createImpactSmoke(scene);
         expect(createImpactSmokeMaterial).toHaveBeenCalledTimes(1);
-        expect(createImpactSmokeGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
+        expect(createImpactSmokeGeometry).toHaveBeenCalledWith(scene, expect.any(Object), expect.any(Object));
         expect(scene.add).toHaveBeenCalledWith(impact_smoke.mesh);
     });
 

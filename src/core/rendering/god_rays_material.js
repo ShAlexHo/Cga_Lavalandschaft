@@ -19,6 +19,7 @@ export function createGodRaysSunDiscMaterial() {
         vertexShader: sun_disc_vert,
         fragmentShader: sun_disc_frag,
         depthWrite: false,
+        precision: 'highp',
     });
 }
 
@@ -36,6 +37,7 @@ export function createGodRaysGenerateMaterial() {
         },
         vertexShader: passthrough_vert,
         fragmentShader: generate_frag_resolved,
+        precision: 'highp',
     });
 }
 
@@ -49,5 +51,6 @@ export function createGodRaysCombineMaterial() {
         },
         vertexShader: passthrough_vert,
         fragmentShader: combine_frag,
+        precision: 'highp',
     });
 }

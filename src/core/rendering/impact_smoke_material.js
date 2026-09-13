@@ -18,7 +18,7 @@ const vertex_glsl_resolved = vertex_glsl.replaceAll('INTERACTION_SMOKE_MAX_BURST
 
 export function createImpactSmokeMaterial() {
     return new THREE.ShaderMaterial({
-        vertexShader: vertex_glsl_resolved,
+        vertexShader: noise_glsl + vertex_glsl_resolved,
         fragmentShader: noise_glsl + fragment_glsl,
         uniforms: {
             u_size: { value: INTERACTION_SMOKE_PARTICLE_SIZE },

@@ -10,7 +10,7 @@ export function createSmokeGeometry(scene, material, particle_seeds) {
     geometry.setAttribute('a_timing_seed', new THREE.BufferAttribute(particle_seeds.timing_seed, 2));
     geometry.setAttribute('a_appearance', new THREE.BufferAttribute(particle_seeds.appearance, 3));
     geometry.setAttribute('a_accent_base', new THREE.BufferAttribute(particle_seeds.accent_base, 1));
-    geometry.setAttribute('a_ember_cooling_mult', new THREE.BufferAttribute(particle_seeds.ember_cooling_mult, 1));
+    geometry.setAttribute('a_ember_cooling_multiplier', new THREE.BufferAttribute(particle_seeds.ember_cooling_multiplier, 1));
     geometry.setAttribute('a_ambient_seed', new THREE.BufferAttribute(particle_seeds.ambient_seed, 4));
 
     const points = new THREE.Points(geometry, material);

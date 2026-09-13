@@ -1,25 +1,13 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { MockVector3 } from '../../test-utils/three_mocks.js';
 
 vi.mock('three', () => {
-    class Vector3 {
-        constructor(x = 0, y = 0, z = 0) {
-            this.x = x; this.y = y; this.z = z;
-        }
-        set(x, y, z) {
-            this.x = x; this.y = y; this.z = z;
-            return this;
-        }
-        copy(other) {
-            this.x = other.x; this.y = other.y; this.z = other.z;
-            return this;
-        }
-    }
     class PointLight {
         constructor(color, intensity, distance) {
             this.color = color;
             this.intensity = intensity;
             this.distance = distance;
-            this.position = new Vector3();
+            this.position = new MockVector3();
             this.visible = true;
         }
     }
@@ -27,12 +15,12 @@ vi.mock('three', () => {
         constructor(geometry, material) {
             this.geometry = geometry;
             this.material = material;
-            this.position = new Vector3();
+            this.position = new MockVector3();
             this.visible = true;
         }
     }
     class SphereGeometry { constructor(radius, width_segments, height_segments) { this.radius = radius; this.width_segments = width_segments; this.height_segments = height_segments; } }
-    return { Vector3, PointLight, Mesh, SphereGeometry };
+    return { Vector3: MockVector3, PointLight, Mesh, SphereGeometry };
 });
 
 vi.mock('../../rendering/sun_material.js', () => ({

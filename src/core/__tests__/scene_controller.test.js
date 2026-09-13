@@ -34,7 +34,6 @@ vi.mock('../geometry/metaball_geometry.js', () => ({
         scene.add(effect);
         return effect;
     }),
-    rebuildMetaballGeometry: vi.fn(),
     ballToWorldPosition: vi.fn(() => ({ x: 0, y: 0, z: 0 })),
     ballToWorldRadius: vi.fn(() => 0),
 }));
@@ -64,6 +63,8 @@ vi.mock('../rendering/metaball_material.js', () => ({
         },
     })),
     updateMetaballLight: vi.fn(),
+    updateMetaballBalls: vi.fn(),
+    updateMetaballDisplacement: vi.fn(),
 }));
 
 vi.mock('../geometry/volcano_geometry.js', () => ({
@@ -190,9 +191,8 @@ vi.mock('../default_settings.json', () => ({
 }));
 
 import { createSceneController } from '../scene_controller.js';
-import { rebuildMetaballGeometry } from '../geometry/metaball_geometry.js';
 import { settings as mock_settings, stepMetaballAnimation, getActiveBalls } from '../animation/metaball_animation.js';
-import { updateMetaballLight } from '../rendering/metaball_material.js';
+import { updateMetaballLight, updateMetaballBalls } from '../rendering/metaball_material.js';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
 import { createVolcanoMaterial, updateVolcanoLight } from '../rendering/volcano_material.js';
 import { settings as mock_smoke_settings } from '../animation/smoke_particles.js';
@@ -292,21 +292,21 @@ describe('createSceneController – metaballs', () => {
         const controller = makeController();
         controller.setMetaballCount(250);
         expect(controller.getMetaballCount()).toBe(250);
-        expect(rebuildMetaballGeometry).toHaveBeenCalled();
+        expect(updateMetaballBalls).toHaveBeenCalled();
     });
 
     test('setMetaballIsolation updates effect.isolation and rebuilds the field', () => {
         const controller = makeController();
         controller.setMetaballIsolation(77);
         expect(controller.getMetaballIsolation()).toBe(77);
-        expect(rebuildMetaballGeometry).toHaveBeenCalled();
+        expect(updateMetaballBalls).toHaveBeenCalled();
     });
 
     test('setMetaballRadius updates effect.radius_scale and rebuilds the field', () => {
         const controller = makeController();
         controller.setMetaballRadius(1.5);
         expect(controller.getMetaballRadius()).toBe(1.5);
-        expect(rebuildMetaballGeometry).toHaveBeenCalled();
+        expect(updateMetaballBalls).toHaveBeenCalled();
     });
 
     test('getMaxMetaballCount is capped at the GPU raymarcher\'s ball limit, even though the mocked pool reports a higher max_count', () => {
@@ -648,15 +648,15 @@ describe('createSceneController – update()', () => {
 
     test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {
         const controller = makeController();
-        rebuildMetaballGeometry.mockClear(); // drop the initial rebuild done during construction
+        updateMetaballBalls.mockClear(); // drop the initial rebuild done during construction
 
         stepMetaballAnimation.mockReturnValueOnce(null);
         controller.update(0);
-        expect(rebuildMetaballGeometry).not.toHaveBeenCalled();
+        expect(updateMetaballBalls).not.toHaveBeenCalled();
 
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         controller.update(1);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(expect.anything(), balls, expect.anything());
+        expect(updateMetaballBalls).toHaveBeenCalledWith(expect.anything(), balls, expect.anything());
     });
 });

@@ -3,13 +3,13 @@ import { importFreshModule } from '../../test-utils/reimport.js';
 import {
     SMOKE_MAX_PARTICLES,
     SMOKE_LIFETIME,
-    SMOKE_SIZE_MULT_MIN,
-    SMOKE_SIZE_MULT_MAX,
+    SMOKE_SIZE_MULTIPLIER_MIN,
+    SMOKE_SIZE_MULTIPLIER_MAX,
     SMOKE_ACCENT_STRENGTH,
-    SMOKE_EMBER_GLOW_MULT_MIN,
-    SMOKE_EMBER_GLOW_MULT_MAX,
-    SMOKE_EMBER_COOLING_MULT_MIN,
-    SMOKE_EMBER_COOLING_MULT_MAX,
+    SMOKE_EMBER_GLOW_MULTIPLIER_MIN,
+    SMOKE_EMBER_GLOW_MULTIPLIER_MAX,
+    SMOKE_EMBER_COOLING_MULTIPLIER_MIN,
+    SMOKE_EMBER_COOLING_MULTIPLIER_MAX,
     SMOKE_AMBIENT_FRACTION,
     SMOKE_PAUSED_ERUPTION_OPACITY,
 } from '../../config.js';
@@ -33,7 +33,7 @@ describe('particle_seeds', () => {
         expect(particle_seeds.timing_seed).toHaveLength(SMOKE_MAX_PARTICLES * 2);
         expect(particle_seeds.appearance).toHaveLength(SMOKE_MAX_PARTICLES * 3);
         expect(particle_seeds.accent_base).toHaveLength(SMOKE_MAX_PARTICLES);
-        expect(particle_seeds.ember_cooling_mult).toHaveLength(SMOKE_MAX_PARTICLES);
+        expect(particle_seeds.ember_cooling_multiplier).toHaveLength(SMOKE_MAX_PARTICLES);
         expect(particle_seeds.ambient_seed).toHaveLength(SMOKE_MAX_PARTICLES * 4);
     });
 
@@ -45,31 +45,31 @@ describe('particle_seeds', () => {
         expect(ambient_share).toBeLessThan(SMOKE_AMBIENT_FRACTION + 0.1);
     });
 
-    test('appearance packs size_mult/glow_mult within their configured ranges', () => {
+    test('appearance packs size_multiplier/glow_multiplier within their configured ranges', () => {
         const { appearance } = particles_module.particle_seeds;
         for (let i = 0; i < appearance.length; i += 3) {
-            const [size_mult, glow_mult, shape_seed] = [appearance[i], appearance[i + 1], appearance[i + 2]];
-            expect(size_mult).toBeGreaterThanOrEqual(SMOKE_SIZE_MULT_MIN);
-            expect(size_mult).toBeLessThanOrEqual(SMOKE_SIZE_MULT_MAX);
-            expect(glow_mult).toBeGreaterThanOrEqual(SMOKE_EMBER_GLOW_MULT_MIN);
-            expect(glow_mult).toBeLessThanOrEqual(SMOKE_EMBER_GLOW_MULT_MAX);
+            const [size_multiplier, glow_multiplier, shape_seed] = [appearance[i], appearance[i + 1], appearance[i + 2]];
+            expect(size_multiplier).toBeGreaterThanOrEqual(SMOKE_SIZE_MULTIPLIER_MIN);
+            expect(size_multiplier).toBeLessThanOrEqual(SMOKE_SIZE_MULTIPLIER_MAX);
+            expect(glow_multiplier).toBeGreaterThanOrEqual(SMOKE_EMBER_GLOW_MULTIPLIER_MIN);
+            expect(glow_multiplier).toBeLessThanOrEqual(SMOKE_EMBER_GLOW_MULTIPLIER_MAX);
             expect(shape_seed).toBeGreaterThanOrEqual(0);
             expect(shape_seed).toBeLessThanOrEqual(1);
         }
     });
 
-    test('size_mult follows a bell curve - most particles cluster near the mean, few are near the maximum', () => {
+    test('size_multiplier follows a bell curve - most particles cluster near the mean, few are near the maximum', () => {
         const { appearance } = particles_module.particle_seeds;
-        const size_mults = [];
-        for (let i = 0; i < appearance.length; i += 3) size_mults.push(appearance[i]);
+        const size_multipliers = [];
+        for (let i = 0; i < appearance.length; i += 3) size_multipliers.push(appearance[i]);
 
-        const mean = (SMOKE_SIZE_MULT_MIN + SMOKE_SIZE_MULT_MAX) / 2;
-        const near_mean = size_mults.filter(value => Math.abs(value - mean) < (SMOKE_SIZE_MULT_MAX - mean) * 0.5);
-        const near_max = size_mults.filter(value => value > mean + (SMOKE_SIZE_MULT_MAX - mean) * 0.8);
+        const mean = (SMOKE_SIZE_MULTIPLIER_MIN + SMOKE_SIZE_MULTIPLIER_MAX) / 2;
+        const near_mean = size_multipliers.filter(value => Math.abs(value - mean) < (SMOKE_SIZE_MULTIPLIER_MAX - mean) * 0.5);
+        const near_max = size_multipliers.filter(value => value > mean + (SMOKE_SIZE_MULTIPLIER_MAX - mean) * 0.8);
 
         // a bell curve clusters near the mean and leaves extreme sizes rare, unlike a uniform distribution
-        expect(near_mean.length / size_mults.length).toBeGreaterThan(0.6);
-        expect(near_max.length / size_mults.length).toBeLessThan(0.1);
+        expect(near_mean.length / size_multipliers.length).toBeGreaterThan(0.6);
+        expect(near_max.length / size_multipliers.length).toBeLessThan(0.1);
     });
 
     test('accent_base is a sparse highlight, capped at SMOKE_ACCENT_STRENGTH, and zero for ambient particles', () => {
@@ -85,18 +85,18 @@ describe('particle_seeds', () => {
         expect(with_accent.length).toBeLessThan(accent_base.length);
     });
 
-    test('ember_cooling_mult follows a bell curve centered on 1.0, within its configured range', () => {
-        const { ember_cooling_mult } = particles_module.particle_seeds;
-        const mean = (SMOKE_EMBER_COOLING_MULT_MIN + SMOKE_EMBER_COOLING_MULT_MAX) / 2;
+    test('ember_cooling_multiplier follows a bell curve centered on 1.0, within its configured range', () => {
+        const { ember_cooling_multiplier } = particles_module.particle_seeds;
+        const mean = (SMOKE_EMBER_COOLING_MULTIPLIER_MIN + SMOKE_EMBER_COOLING_MULTIPLIER_MAX) / 2;
         expect(mean).toBeCloseTo(1.0, 9);
 
         let sum = 0;
-        for (let i = 0; i < ember_cooling_mult.length; i++) {
-            expect(ember_cooling_mult[i]).toBeGreaterThanOrEqual(SMOKE_EMBER_COOLING_MULT_MIN);
-            expect(ember_cooling_mult[i]).toBeLessThanOrEqual(SMOKE_EMBER_COOLING_MULT_MAX);
-            sum += ember_cooling_mult[i];
+        for (let i = 0; i < ember_cooling_multiplier.length; i++) {
+            expect(ember_cooling_multiplier[i]).toBeGreaterThanOrEqual(SMOKE_EMBER_COOLING_MULTIPLIER_MIN);
+            expect(ember_cooling_multiplier[i]).toBeLessThanOrEqual(SMOKE_EMBER_COOLING_MULTIPLIER_MAX);
+            sum += ember_cooling_multiplier[i];
         }
-        expect(sum / ember_cooling_mult.length).toBeCloseTo(mean, 1);
+        expect(sum / ember_cooling_multiplier.length).toBeCloseTo(mean, 1);
     });
 
     test('timing_seed keeps phase_offset within [0, SMOKE_LIFETIME] and color_seed within [0, 1]', () => {

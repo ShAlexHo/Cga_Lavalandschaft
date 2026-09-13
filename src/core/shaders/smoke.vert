@@ -1,9 +1,9 @@
 attribute float a_is_ambient;
-attribute vec4  a_motion_seed;  // base_angle, base_radius, drift_angle, lifetime_mult
+attribute vec4  a_motion_seed;  // base_angle, base_radius, drift_angle, lifetime_multiplier
 attribute vec2  a_timing_seed;  // phase_offset, color_seed
-attribute vec3  a_appearance;   // size_mult, glow_mult, shape_seed
+attribute vec3  a_appearance;   // size_multiplier, glow_multiplier, shape_seed
 attribute float a_accent_base;
-attribute float a_ember_cooling_mult;
+attribute float a_ember_cooling_multiplier;
 attribute vec4  a_ambient_seed; // ambient_angle, ambient_radius_seed, ambient_height_seed, ambient_opacity_seed
 
 uniform float u_time;
@@ -25,21 +25,21 @@ uniform float u_ember_cooling_time;
 varying float v_opacity;
 varying float v_color_mix;
 varying float v_accent_mix;
-varying float v_glow_mult;
+varying float v_glow_multiplier;
 varying float v_shape_seed;
 
 void main() {
     float base_angle = a_motion_seed.x;
     float base_radius = a_motion_seed.y;
     float drift_angle = a_motion_seed.z;
-    float lifetime_mult = a_motion_seed.w;
+    float lifetime_multiplier = a_motion_seed.w;
     float phase_offset = a_timing_seed.x;
     float color_seed = a_timing_seed.y;
-    float size_mult = a_appearance.x;
-    float glow_mult = a_appearance.y;
+    float size_multiplier = a_appearance.x;
+    float glow_multiplier = a_appearance.y;
     float shape_seed = a_appearance.z;
 
-    float lifetime = (u_lifetime * lifetime_mult) / u_rise_speed;
+    float lifetime = (u_lifetime * lifetime_multiplier) / u_rise_speed;
     float age_seconds = mod(u_time + phase_offset, lifetime);
     float age_fraction = age_seconds / lifetime;
 
@@ -88,7 +88,7 @@ void main() {
         local_position = vec3(radius * cos(angle), age_fraction * u_rise_height, radius * sin(angle));
         opacity = life_envelope * distance_falloff * u_plume_opacity_factor;
 
-        float cooling_time = u_ember_cooling_time * a_ember_cooling_mult;
+        float cooling_time = u_ember_cooling_time * a_ember_cooling_multiplier;
         float ember_cooling = 1.0 - smoothstep(0.0, cooling_time, age_seconds);
         accent_mix = a_accent_base * ember_cooling;
     }
@@ -96,13 +96,11 @@ void main() {
     v_opacity = opacity;
     v_color_mix = color_mix;
     v_accent_mix = accent_mix;
-    v_glow_mult = glow_mult;
+    v_glow_multiplier = glow_multiplier;
     v_shape_seed = shape_seed;
 
     vec4 view_position = modelViewMatrix * vec4(local_position, 1.0);
 
-    const float REFERENCE_DISTANCE = 10.0;
-    float attenuation = REFERENCE_DISTANCE / max(-view_position.z, 0.001);
-    gl_PointSize = clamp(u_size * size_mult * attenuation, 1.0, 150.0);
+    gl_PointSize = clamp(u_size * size_multiplier * pointSizeAttenuation(view_position.xyz), 1.0, 150.0);
     gl_Position = projectionMatrix * view_position;
 }

@@ -1,16 +1,15 @@
-import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
-import { createMetaballMaterial, updateMetaballLight } from '../rendering/metaball_material.js';
-import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
+import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
+import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../rendering/metaball_material.js';
 import { toHexColor } from '../rendering/color_utils.js';
-import { horizontalDistance } from '../animation/math_utils.js';
-import { METABALL_GPU_MAX_BALLS, METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE } from '../config.js';
+import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../animation/metaball_animation.js';
+import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {
     const material = createMetaballMaterial();
     const effect = createMetaballGeometry(scene, material);
     let last_camera = null;
-    rebuildMetaballGeometry(effect, getActiveBalls(), last_camera);
+    updateMetaballBalls(effect, getActiveBalls(), last_camera);
 
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_strength = DEFAULT_SETTINGS.displacementStrength;
@@ -20,30 +19,25 @@ export function createMetaballField(scene) {
         update(time, camera, volcano_position) {
             last_camera = camera;
             const balls = stepMetaballAnimation(time);
-            if (balls) rebuildMetaballGeometry(effect, balls, camera);
+            if (balls) updateMetaballBalls(effect, balls, camera);
             updateMetaballLight(material, camera, time);
-
-            const camera_too_far = horizontalDistance(camera.position, volcano_position) > METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE;
-            material.uniforms.u_displacement.value = (displacement_enabled && !camera_too_far) ? displacement_strength : 0.0;
+            updateMetaballDisplacement(material, { enabled: displacement_enabled, strength: displacement_strength, camera, volcano_position });
         },
 
         isPaused: () => settings.paused,
         setPaused: value => { settings.paused = value; },
         getEruptionIntensity: time => getEruptionIntensity(time),
-        // subtract/isolation ride along so the interaction layer can replicate the raymarcher's field
-        // equation (metaball.frag) and check whether a point is genuinely on the rendered lava surface -
-        // accounting for multiple overlapping metaballs blending together, not just the nearest one.
+        // subtract/isolation let the interaction layer replicate metaball.frag's blended field, not
+        // just nearest-ball distance.
         getActiveWorldPositions: () => getActiveBalls().map(ball => ({
             ...ballToWorldPosition(ball, effect),
             radius: ballToWorldRadius(ball, effect),
             subtract: ball.subtract,
             isolation: effect.isolation,
         })),
-        // shrink_increment accumulates onto the ball's own persisted shrink_fraction (reset only on
-        // respawn), rather than being applied as a fresh target each call - so a ball that was
-        // already shrunk in an earlier press session keeps its size instead of popping back to full
-        // when pressed again.
-        squeezeNearestBall: ({ x, y, z, shrink_increment }) => {
+        // shrink_increment accumulates onto the ball's persisted shrink_fraction, so an already-shrunk
+        // ball doesn't pop back to full size.
+        squeezeNearestBall({ x, y, z, shrink_increment }) {
             let nearest_ball = null;
             let nearest_distance = Infinity;
             for (const ball of getActiveBalls()) {
@@ -63,13 +57,13 @@ export function createMetaballField(scene) {
         },
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
+        setCount: value => { settings.count = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
         // GUI/persistence max only, clamped to the GPU array size - settings.max_count itself stays uncapped.
         getMaxCount: () => Math.min(settings.max_count, METABALL_GPU_MAX_BALLS),
         getIsolation: () => effect.isolation,
-        setIsolation: value => { effect.isolation = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
+        setIsolation: value => { effect.isolation = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
         getRadius: () => effect.radius_scale,
-        setRadius: value => { effect.radius_scale = value; rebuildMetaballGeometry(effect, getActiveBalls(), last_camera); },
+        setRadius: value => { effect.radius_scale = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
         getSpread: () => settings.spread,
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,

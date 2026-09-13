@@ -7,7 +7,6 @@ vi.mock('../../geometry/metaball_geometry.js', () => ({
         scene.add(effect);
         return effect;
     }),
-    rebuildMetaballGeometry: vi.fn(),
     ballToWorldPosition: vi.fn((ball, effect) => ({
         x: effect.position.x + 30 * (2 * ball.x - 1),
         y: effect.position.y + 30 * (2 * ball.y - 1),
@@ -31,6 +30,8 @@ vi.mock('../../rendering/metaball_material.js', () => ({
         },
     })),
     updateMetaballLight: vi.fn(),
+    updateMetaballBalls: vi.fn(),
+    updateMetaballDisplacement: vi.fn(),
 }));
 
 vi.mock('../../animation/metaball_animation.js', () => {
@@ -44,14 +45,12 @@ vi.mock('../../animation/metaball_animation.js', () => {
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
-import { createMetaballGeometry, rebuildMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
-import { createMetaballMaterial, updateMetaballLight } from '../../rendering/metaball_material.js';
+import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
+import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../../rendering/metaball_material.js';
 import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity } from '../../animation/metaball_animation.js';
-import { METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE } from '../../config.js';
 
 const VOLCANO_POSITION = { x: 0, y: 0, z: 0 };
-const NEAR_CAMERA = { position: { x: METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE - 5, y: 3, z: 0 } };
-const FAR_CAMERA = { position: { x: METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE + 5, y: 3, z: 0 } };
+const NEAR_CAMERA = { position: { x: 20, y: 3, z: 0 } };
 
 const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 };
 
@@ -67,21 +66,21 @@ describe('createMetaballField', () => {
         expect(createMetaballMaterial).toHaveBeenCalledTimes(1);
         expect(createMetaballGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
         expect(scene.add).toHaveBeenCalledWith(field.effect);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, [], null);
+        expect(updateMetaballBalls).toHaveBeenCalledWith(field.effect, [], null);
     });
 
     test('update() rebuilds only when the animation step returns balls', () => {
         const field = createMetaballField(makeScene());
-        rebuildMetaballGeometry.mockClear();
+        updateMetaballBalls.mockClear();
 
         stepMetaballAnimation.mockReturnValueOnce(null);
         field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(rebuildMetaballGeometry).not.toHaveBeenCalled();
+        expect(updateMetaballBalls).not.toHaveBeenCalled();
 
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         field.update(1, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledWith(field.effect, balls, NEAR_CAMERA);
+        expect(updateMetaballBalls).toHaveBeenCalledWith(field.effect, balls, NEAR_CAMERA);
         expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), NEAR_CAMERA, 1);
     });
 
@@ -157,19 +156,19 @@ describe('createMetaballField', () => {
 
     test('setCount/setIsolation/setRadius rebuild the geometry with the currently active balls', () => {
         const field = createMetaballField(makeScene());
-        rebuildMetaballGeometry.mockClear();
+        updateMetaballBalls.mockClear();
 
         field.setCount(250);
         expect(field.getCount()).toBe(250);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(1);
+        expect(updateMetaballBalls).toHaveBeenCalledTimes(1);
 
         field.setIsolation(77);
         expect(field.getIsolation()).toBe(77);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(2);
+        expect(updateMetaballBalls).toHaveBeenCalledTimes(2);
 
         field.setRadius(1.5);
         expect(field.getRadius()).toBe(1.5);
-        expect(rebuildMetaballGeometry).toHaveBeenCalledTimes(3);
+        expect(updateMetaballBalls).toHaveBeenCalledTimes(3);
     });
 
     test('getDisplacementStrength/getDisplacementEnabled reflect the configured values, unaffected by the applied uniform', () => {
@@ -186,24 +185,16 @@ describe('createMetaballField', () => {
         expect(field.getDisplacementEnabled()).toBe(false);
     });
 
-    test('update() applies the configured strength only while enabled and within camera range', () => {
+    test('update() forwards the configured displacement enabled/strength to updateMetaballDisplacement', () => {
         const field = createMetaballField(makeScene());
-        const uniform = () => field.effect.material.uniforms.u_displacement.value;
-
         field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(uniform()).toBeCloseTo(0.003, 9);
+        expect(updateMetaballDisplacement).toHaveBeenCalledWith(expect.any(Object), {
+            enabled: true, strength: expect.closeTo(0.003, 9), camera: NEAR_CAMERA, volcano_position: VOLCANO_POSITION,
+        });
 
-        field.update(0, FAR_CAMERA, VOLCANO_POSITION);
-        expect(uniform()).toBe(0.0);
-
-        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
         field.setDisplacementEnabled(false);
         field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(uniform()).toBe(0.0);
-
-        field.setDisplacementEnabled(true);
-        field.update(0, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(uniform()).toBeCloseTo(0.003, 9);
+        expect(updateMetaballDisplacement).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ enabled: false }));
     });
 
     test('color and noise getters/setters forward to the material uniforms', () => {

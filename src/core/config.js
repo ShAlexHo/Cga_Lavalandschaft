@@ -52,7 +52,7 @@ export const METABALL_BACKGROUND_FADE_FAR = 38.0; // camera distance beyond whic
 // ─── Metaball animation (lava flow simulation) ───────────────────────────────
 
 export const METABALL_MAX_BALLS = 500;
-export const METABALL_LEGACY_EFFECT_SCALE = 7.2; // scales ball strength; radius ∝ this linearly (see BALL_STRENGTH in metaball_animation.js)
+export const METABALL_STRENGTH_SCALE = 7.2; // scales ball strength; radius ∝ this linearly (see BALL_STRENGTH in metaball_animation.js)
 export const METABALL_CRATER_X = 0.5;
 export const METABALL_CRATER_Y = 0.45; // volcano tip: ground -6 + height 5 = -1 -> (-1 - 0.36) / 30 + 0.5
 export const METABALL_CRATER_Z = 0.5;
@@ -144,15 +144,15 @@ export const SMOKE_CORE_SPREAD = 5.0; // fixed reach near the axis so the center
 export const SMOKE_LIFETIME = 12.0;
 export const SMOKE_FADE_IN_END = 0.15; // age fraction to reach full opacity
 export const SMOKE_FADE_OUT_START = 0.4; // age fraction where fade-out begins
-export const SMOKE_SIZE_MULT_MIN = 0.3;
-export const SMOKE_SIZE_MULT_MAX = 1.3;
+export const SMOKE_SIZE_MULTIPLIER_MIN = 0.3;
+export const SMOKE_SIZE_MULTIPLIER_MAX = 1.3;
 export const SMOKE_ACCENT_STRENGTH = 0.6; // caps the ember tint
 export const SMOKE_ACCENT_THRESHOLD = 0.8; // only the top (1 - threshold) share gets any accent
-export const SMOKE_EMBER_COOLING_MULT_MIN = 0.5;
-export const SMOKE_EMBER_COOLING_MULT_MAX = 1.5;
+export const SMOKE_EMBER_COOLING_MULTIPLIER_MIN = 0.5;
+export const SMOKE_EMBER_COOLING_MULTIPLIER_MAX = 1.5;
 export const SMOKE_EMBER_GLOW_STRENGTH = 6.0; // HDR multiplier, pushes past the bloom threshold
-export const SMOKE_EMBER_GLOW_MULT_MIN = 0.4;
-export const SMOKE_EMBER_GLOW_MULT_MAX = 1.8;
+export const SMOKE_EMBER_GLOW_MULTIPLIER_MIN = 0.4;
+export const SMOKE_EMBER_GLOW_MULTIPLIER_MAX = 1.8;
 export const SMOKE_PAUSED_ERUPTION_OPACITY = 0.35; // crater-plume floor between lava waves
 
 export const SMOKE_AMBIENT_FRACTION = 0.3; // share scattered as background haze, not the crater plume

@@ -13,8 +13,8 @@ export function smoothstep(edge0, edge1, x) {
 }
 
 // Signed difference between two angles (radians), wrapped to (-PI, PI].
-export function angleDifference(a, b) {
-    const wrapped = (a - b + Math.PI) % (2 * Math.PI);
+export function angleDifference(angle_a, angle_b) {
+    const wrapped = (angle_a - angle_b + Math.PI) % (2 * Math.PI);
     return (wrapped < 0 ? wrapped + 2 * Math.PI : wrapped) - Math.PI;
 }
 
@@ -23,8 +23,8 @@ export function worldAzimuth(center, point) {
     return Math.atan2(point.z - center.z, point.x - center.x);
 }
 
-export function horizontalDistance(a, b) {
-    return Math.hypot(a.x - b.x, a.z - b.z);
+export function horizontalDistance(point_a, point_b) {
+    return Math.hypot(point_a.x - point_b.x, point_a.z - point_b.z);
 }
 
 // 1 within CAMERA_VISIBLE_ARC_DEGREES facing the camera, smoothly fading to 0 past its edge.

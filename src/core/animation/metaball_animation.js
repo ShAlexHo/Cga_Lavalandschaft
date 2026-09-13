@@ -3,7 +3,7 @@ import { smoothstep } from './math_utils.js';
 import {
     METABALL_SCALE_XY,
     METABALL_MAX_BALLS,
-    METABALL_LEGACY_EFFECT_SCALE,
+    METABALL_STRENGTH_SCALE,
     METABALL_CRATER_X,
     METABALL_CRATER_Y,
     METABALL_CRATER_Z,
@@ -17,7 +17,7 @@ import DEFAULT_SETTINGS from '../default_settings.json';
 
 export const MAX_BALLS = METABALL_MAX_BALLS;
 
-const BALL_STRENGTH = (METABALL_LEGACY_EFFECT_SCALE / METABALL_SCALE_XY) ** 2;
+const BALL_STRENGTH = (METABALL_STRENGTH_SCALE / METABALL_SCALE_XY) ** 2;
 
 export const settings = {
     count: DEFAULT_SETTINGS.metaballCount,
@@ -37,7 +37,7 @@ const ball_pool = Array.from({ length: MAX_BALLS }, (_, i) => {
     return {
         x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z,
         strength: base_strength, base_strength, shrink_fraction: 0, subtract: random(25, 45),
-        speed_mult: random(0.6, 1.4),
+        speed_multiplier: random(0.6, 1.4),
         angle: randomGauss((i % METABALL_SECTORS) * SECTOR_WIDTH, SECTOR_WIDTH * 0.4),
         active: false,
     };
@@ -106,7 +106,7 @@ export function stepMetaballAnimation(time) {
     for (let i = 0; i < MAX_BALLS; i++) {
         if (!ball_pool[i].active) continue;
         const ball = ball_pool[i];
-        const raw_fraction = (time - spawn_times[i]) * settings.speed_factor * ball.speed_mult / METABALL_BALL_LIFETIME;
+        const raw_fraction = (time - spawn_times[i]) * settings.speed_factor * ball.speed_multiplier / METABALL_BALL_LIFETIME;
         const life_fraction = Math.min(raw_fraction, 1.0);
         const remaining_fraction = 1.0 - life_fraction;
         const flow_phase = 1.0 - remaining_fraction ** 16;

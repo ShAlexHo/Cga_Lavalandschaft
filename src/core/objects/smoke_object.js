@@ -1,8 +1,9 @@
 import { createSmokeGeometry, setSmokeDrawRange } from '../geometry/smoke_geometry.js';
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
-import { settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
 import { toHexColor } from '../rendering/color_utils.js';
+import { settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
+import { bindVisibility } from './visibility_utils.js';
 
 export function createSmoke(scene) {
     const material = createSmokeMaterial();
@@ -15,8 +16,7 @@ export function createSmoke(scene) {
             updateSmokeMaterial(material, time, computePlumeOpacityFactor(eruption_intensity));
         },
 
-        getVisible: () => effect.visible,
-        setVisible: value => { effect.visible = value; },
+        ...bindVisibility(effect),
 
         getCount: () => settings.count,
         setCount: value => { settings.count = value; setSmokeDrawRange(effect, value); },

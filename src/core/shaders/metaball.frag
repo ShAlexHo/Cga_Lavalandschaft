@@ -33,19 +33,19 @@ float metaballField(vec3 local_position) {
     for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
         if (u_ball_strength[i] <= 0.0) continue;
         vec3 offset = local_position - u_ball_center[i];
-        float dist_sq = max(dot(offset, offset), 0.0001);
-        field += max(0.0, 4.0 * u_ball_strength[i] / dist_sq - u_ball_subtract[i]);
+        float distance_squared = max(dot(offset, offset), 0.0001);
+        field += max(0.0, 4.0 * u_ball_strength[i] / distance_squared - u_ball_subtract[i]);
     }
     return field;
 }
 
 // Distance to the nearest ball's isosurface (see ballToWorldRadius) is always a safe march stride.
-float safeStepDistance(vec3 p) {
+float safeStepDistance(vec3 march_position) {
     float nearest = 1.0e6;
     for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
         if (u_ball_strength[i] <= 0.0) continue;
         float local_radius = 2.0 * sqrt(u_ball_strength[i] / (u_isolation + u_ball_subtract[i]));
-        nearest = min(nearest, length(p - u_ball_center[i]) - local_radius);
+        nearest = min(nearest, length(march_position - u_ball_center[i]) - local_radius);
     }
     return nearest;
 }
@@ -87,12 +87,12 @@ void main() {
 
     for (int i = 0; i < METABALL_RAYMARCH_MAX_STEPS; i++) {
         if (i >= u_raymarch_steps || t > t_exit) break;
-        vec3 p = local_camera + ray_direction * t;
-        float distance_to_surface = safeStepDistance(p);
+        vec3 march_position = local_camera + ray_direction * t;
+        float distance_to_surface = safeStepDistance(march_position);
         // Biases the safe distance itself, so the raymarcher converges onto an actually bulged surface.
         if (u_displacement > 0.0) {
-            vec3 world_p = u_effect_position + u_effect_scale * p;
-            distance_to_surface -= crustColdness(world_p) * u_displacement;
+            vec3 probe_world_position = u_effect_position + u_effect_scale * march_position;
+            distance_to_surface -= crustColdness(probe_world_position) * u_displacement;
         }
         if (distance_to_surface < SURFACE_EPSILON) {
             did_hit = true;

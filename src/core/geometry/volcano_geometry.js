@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { VOLCANO_PROFILE, VOLCANO_PROFILE_SUBDIVISIONS, VOLCANO_LATHE_SEGMENTS } from '../config.js';
 import { crackDisplacementNoise } from './terrain_crack_noise.js';
-
-const _world_position = new THREE.Vector3();
+import { bakeVertexDisplacement } from './vertex_displacement_utils.js';
 
 function subdivideProfile(profile, steps) {
     const interpolated_points = [];
@@ -35,22 +34,9 @@ export function createVolcanoGeometry(scene, material) {
 }
 
 export function bakeCrackDisplacement(mesh, frequency, scale) {
-    mesh.updateMatrixWorld(true);
-    const pristine = mesh.pristine_positions;
-    const position_attribute = mesh.geometry.attributes.position;
-
-    for (let i = 0; i < position_attribute.count; i++) {
-        const local_x = pristine[i * 3];
-        const local_y = pristine[i * 3 + 1];
-        const local_z = pristine[i * 3 + 2];
-        _world_position.set(local_x, local_y, local_z).applyMatrix4(mesh.matrixWorld);
-
-        const noise = crackDisplacementNoise(_world_position.x, _world_position.y, _world_position.z, frequency);
+    bakeVertexDisplacement(mesh, (local_x, local_y, local_z, world_position) => {
+        const noise = crackDisplacementNoise(world_position.x, world_position.y, world_position.z, frequency);
         const displacement = -Math.max(0.0, 0.85 - noise);
-
-        position_attribute.setXYZ(i, local_x, local_y + displacement * scale, local_z);
-    }
-    position_attribute.needsUpdate = true;
-    mesh.geometry.computeBoundingSphere();
-    mesh.geometry.computeBoundingBox();
+        return { x: local_x, y: local_y + displacement * scale, z: local_z };
+    });
 }
