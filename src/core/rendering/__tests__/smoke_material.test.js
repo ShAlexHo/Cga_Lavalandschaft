@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
-import { MockHexColor, MockShaderMaterial } from '../../test-utils/three_mocks.js';
+import { MockHexColor, MockShaderMaterial, MockVector3 } from '../../test-utils/three_mocks.js';
 
-vi.mock('three', () => ({ Color: MockHexColor, ShaderMaterial: MockShaderMaterial }));
+vi.mock('three', () => ({ Color: MockHexColor, ShaderMaterial: MockShaderMaterial, Vector3: MockVector3 }));
 
 vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
 vi.mock('../../shaders/smoke.vert?raw', () => ({ default: '// vertex shader' }));
@@ -21,6 +21,7 @@ describe('createSmokeMaterial', () => {
         expect(material.uniforms).toHaveProperty('u_color_3');
         expect(material.uniforms).toHaveProperty('u_size');
         expect(material.uniforms).toHaveProperty('u_sun_color');
+        expect(material.uniforms).toHaveProperty('u_sun_position');
         expect(material.uniforms).toHaveProperty('u_sun_enabled');
         expect(material.uniforms).toHaveProperty('u_sun_strength');
         expect(material.uniforms).toHaveProperty('u_time');
@@ -82,10 +83,19 @@ describe('createSmokeMaterial', () => {
 });
 
 describe('updateSmokeMaterial', () => {
+    const mock_camera = { matrixWorldInverse: {} };
+    const mock_sun_position = { x: 1, y: 2, z: 3 };
+
     test('writes time and the plume opacity factor into their uniforms', () => {
         const material = createSmokeMaterial();
-        updateSmokeMaterial(material, 12.5, 0.42);
+        updateSmokeMaterial(material, mock_camera, mock_sun_position, 12.5, 0.42);
         expect(material.uniforms.u_time.value).toBe(12.5);
         expect(material.uniforms.u_plume_opacity_factor.value).toBe(0.42);
+    });
+
+    test('writes the sun\'s view-space position into u_sun_position', () => {
+        const material = createSmokeMaterial();
+        updateSmokeMaterial(material, mock_camera, mock_sun_position, 0, 1);
+        expect(material.uniforms.u_sun_position.value).toMatchObject(mock_sun_position);
     });
 });

@@ -52,8 +52,8 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
                 metaball_squeeze => metaball_field.squeezeNearestBall(metaball_squeeze),
             );
             volcano.update(camera, sun.light.position, touch_points);
-            impact_smoke.update(smoke_bursts);
-            smoke.update(time, metaball_field.getEruptionIntensity(time));
+            impact_smoke.update(camera, sun.light.position, smoke_bursts);
+            smoke.update(camera, sun.light.position, time, metaball_field.getEruptionIntensity(time));
             volcano_audio.update(time);
             volcano_audio.setPressing(is_touching_lava);
 

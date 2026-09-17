@@ -38,11 +38,13 @@ describe('createImpactSmoke', () => {
         expect(scene.add).toHaveBeenCalledWith(impact_smoke.mesh);
     });
 
-    test('update() forwards the bursts to the material', () => {
+    test('update() forwards the camera, sun position and bursts to the material', () => {
         const impact_smoke = createImpactSmoke(makeScene());
+        const camera = {};
+        const sun_position = {};
         const bursts = [{ x: 1, y: 2, z: 3, bloom: 0.7, fade: 0.4, elapsed: 2.5 }];
-        impact_smoke.update(bursts);
-        expect(updateImpactSmoke).toHaveBeenCalledWith(expect.any(Object), bursts);
+        impact_smoke.update(camera, sun_position, bursts);
+        expect(updateImpactSmoke).toHaveBeenCalledWith(expect.any(Object), camera, sun_position, bursts);
     });
 
     test('getVisible/setVisible toggle mesh.visible', () => {

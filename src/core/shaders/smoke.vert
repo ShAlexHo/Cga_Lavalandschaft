@@ -27,6 +27,7 @@ varying float v_color_mix;
 varying float v_accent_mix;
 varying float v_glow_multiplier;
 varying float v_shape_seed;
+varying vec3  v_view_position;
 
 void main() {
     float base_angle = a_motion_seed.x;
@@ -100,6 +101,7 @@ void main() {
     v_shape_seed = shape_seed;
 
     vec4 view_position = modelViewMatrix * vec4(local_position, 1.0);
+    v_view_position = view_position.xyz;
 
     gl_PointSize = clamp(u_size * size_multiplier * pointSizeAttenuation(view_position.xyz), 1.0, 150.0);
     gl_Position = projectionMatrix * view_position;

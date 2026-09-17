@@ -619,7 +619,7 @@ describe('createSceneController – interaction mode', () => {
 
         expect(interaction.step).toHaveBeenCalledWith(4.0, expect.any(Object), expect.any(Function), expect.any(Function));
         const impact_smoke = createImpactSmoke.mock.results.at(-1).value;
-        expect(impact_smoke.update).toHaveBeenCalledWith(smoke_bursts);
+        expect(impact_smoke.update).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), smoke_bursts);
     });
 
     test('update() wires the metaball-squeeze callback through to metaball_field.squeezeNearestBall', () => {
@@ -661,7 +661,7 @@ describe('createSceneController – update()', () => {
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
         expect(updateVolcanoLight.mock.calls[0][2]).toBe(sun.light.position);
-        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 12.5, 1.0);
+        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), camera, sun.light.position, 12.5, 1.0);
         expect(sun.update).toHaveBeenCalledWith(12.5);
     });
 

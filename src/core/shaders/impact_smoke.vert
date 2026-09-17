@@ -24,6 +24,7 @@ varying float v_color_mix;
 varying float v_accent_mix;
 varying float v_glow_multiplier;
 varying float v_shape_seed;
+varying vec3  v_view_position;
 
 void main() {
     int burst_index = int(a_burst_index);
@@ -78,6 +79,7 @@ void main() {
     v_opacity = max(puff_opacity, haze_opacity) * fade;
 
     vec4 view_position = modelViewMatrix * vec4(world_position, 1.0);
+    v_view_position = view_position.xyz;
     gl_PointSize = clamp(u_size * pointSizeAttenuation(view_position.xyz), 1.0, 150.0);
     gl_Position = projectionMatrix * view_position;
 }

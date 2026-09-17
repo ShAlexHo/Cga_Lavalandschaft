@@ -12,8 +12,8 @@ export function createSmoke(scene) {
 
     return {
         effect,
-        update(time, eruption_intensity = 1.0) {
-            updateSmokeMaterial(material, time, computePlumeOpacityFactor(eruption_intensity));
+        update(camera, sun_world_position, time, eruption_intensity = 1.0) {
+            updateSmokeMaterial(material, camera, sun_world_position, time, computePlumeOpacityFactor(eruption_intensity));
         },
 
         ...bindVisibility(effect),

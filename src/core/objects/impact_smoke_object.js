@@ -10,8 +10,8 @@ export function createImpactSmoke(scene) {
 
     return {
         mesh,
-        update(bursts) {
-            updateImpactSmoke(material, bursts);
+        update(camera, sun_world_position, bursts) {
+            updateImpactSmoke(material, camera, sun_world_position, bursts);
         },
         ...bindVisibility(mesh),
         ...bindSunUniforms(material),

@@ -8,6 +8,7 @@ import {
     SMOKE_AMBIENT_OPACITY,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
+import { updateSunLightUniform } from './light_utils.js';
 
 export function createSmokeMaterial() {
     return new THREE.ShaderMaterial({
@@ -20,6 +21,7 @@ export function createSmokeMaterial() {
             u_size: { value: DEFAULT_SETTINGS.smokeParticleSize },
             u_ember_glow_strength: { value: SMOKE_EMBER_GLOW_STRENGTH },
             u_sun_color: { value: new THREE.Color(SUN_ASH_TINT_COLOR) },
+            u_sun_position: { value: new THREE.Vector3() },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: DEFAULT_SETTINGS.sunStrength },
             u_time: { value: 0.0 },
@@ -43,7 +45,8 @@ export function createSmokeMaterial() {
     });
 }
 
-export function updateSmokeMaterial(material, time, plume_opacity_factor) {
+export function updateSmokeMaterial(material, camera, sun_world_position, time, plume_opacity_factor) {
     material.uniforms.u_time.value = time;
     material.uniforms.u_plume_opacity_factor.value = plume_opacity_factor;
+    updateSunLightUniform(material, camera, sun_world_position);
 }

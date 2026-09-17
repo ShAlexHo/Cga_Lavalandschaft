@@ -28,7 +28,7 @@ describe('createImpactSmokeMaterial', () => {
             'u_rise_boost_duration', 'u_max_rise_boost', 'u_ember_radius_fraction', 'u_grey_variance_min', 'u_burst_positions',
             'u_burst_bloom', 'u_burst_fade', 'u_burst_elapsed', 'u_burst_ember_strength',
             'u_color_1', 'u_color_2', 'u_color_3', 'u_ember_glow_strength',
-            'u_sun_color', 'u_sun_enabled', 'u_sun_strength',
+            'u_sun_color', 'u_sun_position', 'u_sun_enabled', 'u_sun_strength',
         ].forEach(key => expect(material.uniforms).toHaveProperty(key));
     });
 
@@ -80,9 +80,12 @@ describe('createImpactSmokeMaterial', () => {
 });
 
 describe('updateImpactSmoke', () => {
+    const mock_camera = { matrixWorldInverse: {} };
+    const mock_sun_position = { x: 1, y: 2, z: 3 };
+
     test('writes active bursts into the position/bloom/fade/elapsed/ember_strength uniform arrays', () => {
         const material = createImpactSmokeMaterial();
-        updateImpactSmoke(material, [{ x: 1, y: 2, z: 3, bloom: 0.7, fade: 0.4, elapsed: 2.5, ember_strength: 0.49 }]);
+        updateImpactSmoke(material, mock_camera, mock_sun_position, [{ x: 1, y: 2, z: 3, bloom: 0.7, fade: 0.4, elapsed: 2.5, ember_strength: 0.49 }]);
         expect(material.uniforms.u_burst_positions.value[0]).toMatchObject({ x: 1, y: 2, z: 3 });
         expect(material.uniforms.u_burst_bloom.value[0]).toBeCloseTo(0.7, 5);
         expect(material.uniforms.u_burst_fade.value[0]).toBeCloseTo(0.4, 5);
@@ -93,7 +96,13 @@ describe('updateImpactSmoke', () => {
     test('sets slots with no corresponding burst back to fade 0 (invisible)', () => {
         const material = createImpactSmokeMaterial();
         material.uniforms.u_burst_fade.value[3] = 0.8;
-        updateImpactSmoke(material, [{ x: 1, y: 2, z: 3, bloom: 0.7, fade: 0.4, elapsed: 2.5 }]);
+        updateImpactSmoke(material, mock_camera, mock_sun_position, [{ x: 1, y: 2, z: 3, bloom: 0.7, fade: 0.4, elapsed: 2.5 }]);
         expect(material.uniforms.u_burst_fade.value[3]).toBe(0.0);
+    });
+
+    test('writes the sun\'s view-space position into u_sun_position', () => {
+        const material = createImpactSmokeMaterial();
+        updateImpactSmoke(material, mock_camera, mock_sun_position, []);
+        expect(material.uniforms.u_sun_position.value).toMatchObject(mock_sun_position);
     });
 });

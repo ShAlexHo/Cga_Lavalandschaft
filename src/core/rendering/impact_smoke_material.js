@@ -13,6 +13,7 @@ import {
     SMOKE_EMBER_GLOW_STRENGTH, SUN_ASH_TINT_COLOR,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
+import { updateSunLightUniform } from './light_utils.js';
 
 const vertex_glsl_resolved = vertex_glsl.replaceAll('INTERACTION_SMOKE_MAX_BURSTS', INTERACTION_SMOKE_MAX_BURSTS);
 
@@ -42,6 +43,7 @@ export function createImpactSmokeMaterial() {
             u_color_3: { value: new THREE.Color(DEFAULT_SETTINGS.smokeColor3) },
             u_ember_glow_strength: { value: SMOKE_EMBER_GLOW_STRENGTH },
             u_sun_color: { value: new THREE.Color(SUN_ASH_TINT_COLOR) },
+            u_sun_position: { value: new THREE.Vector3() },
             u_sun_enabled: { value: 1.0 },
             u_sun_strength: { value: DEFAULT_SETTINGS.sunStrength },
         },
@@ -52,7 +54,9 @@ export function createImpactSmokeMaterial() {
     });
 }
 
-export function updateImpactSmoke(material, bursts) {
+export function updateImpactSmoke(material, camera, sun_world_position, bursts) {
+    updateSunLightUniform(material, camera, sun_world_position);
+
     const positions = material.uniforms.u_burst_positions.value;
     const bloom = material.uniforms.u_burst_bloom.value;
     const fade = material.uniforms.u_burst_fade.value;

@@ -65,17 +65,19 @@ describe('createSmoke', () => {
         expect(setSmokeDrawRange).toHaveBeenCalledWith(smoke.effect, 200);
     });
 
-    test('update() forwards time and the computed plume opacity factor to the material', () => {
+    test('update() forwards the camera, sun position, time and the computed plume opacity factor to the material', () => {
         const smoke = createSmoke(makeScene());
-        smoke.update(2.5, 0.8);
+        const camera = {};
+        const sun_position = {};
+        smoke.update(camera, sun_position, 2.5, 0.8);
 
         expect(computePlumeOpacityFactor).toHaveBeenCalledWith(0.8);
-        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), 2.5, 0.8);
+        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), camera, sun_position, 2.5, 0.8);
     });
 
     test('update() defaults eruption_intensity to 1.0 (no dimming) when omitted', () => {
         const smoke = createSmoke(makeScene());
-        smoke.update(2.5);
+        smoke.update({}, {}, 2.5);
         expect(computePlumeOpacityFactor).toHaveBeenCalledWith(1.0);
     });
 

@@ -138,7 +138,7 @@ export const SUN_ORBIT_SPEED = (2 * Math.PI) / SUN_ORBIT_PERIOD;
 
 // ─── Smoke / ash plume (points-based particle system) ────────────────────────
 
-export const SMOKE_MAX_PARTICLES = 1400;
+export const SMOKE_MAX_PARTICLES = 2000;
 export const SMOKE_SPAWN_HEIGHT = 4.6; // above the volcano's own origin, where the crater opening sits
 export const SMOKE_RISE_HEIGHT = 10.0;
 export const SMOKE_CORE_SPREAD = 5.0; // fixed reach near the axis so the center never gets diluted
