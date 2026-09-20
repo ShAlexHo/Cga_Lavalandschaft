@@ -639,21 +639,21 @@ describe('createSceneController – interaction mode', () => {
     });
 
     test('getInteractionMode/setInteractionMode forward to the interaction controller and toggle OrbitControls', () => {
-        const set_controls_enabled = vi.fn();
+        const setControlsEnabled = vi.fn();
         const controller = createSceneController({
             scene: makeScene(), camera: makeCamera(), renderer: makeRenderer(),
-            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled: set_controls_enabled,
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled,
         });
 
         expect(controller.getInteractionMode()).toBe(false);
 
         controller.setInteractionMode(true);
         expect(controller.getInteractionMode()).toBe(true);
-        expect(set_controls_enabled).toHaveBeenCalledWith(false);
+        expect(setControlsEnabled).toHaveBeenCalledWith(false);
 
         controller.setInteractionMode(false);
         expect(controller.getInteractionMode()).toBe(false);
-        expect(set_controls_enabled).toHaveBeenCalledWith(true);
+        expect(setControlsEnabled).toHaveBeenCalledWith(true);
     });
 
     test('getInteractionSmokeVisible/setInteractionSmokeVisible forward to the impact smoke object', () => {

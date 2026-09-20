@@ -11,7 +11,7 @@ export function createPostProcessing({ renderer, scene, camera }) {
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         DEFAULT_SETTINGS.bloomStrength,
         DEFAULT_SETTINGS.bloomRadius,
-        DEFAULT_SETTINGS.bloomThreshold
+        DEFAULT_SETTINGS.bloomThreshold,
     );
     bloom_pass.bloomTintColors.fill(new THREE.Vector3(BLOOM_TINT_COLOR.x, BLOOM_TINT_COLOR.y, BLOOM_TINT_COLOR.z));
 

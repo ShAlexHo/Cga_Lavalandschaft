@@ -127,13 +127,13 @@ describe('createInteractionController', () => {
 
         const hit_point = { x: 1, y: 2, z: 3 };
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: hit_point }]);
-        const get_positions = vi.fn(() => [{ x: 0, y: 0, z: 0 }]);
+        const getPositions = vi.fn(() => [{ x: 0, y: 0, z: 0 }]);
         const camera = { position: { x: 0, y: 0, z: 10 } };
 
-        controller.step(5, camera, get_positions);
+        controller.step(5, camera, getPositions);
 
         expect(raycaster_instances[0].intersectObject).toHaveBeenCalledWith(mesh, false);
-        expect(get_positions).toHaveBeenCalledTimes(1);
+        expect(getPositions).toHaveBeenCalledTimes(1);
         expect(registerTouch).toHaveBeenCalledWith(5, hit_point, [{ x: 0, y: 0, z: 0 }], camera.position);
     });
 
@@ -146,11 +146,11 @@ describe('createInteractionController', () => {
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         const squeeze = { x: 1, y: 2, z: 3, shrink_increment: 0.2 };
         registerTouch.mockReturnValueOnce(squeeze);
-        const squeeze_metaball_near = vi.fn();
+        const squeezeMetaballNear = vi.fn();
 
-        controller.step(5, {}, () => [], squeeze_metaball_near);
+        controller.step(5, {}, () => [], squeezeMetaballNear);
 
-        expect(squeeze_metaball_near).toHaveBeenCalledWith(squeeze);
+        expect(squeezeMetaballNear).toHaveBeenCalledWith(squeeze);
     });
 
     test('squeezeMetaballNear is not called when registerTouch does not signal a squeeze', () => {
@@ -161,11 +161,11 @@ describe('createInteractionController', () => {
 
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         registerTouch.mockReturnValueOnce(null);
-        const squeeze_metaball_near = vi.fn();
+        const squeezeMetaballNear = vi.fn();
 
-        controller.step(5, {}, () => [], squeeze_metaball_near);
+        controller.step(5, {}, () => [], squeezeMetaballNear);
 
-        expect(squeeze_metaball_near).not.toHaveBeenCalled();
+        expect(squeezeMetaballNear).not.toHaveBeenCalled();
     });
 
     test('the metaball-position thunk is not evaluated when there is no hit', () => {
@@ -174,10 +174,10 @@ describe('createInteractionController', () => {
         settings.enabled = true;
         renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
 
-        const get_positions = vi.fn(() => []);
-        controller.step(0, {}, get_positions);
+        const getPositions = vi.fn(() => []);
+        controller.step(0, {}, getPositions);
 
-        expect(get_positions).not.toHaveBeenCalled();
+        expect(getPositions).not.toHaveBeenCalled();
         expect(registerTouch).not.toHaveBeenCalled();
     });
 
@@ -353,11 +353,11 @@ describe('auto touch (autonomous mode)', () => {
         const controller = createInteractionController(renderer, makeMesh());
         const squeeze = { x: 1, y: 2, z: 3, shrink_increment: 0.1 };
         registerTouch.mockReturnValueOnce(squeeze);
-        const squeeze_metaball_near = vi.fn();
+        const squeezeMetaballNear = vi.fn();
 
-        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], squeeze_metaball_near, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], squeezeMetaballNear, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
 
-        expect(squeeze_metaball_near).toHaveBeenCalledWith(squeeze);
+        expect(squeezeMetaballNear).toHaveBeenCalledWith(squeeze);
     });
 
     test('does not register a touch when there are no active metaballs, even once the countdown elapses', () => {

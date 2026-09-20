@@ -15,9 +15,9 @@ vi.mock('../../persistence/persistence.js', () => ({
     uploadJson: vi.fn(),
 }));
 
+import { setupGui } from '../gui.js';
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../../persistence/persistence.js';
-import { setupGui } from '../gui.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -197,7 +197,7 @@ function makeController() {
     const controller = {
         _on_change_callback: null,
         name: vi.fn().mockReturnThis(),
-        onChange: vi.fn(function (callback) { controller._on_change_callback = callback; return controller; }),
+        onChange: vi.fn(callback => { controller._on_change_callback = callback; return controller; }),
         listen: vi.fn().mockReturnThis(),
         updateDisplay: vi.fn(),
     };
@@ -216,7 +216,7 @@ function makeMockGui() {
     function record(folder_name) {
         return vi.fn((bound_object, key) => {
             const controller = makeController();
-            registry.push({ folder: folder_name, obj: bound_object, key, controller });
+            registry.push({ folder: folder_name, bound_object, key, controller });
             return controller;
         });
     }
@@ -276,7 +276,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ isPaused: vi.fn(() => true) });
         setupGui(facade);
         const entry = find(registry, 'root', 'paused');
-        expect(entry.obj.paused).toBe(true);
+        expect(entry.bound_object.paused).toBe(true);
         fire(registry, 'root', 'paused', false);
         expect(facade.setPaused).toHaveBeenCalledWith(false);
     });
@@ -286,7 +286,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getBaseTimeScale: vi.fn(() => 2.5) });
         setupGui(facade);
         const entry = find(registry, 'root', 'time_scale');
-        expect(entry.obj.time_scale).toBe(2.5);
+        expect(entry.bound_object.time_scale).toBe(2.5);
         fire(registry, 'root', 'time_scale', 4);
         expect(facade.setTimeScale).toHaveBeenCalledWith(4);
     });
@@ -296,7 +296,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getBaseTimeScale: vi.fn(() => 2.5), getTimeScale: vi.fn(() => 25) });
         setupGui(facade);
         const entry = find(registry, 'root', 'time_scale');
-        expect(entry.obj.time_scale).toBe(2.5);
+        expect(entry.bound_object.time_scale).toBe(2.5);
     });
 
     test('root effective_time_scale control tracks facade.getTimeScale() live and listens for continuous updates', () => {
@@ -305,10 +305,10 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getTimeScale: vi.fn(() => current_time_scale) });
         setupGui(facade);
         const entry = find(registry, 'root', 'effective_time_scale');
-        expect(entry.obj.effective_time_scale).toBe(1);
+        expect(entry.bound_object.effective_time_scale).toBe(1);
 
         current_time_scale = 10; // e.g. a wave-start boost kicking in
-        expect(entry.obj.effective_time_scale).toBe(10); // reflected without any explicit refresh call
+        expect(entry.bound_object.effective_time_scale).toBe(10); // reflected without any explicit refresh call
         expect(entry.controller.listen).toHaveBeenCalled();
     });
 
@@ -317,7 +317,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
         setupGui(facade);
         const entry = find(registry, 'root', 'interaction_mode');
-        expect(entry.obj.interaction_mode).toBe(true);
+        expect(entry.bound_object.interaction_mode).toBe(true);
         fire(registry, 'root', 'interaction_mode', false);
         expect(facade.setInteractionMode).toHaveBeenCalledWith(false);
     });
@@ -327,7 +327,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
         setupGui(facade);
         const entry = find(registry, 'root', 'autonomous_mode');
-        expect(entry.obj.autonomous_mode).toBe(false); // interaction mode is on -> not autonomous
+        expect(entry.bound_object.autonomous_mode).toBe(false); // interaction mode is on -> not autonomous
         fire(registry, 'root', 'autonomous_mode', true); // switching autonomous mode on...
         expect(facade.setInteractionMode).toHaveBeenCalledWith(false); // ...turns interaction mode off
     });
@@ -337,7 +337,7 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getInteractionSmokeVisible: vi.fn(() => false) });
         setupGui(facade);
         const entry = find(registry, 'root', 'interaction_smoke_visible');
-        expect(entry.obj.interaction_smoke_visible).toBe(false);
+        expect(entry.bound_object.interaction_smoke_visible).toBe(false);
         fire(registry, 'root', 'interaction_smoke_visible', true);
         expect(facade.setInteractionSmokeVisible).toHaveBeenCalledWith(true);
     });
@@ -351,7 +351,7 @@ describe('setupGui – Metaballs folder', () => {
         const facade = makeFacade({ getMetaballCount: vi.fn(() => 42), getMaxMetaballCount: vi.fn(() => 200) });
         setupGui(facade);
         const entry = find(registry, 'Metaballs', 'count');
-        expect(entry.obj.count).toBe(42);
+        expect(entry.bound_object.count).toBe(42);
         fire(registry, 'Metaballs', 'count', 77);
         expect(facade.setMetaballCount).toHaveBeenCalledWith(77);
     });
@@ -482,7 +482,7 @@ describe('setupGui – Rauch & Asche folder', () => {
         const facade = makeFacade({ getSmokeCount: vi.fn(() => 150), getMaxSmokeCount: vi.fn(() => 300) });
         setupGui(facade);
         const entry = find(registry, 'Rauch & Asche', 'count');
-        expect(entry.obj.count).toBe(150);
+        expect(entry.bound_object.count).toBe(150);
         fire(registry, 'Rauch & Asche', 'count', 90);
         expect(facade.setSmokeCount).toHaveBeenCalledWith(90);
     });
@@ -600,7 +600,7 @@ describe('setupGui – Speichern / Laden', () => {
         setupGui(facade);
 
         const entry = find(registry, 'Speichern / Laden', 'save');
-        entry.obj.save();
+        entry.bound_object.save();
 
         expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
         expect(downloadJson).toHaveBeenCalledWith(snapshot);
@@ -615,7 +615,7 @@ describe('setupGui – Speichern / Laden', () => {
         uploadJson.mockImplementation(on_loaded => on_loaded(uploaded));
 
         const entry = find(registry, 'Speichern / Laden', 'load');
-        entry.obj.load();
+        entry.bound_object.load();
 
         expect(facade.applySnapshot).toHaveBeenCalledWith(uploaded);
         registry
@@ -629,7 +629,7 @@ describe('setupGui – Speichern / Laden', () => {
         setupGui(facade);
 
         const entry = find(registry, 'Speichern / Laden', 'reset');
-        entry.obj.reset();
+        entry.bound_object.reset();
 
         expect(facade.resetToDefaults).toHaveBeenCalledOnce();
         registry

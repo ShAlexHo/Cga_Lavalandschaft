@@ -77,7 +77,7 @@ describe('uploadJson', () => {
     }
 
     test('parses the selected file and forwards the result to the callback', () => {
-        const on_loaded = vi.fn();
+        const onLoaded = vi.fn();
         let created_input;
         const original_create_element = document.createElement.bind(document);
         vi.spyOn(document, 'createElement').mockImplementation(tag_name => {
@@ -90,20 +90,20 @@ describe('uploadJson', () => {
         mock_reader._next_result = '{"foo":"bar"}';
         vi.stubGlobal('FileReader', vi.fn(() => mock_reader));
 
-        uploadJson(on_loaded);
+        uploadJson(onLoaded);
 
         const file = {};
         Object.defineProperty(created_input, 'files', { value: [file] });
         created_input.onchange();
 
         expect(mock_reader.readAsText).toHaveBeenCalledWith(file);
-        expect(on_loaded).toHaveBeenCalledWith({ foo: 'bar' });
+        expect(onLoaded).toHaveBeenCalledWith({ foo: 'bar' });
 
         document.createElement.mockRestore();
     });
 
     test('logs an error and does not call the callback for invalid JSON', () => {
-        const on_loaded = vi.fn();
+        const onLoaded = vi.fn();
         let created_input;
         const original_create_element = document.createElement.bind(document);
         vi.spyOn(document, 'createElement').mockImplementation(tag_name => {
@@ -117,11 +117,11 @@ describe('uploadJson', () => {
         vi.stubGlobal('FileReader', vi.fn(() => mock_reader));
         const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-        uploadJson(on_loaded);
+        uploadJson(onLoaded);
         Object.defineProperty(created_input, 'files', { value: [{}] });
         created_input.onchange();
 
-        expect(on_loaded).not.toHaveBeenCalled();
+        expect(onLoaded).not.toHaveBeenCalled();
         expect(error_spy).toHaveBeenCalled();
 
         error_spy.mockRestore();
@@ -129,7 +129,7 @@ describe('uploadJson', () => {
     });
 
     test('does nothing when no file was selected', () => {
-        const on_loaded = vi.fn();
+        const onLoaded = vi.fn();
         let created_input;
         const original_create_element = document.createElement.bind(document);
         vi.spyOn(document, 'createElement').mockImplementation(tag_name => {
@@ -138,11 +138,11 @@ describe('uploadJson', () => {
             return element;
         });
 
-        uploadJson(on_loaded);
+        uploadJson(onLoaded);
         Object.defineProperty(created_input, 'files', { value: [] });
         created_input.onchange();
 
-        expect(on_loaded).not.toHaveBeenCalled();
+        expect(onLoaded).not.toHaveBeenCalled();
 
         document.createElement.mockRestore();
     });

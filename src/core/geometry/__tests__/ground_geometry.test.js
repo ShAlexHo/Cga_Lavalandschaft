@@ -86,14 +86,14 @@ describe('bakeGroundDisplacement', () => {
         };
     }
 
-    const base_params = {
+    const base_parameters = {
         frequency: 0.1, scale: 1.0, volcano_crack_frequency: 0.5, volcano_crack_scale: 2.5,
         volcano_position: { x: 0, y: 0, z: 0 }, proximity_radius: 20,
     };
 
     test('keeps x/y exactly as given and only ever perturbs z', () => {
         const mesh = makeMesh(new Float32Array([1, 2, 0, -4, 5, 0]));
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
 
         const { setXYZ } = mesh.geometry.attributes.position;
         expect(setXYZ).toHaveBeenCalledTimes(2);
@@ -105,7 +105,7 @@ describe('bakeGroundDisplacement', () => {
 
     test('writes a bump value per vertex', () => {
         const mesh = makeMesh(new Float32Array([1, 2, 0]));
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
         expect(mesh.geometry.attributes.a_bump.setX).toHaveBeenCalledTimes(1);
         expect(mesh.geometry.attributes.a_bump.setX.mock.calls[0][0]).toBe(0);
         expect(typeof mesh.geometry.attributes.a_bump.setX.mock.calls[0][1]).toBe('number');
@@ -113,7 +113,7 @@ describe('bakeGroundDisplacement', () => {
 
     test('marks both attributes dirty and recomputes the bounding volumes', () => {
         const mesh = makeMesh(new Float32Array([0, 0, 0]));
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
         expect(mesh.geometry.attributes.position.needsUpdate).toBe(true);
         expect(mesh.geometry.attributes.a_bump.needsUpdate).toBe(true);
         expect(mesh.geometry.computeBoundingSphere).toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe('bakeGroundDisplacement', () => {
 
     test('updates the world matrix before sampling, so a just-changed mesh.position is honored', () => {
         const mesh = makeMesh(new Float32Array([0, 0, 0]));
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
         expect(mesh.updateMatrixWorld).toHaveBeenCalledWith(true);
     });
 
@@ -130,10 +130,10 @@ describe('bakeGroundDisplacement', () => {
         const pristine = new Float32Array([3, 7, 0]);
         const mesh = makeMesh(pristine);
 
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
         const first_z = mesh.geometry.attributes.position.setXYZ.mock.calls[0][3];
 
-        bakeGroundDisplacement(mesh, base_params);
+        bakeGroundDisplacement(mesh, base_parameters);
         const second_z = mesh.geometry.attributes.position.setXYZ.mock.calls[1][3];
 
         expect(second_z).toBe(first_z);
@@ -141,11 +141,11 @@ describe('bakeGroundDisplacement', () => {
 
     test('blends toward the volcano-style bump/scale as proximity to the volcano increases', () => {
         const mesh_far = makeMesh(new Float32Array([3, 7, 0]));
-        bakeGroundDisplacement(mesh_far, { ...base_params, volcano_position: { x: 1000, y: 0, z: 1000 } });
+        bakeGroundDisplacement(mesh_far, { ...base_parameters, volcano_position: { x: 1000, y: 0, z: 1000 } });
         const far_z = mesh_far.geometry.attributes.position.setXYZ.mock.calls[0][3];
 
         const mesh_near = makeMesh(new Float32Array([3, 7, 0]));
-        bakeGroundDisplacement(mesh_near, { ...base_params, volcano_position: { x: 3, y: 0, z: 7 } });
+        bakeGroundDisplacement(mesh_near, { ...base_parameters, volcano_position: { x: 3, y: 0, z: 7 } });
         const near_z = mesh_near.geometry.attributes.position.setXYZ.mock.calls[0][3];
 
         expect(near_z).not.toBe(far_z);

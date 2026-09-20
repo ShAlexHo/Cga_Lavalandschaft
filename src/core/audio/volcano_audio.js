@@ -1,5 +1,4 @@
 import { random } from '../rand.js';
-import DEFAULT_SETTINGS from '../default_settings.json';
 import {
     AUDIO_LAVA_NOISE_DURATION, AUDIO_LAVA_LOWPASS_FREQUENCY, AUDIO_LAVA_FLOW_GAIN,
     AUDIO_LAVA_FLOW_LFO_FREQUENCY, AUDIO_LAVA_FLOW_LFO_DEPTH,
@@ -16,6 +15,7 @@ import {
     AUDIO_METABALL_SPAWN_DURATION, AUDIO_METABALL_SPAWN_GAIN,
     AUDIO_PRESS_NOISE_DURATION, AUDIO_PRESS_BANDPASS_FREQUENCY, AUDIO_PRESS_GAIN, AUDIO_PRESS_FADE_TIME_CONSTANT,
 } from '../config.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function pickNextEventTime(current_time, min_interval, max_interval) {
     return current_time + random(min_interval, max_interval);

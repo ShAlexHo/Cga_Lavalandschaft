@@ -27,7 +27,7 @@ export function downloadJson(data, filename = 'lavalandschaft-settings.json') {
     URL.revokeObjectURL(url);
 }
 
-export function uploadJson(on_loaded) {
+export function uploadJson(onLoaded) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
@@ -37,7 +37,7 @@ export function uploadJson(on_loaded) {
         const reader = new FileReader();
         reader.onload = () => {
             try {
-                on_loaded(JSON.parse(reader.result));
+                onLoaded(JSON.parse(reader.result));
             } catch (error) {
                 console.error('Invalid JSON file:', error);
             }

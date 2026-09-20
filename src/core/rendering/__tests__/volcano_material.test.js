@@ -8,11 +8,11 @@ vi.mock('../../shaders/volcano.vert?raw', () => ({ default: '// vertex shader' }
 vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }));
 
 import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../volcano_material.js';
-import DEFAULT_SETTINGS from '../../default_settings.json';
 import {
     INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
     INTERACTION_DECAY_WIPE_NOISE_STRENGTH, INTERACTION_DECAY_WIPE_NOISE_FREQUENCY,
 } from '../../config.js';
+import DEFAULT_SETTINGS from '../../default_settings.json';
 
 describe('createVolcanoMaterial', () => {
     test('contains all expected uniforms', () => {
