@@ -42,13 +42,14 @@ vi.mock('../../animation/metaball_animation.js', () => {
         stepMetaballAnimation: vi.fn(),
         getEruptionIntensity: vi.fn(() => 1.0),
         getSpawnCount: vi.fn(() => 0),
+        getWaveStartCount: vi.fn(() => 0),
     };
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
 import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../../rendering/metaball_material.js';
-import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount } from '../../animation/metaball_animation.js';
+import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } from '../../animation/metaball_animation.js';
 
 const VOLCANO_POSITION = { x: 0, y: 0, z: 0 };
 const NEAR_CAMERA = { position: { x: 20, y: 3, z: 0 } };
@@ -159,6 +160,12 @@ describe('createMetaballField', () => {
         const field = createMetaballField(makeScene());
         getSpawnCount.mockReturnValueOnce(3);
         expect(field.getSpawnCount()).toBe(3);
+    });
+
+    test('getWaveStartCount forwards to the animation module', () => {
+        const field = createMetaballField(makeScene());
+        getWaveStartCount.mockReturnValueOnce(2);
+        expect(field.getWaveStartCount()).toBe(2);
     });
 
     test('setCount/setIsolation/setRadius rebuild the geometry with the currently active balls', () => {

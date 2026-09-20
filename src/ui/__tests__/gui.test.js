@@ -28,6 +28,7 @@ function makeFacade(overrides = {}) {
         setPaused: vi.fn(),
         getTimeScale: vi.fn(() => 1),
         setTimeScale: vi.fn(),
+        getBaseTimeScale: vi.fn(() => 1),
         getInteractionMode: vi.fn(() => false),
         setInteractionMode: vi.fn(),
         getInteractionSmokeVisible: vi.fn(() => true),
@@ -197,6 +198,7 @@ function makeController() {
         _on_change_callback: null,
         name: vi.fn().mockReturnThis(),
         onChange: vi.fn(function (callback) { controller._on_change_callback = callback; return controller; }),
+        listen: vi.fn().mockReturnThis(),
         updateDisplay: vi.fn(),
     };
     return controller;
@@ -279,14 +281,35 @@ describe('setupGui – structure', () => {
         expect(facade.setPaused).toHaveBeenCalledWith(false);
     });
 
-    test('root time_scale control is seeded from facade.getTimeScale() and writes back via setTimeScale', () => {
+    test('root time_scale control is seeded from facade.getBaseTimeScale() and writes back via setTimeScale', () => {
         const { registry } = makeMockGui();
-        const facade = makeFacade({ getTimeScale: vi.fn(() => 2.5) });
+        const facade = makeFacade({ getBaseTimeScale: vi.fn(() => 2.5) });
         setupGui(facade);
         const entry = find(registry, 'root', 'time_scale');
         expect(entry.obj.time_scale).toBe(2.5);
         fire(registry, 'root', 'time_scale', 4);
         expect(facade.setTimeScale).toHaveBeenCalledWith(4);
+    });
+
+    test('root time_scale control is not affected by facade.getTimeScale() (the live, possibly-boosted value), so dragging it is never fought by an active boost', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getBaseTimeScale: vi.fn(() => 2.5), getTimeScale: vi.fn(() => 25) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'time_scale');
+        expect(entry.obj.time_scale).toBe(2.5);
+    });
+
+    test('root effective_time_scale control tracks facade.getTimeScale() live and listens for continuous updates', () => {
+        const { registry } = makeMockGui();
+        let current_time_scale = 1;
+        const facade = makeFacade({ getTimeScale: vi.fn(() => current_time_scale) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'effective_time_scale');
+        expect(entry.obj.effective_time_scale).toBe(1);
+
+        current_time_scale = 10; // e.g. a wave-start boost kicking in
+        expect(entry.obj.effective_time_scale).toBe(10); // reflected without any explicit refresh call
+        expect(entry.controller.listen).toHaveBeenCalled();
     });
 
     test('root interaction_mode control is seeded from facade.getInteractionMode() and writes back via setInteractionMode', () => {
@@ -297,6 +320,16 @@ describe('setupGui – structure', () => {
         expect(entry.obj.interaction_mode).toBe(true);
         fire(registry, 'root', 'interaction_mode', false);
         expect(facade.setInteractionMode).toHaveBeenCalledWith(false);
+    });
+
+    test('root autonomous_mode control mirrors the inverse of facade.getInteractionMode() and writes back the inverse via setInteractionMode', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
+        setupGui(facade);
+        const entry = find(registry, 'root', 'autonomous_mode');
+        expect(entry.obj.autonomous_mode).toBe(false); // interaction mode is on -> not autonomous
+        fire(registry, 'root', 'autonomous_mode', true); // switching autonomous mode on...
+        expect(facade.setInteractionMode).toHaveBeenCalledWith(false); // ...turns interaction mode off
     });
 
     test('root interaction_smoke_visible control is seeded from facade.getInteractionSmokeVisible() and writes back via setInteractionSmokeVisible', () => {

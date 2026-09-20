@@ -106,6 +106,36 @@ describe('getSpawnCount', () => {
     });
 });
 
+describe('getWaveStartCount', () => {
+    test('is 0 before the simulation has run', () => {
+        expect(animation_module.getWaveStartCount()).toBe(0);
+    });
+
+    test('increments to 1 on the very first ball of the very first wave', () => {
+        animation_module.stepMetaballAnimation(0);
+        expect(animation_module.getWaveStartCount()).toBe(1);
+    });
+
+    test('does not increment again while the same wave keeps spawning', () => {
+        animation_module.stepMetaballAnimation(0);
+        animation_module.stepMetaballAnimation(METABALL_SPAWN_INTERVAL);
+        expect(animation_module.getWaveStartCount()).toBe(1);
+    });
+
+    test('increments again once a new wave starts spawning after the pause between waves', () => {
+        animation_module.settings.count = 1;
+        animation_module.stepMetaballAnimation(0); // wave #1 starts, its 1 ball spawns
+        animation_module.stepMetaballAnimation(0.1); // wave count already met -> pause begins
+        expect(animation_module.getWaveStartCount()).toBe(1);
+
+        animation_module.stepMetaballAnimation(10_000); // far past any random pause length -> ends the pause
+        expect(animation_module.getWaveStartCount()).toBe(1); // ending the pause alone doesn't spawn yet
+
+        animation_module.stepMetaballAnimation(10_000); // wave #2 starts, its 1 ball spawns
+        expect(animation_module.getWaveStartCount()).toBe(2);
+    });
+});
+
 describe('getEruptionIntensity', () => {
     test('is 1.0 while a wave is actively spawning', () => {
         expect(animation_module.getEruptionIntensity(0)).toBe(1.0);

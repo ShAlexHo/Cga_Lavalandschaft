@@ -52,6 +52,7 @@ let pausing = false;
 let pause_start = -Infinity;
 let pause_end = -Infinity;
 let spawn_count = 0;
+let wave_start_count = 0;
 
 const active_balls = [];
 
@@ -65,6 +66,10 @@ export function getActiveBalls() {
 
 export function getSpawnCount() {
     return spawn_count;
+}
+
+export function getWaveStartCount() {
+    return wave_start_count;
 }
 
 // 1.0 while a wave spawns; eases toward 0 around a pause instead of snapping.
@@ -98,6 +103,7 @@ export function stepMetaballAnimation(time) {
                 ball_pool[index].strength = ball_pool[index].base_strength; // undo any earlier squeeze from a prior life
                 ball_pool[index].shrink_fraction = 0;
                 current_wave_count++;
+                if (current_wave_count === 1) wave_start_count++;
                 pool_head = (index + 1) % MAX_BALLS;
                 last_spawn_time = time;
                 spawn_count++;

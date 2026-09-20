@@ -61,6 +61,9 @@ export const METABALL_BALL_LIFETIME = 3.5; // seconds, crater to ground
 export const METABALL_SPAWN_INTERVAL = 36.0; // seconds between new metaballs joining a wave
 export const METABALL_SECTORS = 6;
 export const METABALL_WAVE_TRANSITION = 3.0; // eases eruption intensity so the smoke plume fades instead of snapping
+export const METABALL_WAVE_BOOST_MULTIPLIER = 10.0;
+export const METABALL_WAVE_BOOST_HOLD_FRAMES = 100;
+export const METABALL_WAVE_BOOST_DECAY_FRAMES = 120;
 
 // ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
 

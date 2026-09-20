@@ -7,7 +7,8 @@ import { createSky } from './objects/sky_object.js';
 import { createInteractionController } from './objects/interaction_controller.js';
 import { createImpactSmoke } from './objects/impact_smoke_object.js';
 import { createVolcanoAudio } from './audio/volcano_audio.js';
-import { SMOKE_SPAWN_HEIGHT } from './config.js';
+import { SMOKE_SPAWN_HEIGHT, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES } from './config.js';
+import { smoothstep } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
 export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled }) {
@@ -31,6 +32,18 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     let metaball_y_offset = DEFAULT_SETTINGS.metaballHeight;
     let time_scale = DEFAULT_SETTINGS.timeScale;
     let last_spawn_count = metaball_field.getSpawnCount();
+    let last_wave_start_count = metaball_field.getWaveStartCount();
+    let frames_since_wave_start = Infinity;
+
+    function getWaveBoostMultiplier() {
+        if (interaction.getEnabled()) return 1;
+        const decay_fraction = 1 - smoothstep(
+            METABALL_WAVE_BOOST_HOLD_FRAMES,
+            METABALL_WAVE_BOOST_HOLD_FRAMES + METABALL_WAVE_BOOST_DECAY_FRAMES,
+            frames_since_wave_start,
+        );
+        return 1 + (METABALL_WAVE_BOOST_MULTIPLIER - 1) * decay_fraction;
+    }
 
     function applyY(ground_y) {
         ground.mesh.position.y = ground_y;
@@ -62,13 +75,22 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
                 last_spawn_count = spawn_count;
                 volcano_audio.playMetaballSpawn();
             }
+
+            const wave_start_count = metaball_field.getWaveStartCount();
+            if (wave_start_count !== last_wave_start_count) {
+                last_wave_start_count = wave_start_count;
+                frames_since_wave_start = 0;
+            } else {
+                frames_since_wave_start++;
+            }
         },
 
         isPaused: () => metaball_field.isPaused(),
         setPaused: value => metaball_field.setPaused(value),
 
-        getTimeScale: () => time_scale,
+        getTimeScale: () => time_scale * getWaveBoostMultiplier(),
         setTimeScale: value => { time_scale = value; },
+        getBaseTimeScale: () => time_scale,
 
         getInteractionMode: () => interaction.getEnabled(),
         setInteractionMode: value => {
@@ -267,7 +289,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     // single source of truth: getSnapshot() and the restore-by-key SETTERS map both derive from this
     const SETTINGS = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
-        { key: 'timeScale', get: () => controller.getTimeScale(), set: value => controller.setTimeScale(value) },
+        { key: 'timeScale', get: () => controller.getBaseTimeScale(), set: value => controller.setTimeScale(value) },
         { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
         { key: 'interactionSmokeVisible', get: () => controller.getInteractionSmokeVisible(), set: value => controller.setInteractionSmokeVisible(value) },
         { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },

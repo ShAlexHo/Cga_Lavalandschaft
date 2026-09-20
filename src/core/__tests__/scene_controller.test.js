@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { makeColor, makeGroundMaterialUniformsMock, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
-import { METABALL_GPU_MAX_BALLS } from '../config.js';
+import { METABALL_GPU_MAX_BALLS, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES } from '../config.js';
 
 // vi.mock() factories hoist above this, so vi.hoisted() is needed to seed their initial state
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
@@ -46,6 +46,7 @@ vi.mock('../animation/metaball_animation.js', () => {
         stepMetaballAnimation: vi.fn(),
         getEruptionIntensity: vi.fn(() => 1.0),
         getSpawnCount: vi.fn(() => 0),
+        getWaveStartCount: vi.fn(() => 0),
     };
 });
 
@@ -208,7 +209,7 @@ vi.mock('../default_settings.json', () => ({
 }));
 
 import { createSceneController } from '../scene_controller.js';
-import { settings as mock_settings, stepMetaballAnimation, getActiveBalls, getSpawnCount } from '../animation/metaball_animation.js';
+import { settings as mock_settings, stepMetaballAnimation, getActiveBalls, getSpawnCount, getWaveStartCount } from '../animation/metaball_animation.js';
 import { updateMetaballLight, updateMetaballBalls } from '../rendering/metaball_material.js';
 import { createVolcanoAudio } from '../audio/volcano_audio.js';
 import { createGroundMaterial, updateGroundLight } from '../rendering/ground_material.js';
@@ -274,6 +275,60 @@ describe('createSceneController – time scale', () => {
         expect(controller.getTimeScale()).toBe(1);
         controller.setTimeScale(3.5);
         expect(controller.getTimeScale()).toBe(3.5);
+    });
+
+    test('a wave starting briefly boosts getTimeScale without touching the base value, then eases back', () => {
+        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        const controller = makeController();
+        controller.setTimeScale(2);
+
+        getWaveStartCount.mockReturnValueOnce(1); // a new wave just started
+        controller.update(0);
+        expect(controller.getTimeScale()).toBeCloseTo(2 * METABALL_WAVE_BOOST_MULTIPLIER, 1);
+        expect(controller.getBaseTimeScale()).toBe(2);
+
+        getWaveStartCount.mockReturnValueOnce(1); // still the same wave, no further boost triggered
+        controller.update(1);
+        expect(controller.getTimeScale()).toBeLessThanOrEqual(2 * METABALL_WAVE_BOOST_MULTIPLIER);
+        expect(controller.getTimeScale()).toBeGreaterThanOrEqual(2);
+    });
+
+    test('the wave-start boost holds at full strength for METABALL_WAVE_BOOST_HOLD_FRAMES frames, then eases back down over METABALL_WAVE_BOOST_DECAY_FRAMES more frames', () => {
+        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        const controller = makeController();
+        controller.setTimeScale(1);
+        getWaveStartCount.mockReturnValue(1); // a wave starts and keeps running for the rest of the test
+
+        let frames_elapsed = 0;
+        function advanceFrames(count) {
+            for (let i = 0; i < count; i++) { controller.update(0); frames_elapsed++; }
+        }
+
+        advanceFrames(1); // frames_since_wave_start = 0 -> full boost right at the wave start
+        expect(controller.getTimeScale()).toBeCloseTo(METABALL_WAVE_BOOST_MULTIPLIER, 5);
+
+        advanceFrames(METABALL_WAVE_BOOST_HOLD_FRAMES - 1); // frames_since_wave_start = HOLD_FRAMES - 1, still fully held
+        expect(controller.getTimeScale()).toBeCloseTo(METABALL_WAVE_BOOST_MULTIPLIER, 5);
+
+        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES / 2 + 1); // now exactly at the decay's smoothstep midpoint
+        expect(controller.getTimeScale()).toBeCloseTo(1 + (METABALL_WAVE_BOOST_MULTIPLIER - 1) * 0.5, 5);
+
+        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES); // long past the full hold+decay window -> settled back to base
+        expect(controller.getTimeScale()).toBeCloseTo(1, 5);
+    });
+
+    test('the wave-start boost stays suppressed while interaction mode is on (autonomous mode only)', () => {
+        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        const controller = makeController();
+        controller.setTimeScale(2);
+        controller.setInteractionMode(true);
+
+        getWaveStartCount.mockReturnValueOnce(1); // a new wave starts while the user is interacting
+        controller.update(0);
+        expect(controller.getTimeScale()).toBe(2); // no boost - interaction mode is on
+
+        controller.setInteractionMode(false); // back to autonomous mode
+        expect(controller.getTimeScale()).toBeCloseTo(2 * METABALL_WAVE_BOOST_MULTIPLIER, 1); // boost resumes
     });
 });
 

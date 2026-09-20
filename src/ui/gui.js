@@ -20,15 +20,31 @@ export function setupGui(facade) {
         return parameters;
     }
 
+    function defineLiveProperty(parameters, key, get, set) {
+        Object.defineProperty(parameters, key, { get, set, enumerable: true });
+    }
+
     const root_parameters = makeParameters({
         paused: facade.isPaused,
-        time_scale: facade.getTimeScale,
-        interaction_mode: facade.getInteractionMode,
+        time_scale: facade.getBaseTimeScale, // not getTimeScale - a boosted read-back would fight the user's drag
         interaction_smoke_visible: facade.getInteractionSmokeVisible,
     });
+    defineLiveProperty(root_parameters, 'effective_time_scale', () => facade.getTimeScale(), () => {});
+    defineLiveProperty(root_parameters, 'interaction_mode', () => facade.getInteractionMode(), value => facade.setInteractionMode(value));
+    defineLiveProperty(root_parameters, 'autonomous_mode', () => !facade.getInteractionMode(), value => facade.setInteractionMode(!value));
     bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
     bind(gui.add(root_parameters, 'time_scale', 0.1, 100, 0.1)).name('Zeitgeschwindigkeit').onChange(value => facade.setTimeScale(value));
-    bind(gui.add(root_parameters, 'interaction_mode')).name('Interaktionsmodus').onChange(value => facade.setInteractionMode(value));
+    bind(gui.add(root_parameters, 'effective_time_scale'))
+        .name('Aktuelles Tempo (inkl. Welle-Boost)')
+        .listen();
+    bind(gui.add(root_parameters, 'autonomous_mode'))
+        .name('Autonomer Modus (Zeit-Boost bei Welle)')
+        .onChange(value => facade.setInteractionMode(!value))
+        .listen();
+    bind(gui.add(root_parameters, 'interaction_mode'))
+        .name('Interaktionsmodus')
+        .onChange(value => facade.setInteractionMode(value))
+        .listen();
     bind(gui.add(root_parameters, 'interaction_smoke_visible')).name('Rauch bei Berührung').onChange(value => facade.setInteractionSmokeVisible(value));
 
     const metaballs_folder = gui.addFolder('Metaballs');
