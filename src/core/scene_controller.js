@@ -55,7 +55,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     }
 
     const controller = {
-        update(time) {
+        update(time, real_delta_seconds) {
             sun.update(time);
             ground.update(camera, volcano.mesh.position, sun.light.position, time, scene.background);
             metaball_field.update(time, camera, volcano.mesh.position);
@@ -63,6 +63,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
                 time, camera,
                 () => metaball_field.getActiveWorldPositions(),
                 metaball_squeeze => metaball_field.squeezeNearestBall(metaball_squeeze),
+                real_delta_seconds,
             );
             volcano.update(camera, sun.light.position, touch_points);
             impact_smoke.update(camera, sun.light.position, smoke_bursts);

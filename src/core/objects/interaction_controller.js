@@ -1,10 +1,26 @@
 import * as THREE from 'three';
 import { settings, registerTouch, stepInteractionAnimation, stepInteractionSmoke, resetTouchSession, isOnLava } from '../animation/interaction_animation.js';
+import { random } from '../rand.js';
+import { INTERACTION_AUTO_TOUCH_MIN_INTERVAL, INTERACTION_AUTO_TOUCH_MAX_INTERVAL, INTERACTION_AUTO_TOUCH_HOLD_DURATION } from '../config.js';
+
+function randomAutoTouchInterval() {
+    return random(INTERACTION_AUTO_TOUCH_MIN_INTERVAL, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+}
+
+function applyTouch(time, point, metaballs, camera_position, squeezeMetaballNear) {
+    const metaball_squeeze = registerTouch(time, point, metaballs, camera_position);
+    if (metaball_squeeze) squeezeMetaballNear(metaball_squeeze);
+}
 
 export function createInteractionController(renderer, volcano_mesh) {
     const raycaster = new THREE.Raycaster();
     const pointer_ndc = new THREE.Vector2();
     let is_mouse_down = false;
+    let was_enabled = settings.enabled;
+    let seconds_until_auto_touch = randomAutoTouchInterval();
+    let auto_touch_active = false;
+    let auto_touch_elapsed = 0;
+    let auto_touch_target = null;
 
     function updatePointerNdc(event) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -23,7 +39,13 @@ export function createInteractionController(renderer, volcano_mesh) {
 
     return {
         // getMetaballWorldPositions/squeezeMetaballNear are thunks, only invoked on an actual hit.
-        step(time, camera, getMetaballWorldPositions, squeezeMetaballNear) {
+        step(time, camera, getMetaballWorldPositions, squeezeMetaballNear, real_delta_seconds) {
+            if (!settings.enabled && was_enabled) {
+                seconds_until_auto_touch = randomAutoTouchInterval();
+                auto_touch_active = false;
+            }
+            was_enabled = settings.enabled;
+
             let is_touching_lava = false;
             if (settings.enabled) {
                 raycaster.setFromCamera(pointer_ndc, camera);
@@ -36,12 +58,37 @@ export function createInteractionController(renderer, volcano_mesh) {
                 renderer.domElement.style.cursor = on_lava ? 'pointer' : '';
 
                 if (is_mouse_down && hits.length > 0) {
-                    const metaball_squeeze = registerTouch(time, hits[0].point, metaballs, camera.position);
-                    if (metaball_squeeze) squeezeMetaballNear(metaball_squeeze);
+                    applyTouch(time, hits[0].point, metaballs, camera.position, squeezeMetaballNear);
                     is_touching_lava = on_lava;
                 }
             } else {
                 renderer.domElement.style.cursor = '';
+
+                if (!auto_touch_active) {
+                    seconds_until_auto_touch -= real_delta_seconds;
+                    if (seconds_until_auto_touch <= 0) {
+                        const metaballs = getMetaballWorldPositions();
+                        if (metaballs.length > 0) {
+                            auto_touch_target = metaballs[Math.floor(random(0, metaballs.length))];
+                            resetTouchSession();
+                            auto_touch_active = true;
+                            auto_touch_elapsed = 0;
+                        } else {
+                            seconds_until_auto_touch = randomAutoTouchInterval();
+                        }
+                    }
+                }
+
+                if (auto_touch_active) {
+                    applyTouch(time, auto_touch_target, getMetaballWorldPositions(), camera.position, squeezeMetaballNear);
+                    is_touching_lava = true;
+
+                    auto_touch_elapsed += real_delta_seconds;
+                    if (auto_touch_elapsed >= INTERACTION_AUTO_TOUCH_HOLD_DURATION) {
+                        auto_touch_active = false;
+                        seconds_until_auto_touch = randomAutoTouchInterval();
+                    }
+                }
             }
             return {
                 touch_points: stepInteractionAnimation(time),

@@ -79,6 +79,9 @@ export const METABALL_WAVE_BOOST_DECAY_FRAMES = 120;
 
 // ─── Interaction mode (mouse-driven volcano surface push) ───────────────────
 
+export const INTERACTION_AUTO_TOUCH_MIN_INTERVAL = 300.0; // seconds (5 minutes); real time, independent of the time-scale slider
+export const INTERACTION_AUTO_TOUCH_MAX_INTERVAL = 600.0; // seconds (10 minutes)
+export const INTERACTION_AUTO_TOUCH_HOLD_DURATION = 2.6; // seconds; real time, how long the simulated press is held down
 export const INTERACTION_MAX_POINTS = 64; // GLSL array length - must match volcano.vert
 export const INTERACTION_DECAY_DURATION = 78.0; // seconds for a touch to fade out, wiping from nearest-to-the-volcano's-axis outward (see INTERACTION_DECAY_WIPE_BAND_FRACTION)
 export const INTERACTION_BUMP_RADIUS = 0.5; // world units

@@ -670,9 +670,9 @@ describe('createSceneController – interaction mode', () => {
         const smoke_bursts = [{ x: 2, y: 2, z: 2, bloom: 0.7, fade: 0.4, elapsed: 2.5 }];
         interaction.step.mockReturnValueOnce({ touch_points, smoke_bursts });
 
-        controller.update(4.0);
+        controller.update(4.0, 0.016);
 
-        expect(interaction.step).toHaveBeenCalledWith(4.0, expect.any(Object), expect.any(Function), expect.any(Function));
+        expect(interaction.step).toHaveBeenCalledWith(4.0, expect.any(Object), expect.any(Function), expect.any(Function), 0.016);
         const impact_smoke = createImpactSmoke.mock.results.at(-1).value;
         expect(impact_smoke.update).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), smoke_bursts);
     });

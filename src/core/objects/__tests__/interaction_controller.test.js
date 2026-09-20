@@ -29,6 +29,7 @@ import { createInteractionController } from '../interaction_controller.js';
 import {
     settings, registerTouch, stepInteractionAnimation, stepInteractionSmoke, resetTouchSession, isOnLava,
 } from '../../animation/interaction_animation.js';
+import { INTERACTION_AUTO_TOUCH_MIN_INTERVAL, INTERACTION_AUTO_TOUCH_MAX_INTERVAL, INTERACTION_AUTO_TOUCH_HOLD_DURATION } from '../../config.js';
 
 function makeRenderer() {
     const domElement = document.createElement('div');
@@ -289,5 +290,106 @@ describe('hover cursor', () => {
         controller.setEnabled(false);
 
         expect(renderer.domElement.style.cursor).toBe('');
+    });
+});
+
+describe('auto touch (autonomous mode)', () => {
+    test('does not register a touch before the countdown elapses', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, 1);
+
+        expect(registerTouch).not.toHaveBeenCalled();
+    });
+
+    test('registers a touch on one of the active metaballs once the countdown elapses, resetting the touch session first', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        const metaballs = [{ x: 1, y: 2, z: 3 }, { x: 4, y: 5, z: 6 }];
+        const camera = { position: { x: 0, y: 0, z: 10 } };
+
+        controller.step(7, camera, () => metaballs, undefined, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+
+        expect(registerTouch).toHaveBeenCalledTimes(1);
+        const [call_time, call_target, call_metaballs, call_camera_position] = registerTouch.mock.calls[0];
+        expect(call_time).toBe(7);
+        expect(metaballs).toContain(call_target);
+        expect(call_metaballs).toBe(metaballs);
+        expect(call_camera_position).toBe(camera.position);
+        expect(resetTouchSession).toHaveBeenCalled();
+    });
+
+    test('holds the simulated press across multiple frames for INTERACTION_AUTO_TOUCH_HOLD_DURATION seconds', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        const metaballs = [{ x: 1, y: 2, z: 3 }];
+        const camera = { position: { x: 0, y: 0, z: 10 } };
+        const frame_delta = INTERACTION_AUTO_TOUCH_HOLD_DURATION / 4;
+
+        let total = 0;
+        while (registerTouch.mock.calls.length === 0 && total <= INTERACTION_AUTO_TOUCH_MAX_INTERVAL) {
+            controller.step(total, camera, () => metaballs, undefined, frame_delta);
+            total += frame_delta;
+        }
+        expect(registerTouch).toHaveBeenCalledTimes(1); // just started
+
+        controller.step(total, camera, () => metaballs, undefined, frame_delta);
+        expect(registerTouch).toHaveBeenCalledTimes(2);
+        expect(registerTouch.mock.calls[1][1]).toBe(registerTouch.mock.calls[0][1]); // same target throughout
+
+        controller.step(total, camera, () => metaballs, undefined, frame_delta);
+        expect(registerTouch).toHaveBeenCalledTimes(3);
+
+        controller.step(total, camera, () => metaballs, undefined, frame_delta); // crosses the hold duration - fires once more, then ends
+        expect(registerTouch).toHaveBeenCalledTimes(4);
+
+        controller.step(total, camera, () => metaballs, undefined, frame_delta); // press has ended
+        expect(registerTouch).toHaveBeenCalledTimes(4);
+    });
+
+    test('forwards a metaball squeeze from an auto touch, just like a real one', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        const squeeze = { x: 1, y: 2, z: 3, shrink_increment: 0.1 };
+        registerTouch.mockReturnValueOnce(squeeze);
+        const squeeze_metaball_near = vi.fn();
+
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], squeeze_metaball_near, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+
+        expect(squeeze_metaball_near).toHaveBeenCalledWith(squeeze);
+    });
+
+    test('does not register a touch when there are no active metaballs, even once the countdown elapses', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [], undefined, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+
+        expect(registerTouch).not.toHaveBeenCalled();
+    });
+
+    test('never auto-fires while interaction mode is enabled', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        settings.enabled = true;
+
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, INTERACTION_AUTO_TOUCH_MAX_INTERVAL * 10);
+
+        expect(registerTouch).not.toHaveBeenCalled();
+    });
+
+    test('the countdown restarts once returning from interaction mode back to autonomous mode', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+
+        settings.enabled = true;
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
+        settings.enabled = false;
+
+        // the countdown just restarted, so even this much elapsed real time (just under the floor of a fresh interval) should not fire yet
+        controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, INTERACTION_AUTO_TOUCH_MIN_INTERVAL - 1);
+
+        expect(registerTouch).not.toHaveBeenCalled();
     });
 });
