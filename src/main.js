@@ -56,8 +56,9 @@ let elapsed_time = 0;
 const animate = () => {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    if (!controller.isPaused()) elapsed_time += delta * controller.getTimeScale();
-    camera_controller.update(controller.getVolcanoPosition());
+    const time_scale = controller.getTimeScale();
+    if (!controller.isPaused()) elapsed_time += delta * time_scale;
+    camera_controller.update(controller.getVolcanoPosition(), delta, time_scale, !controller.getInteractionMode());
     controller.update(elapsed_time);
     post_processing.render();
     fps_meter.tick();

@@ -18,6 +18,18 @@ export const CAMERA_MAX_POLAR_ANGLE = Math.PI / 2 - 0.1;
 export const CAMERA_VISIBLE_ARC_DEGREES = 270; // objects outside this arc, centered on the camera, are culled (metaballs, volcano touch points)
 export const CAMERA_VISIBILITY_FADE_DEGREES = 10; // fade width at the arc's edge, so an object fades out instead of popping as the camera orbits
 
+export const CAMERA_AUTOPILOT_IDLE_SECONDS = 20.0;
+export const CAMERA_AUTOPILOT_MIN_AZIMUTH_SPEED = 0.0015; // radians/second
+export const CAMERA_AUTOPILOT_MAX_AZIMUTH_SPEED = 0.0045; // radians/second
+export const CAMERA_AUTOPILOT_MIN_POLAR_SPEED = 0.0003; // radians/second
+export const CAMERA_AUTOPILOT_MAX_POLAR_SPEED = 0.0009; // radians/second
+export const CAMERA_AUTOPILOT_MIN_ZOOM_SPEED = 0.025; // world units/second
+export const CAMERA_AUTOPILOT_MAX_ZOOM_SPEED = 0.075; // world units/second
+export const CAMERA_AUTOPILOT_RETARGET_MIN_INTERVAL = 15.0;
+export const CAMERA_AUTOPILOT_RETARGET_MAX_INTERVAL = 30.0;
+export const CAMERA_AUTOPILOT_DIRECTION_INTERVAL = 600.0; // seconds; how long an azimuth left/right decision holds before being redecided
+export const CAMERA_AUTOPILOT_TRANSITION_DURATION = 10.0;
+
 // ─── Ground (geometry / rendering) ───────────────────────────────────────────
 
 export const GROUND_SIZE = 160;

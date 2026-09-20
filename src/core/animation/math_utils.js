@@ -27,6 +27,25 @@ export function horizontalDistance(point_a, point_b) {
     return Math.hypot(point_a.x - point_b.x, point_a.z - point_b.z);
 }
 
+// phi is the polar angle from the y (up) axis, theta the azimuthal angle around it - matches THREE.Spherical.
+export function cartesianToSpherical(point) {
+    const radius = Math.sqrt(point.x ** 2 + point.y ** 2 + point.z ** 2);
+    return {
+        radius,
+        phi: radius === 0 ? 0 : Math.acos(clamp(point.y / radius, -1, 1)),
+        theta: Math.atan2(point.x, point.z),
+    };
+}
+
+export function sphericalToCartesian(spherical) {
+    const sin_phi_radius = Math.sin(spherical.phi) * spherical.radius;
+    return {
+        x: sin_phi_radius * Math.sin(spherical.theta),
+        y: Math.cos(spherical.phi) * spherical.radius,
+        z: sin_phi_radius * Math.cos(spherical.theta),
+    };
+}
+
 // 1 within CAMERA_VISIBLE_ARC_DEGREES facing the camera, smoothly fading to 0 past its edge.
 export function cameraArcVisibility(object_angle, camera_angle) {
     const angle_from_camera = Math.abs(angleDifference(object_angle, camera_angle));

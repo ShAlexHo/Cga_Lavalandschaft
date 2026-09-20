@@ -22,19 +22,36 @@ vi.mock('three/addons/controls/OrbitControls.js', () => {
             this.dom_element = dom_element;
             this.target = { x: 0, y: 0, z: 0, copy(other) { this.x = other.x; this.y = other.y; this.z = other.z; return this; } };
             this.update = vi.fn();
+            this._listeners = {};
+            this.addEventListener = (type, callback) => { (this._listeners[type] ||= []).push(callback); };
+            this._dispatch = type => { (this._listeners[type] || []).forEach(callback => callback()); };
             controls_instances.push(this);
         }
     }
     return { OrbitControls };
 });
 
+vi.mock('../../animation/camera_animation.js', () => ({
+    stepCameraAutopilot: vi.fn(() => ({ azimuth_speed: 0, polar_speed: 0, zoom_speed: 0 })),
+}));
+
 import { createCameraController } from '../camera_object.js';
+import { stepCameraAutopilot } from '../../animation/camera_animation.js';
+import { clamp, cartesianToSpherical, sphericalToCartesian } from '../../animation/math_utils.js';
 import {
     CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR, CAMERA_INITIAL_POSITION,
     CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE, CAMERA_MIN_POLAR_ANGLE, CAMERA_MAX_POLAR_ANGLE,
+    CAMERA_AUTOPILOT_IDLE_SECONDS,
 } from '../../config.js';
 
+const ORIGIN = { x: 0, y: 0, z: 0 };
+
 function makeRenderer() { return { domElement: {} }; }
+
+function positionOf(camera_controller) {
+    const { x, y, z } = camera_controller.camera.position;
+    return { x, y, z };
+}
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -73,9 +90,94 @@ describe('createCameraController', () => {
     test('update() copies the target position into the controls and calls update()', () => {
         const camera_controller = createCameraController(makeRenderer());
         const controls = controls_instances[0];
-        camera_controller.update({ x: 1, y: 2, z: 3 });
+        camera_controller.update({ x: 1, y: 2, z: 3 }, 0.016, 1, false);
         expect(controls.target).toMatchObject({ x: 1, y: 2, z: 3 });
         expect(controls.update).toHaveBeenCalledTimes(1);
+    });
+
+    test('update() feeds the plain (unscaled) delta_seconds into stepCameraAutopilot, so retargeting keeps a steady real-time pace regardless of time_scale', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        camera_controller.update(ORIGIN, 2, 3, false);
+        expect(stepCameraAutopilot).toHaveBeenCalledWith(2);
+    });
+
+    test('drifts the camera position by azimuth_speed/polar_speed/zoom_speed, scaled by delta_seconds * time_scale, once autonomous and idle', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const initial_offset = cartesianToSpherical(positionOf(camera_controller));
+
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 0.05, polar_speed: 0.01, zoom_speed: 0.2 });
+        camera_controller.update(ORIGIN, 2, 3, true); // scaled delta = 6
+
+        const expected_offset = sphericalToCartesian({
+            radius: clamp(initial_offset.radius + 0.2 * 6, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE),
+            theta: initial_offset.theta + 0.05 * 6,
+            phi: clamp(initial_offset.phi + 0.01 * 6, CAMERA_MIN_POLAR_ANGLE, CAMERA_MAX_POLAR_ANGLE),
+        });
+        expect(positionOf(camera_controller).x).toBeCloseTo(expected_offset.x, 9);
+        expect(positionOf(camera_controller).y).toBeCloseTo(expected_offset.y, 9);
+        expect(positionOf(camera_controller).z).toBeCloseTo(expected_offset.z, 9);
+    });
+
+    test('clamps the polar drift to CAMERA_MIN_POLAR_ANGLE/CAMERA_MAX_POLAR_ANGLE', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 0, polar_speed: 100, zoom_speed: 0 });
+        camera_controller.update(ORIGIN, 1, 1, true);
+        const resulting_offset = cartesianToSpherical(positionOf(camera_controller));
+        expect(resulting_offset.phi).toBeCloseTo(CAMERA_MAX_POLAR_ANGLE, 9);
+    });
+
+    test('clamps the zoom drift to CAMERA_MIN_DISTANCE/CAMERA_MAX_DISTANCE', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 0, polar_speed: 0, zoom_speed: -100 });
+        camera_controller.update(ORIGIN, 1, 1, true);
+        const resulting_offset = cartesianToSpherical(positionOf(camera_controller));
+        expect(resulting_offset.radius).toBeCloseTo(CAMERA_MIN_DISTANCE, 9);
+    });
+
+    test('leaves the camera position untouched when not in autonomous mode, no matter how idle', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const before = positionOf(camera_controller);
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 1, polar_speed: 1, zoom_speed: 1 });
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, false);
+        expect(positionOf(camera_controller)).toEqual(before);
+    });
+
+    test('leaves the camera position untouched during the idle grace period after an interaction', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const controls = controls_instances[0];
+        controls._dispatch('start');
+        const before = positionOf(camera_controller);
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 1, polar_speed: 1, zoom_speed: 1 });
+        camera_controller.update(ORIGIN, 1, 1, true); // only 1s idle, well under CAMERA_AUTOPILOT_IDLE_SECONDS
+        expect(positionOf(camera_controller)).toEqual(before);
+    });
+
+    test('a user drag ("start") pauses drift until idle for CAMERA_AUTOPILOT_IDLE_SECONDS again', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const controls = controls_instances[0];
+        stepCameraAutopilot.mockReturnValue({ azimuth_speed: 1, polar_speed: 0, zoom_speed: 0 });
+
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true);
+        const drifted = positionOf(camera_controller);
+
+        controls._dispatch('start');
+        camera_controller.update(ORIGIN, 0.016, 1, true);
+        expect(positionOf(camera_controller)).toEqual(drifted);
+
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true);
+        expect(positionOf(camera_controller)).not.toEqual(drifted);
+    });
+
+    test('a user drag ending ("end") also resets the idle timer', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const controls = controls_instances[0];
+        stepCameraAutopilot.mockReturnValue({ azimuth_speed: 1, polar_speed: 0, zoom_speed: 0 });
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true);
+        const drifted = positionOf(camera_controller);
+
+        controls._dispatch('end');
+        camera_controller.update(ORIGIN, 0.016, 1, true);
+        expect(positionOf(camera_controller)).toEqual(drifted);
     });
 
     test('setControlsEnabled(false) disables OrbitControls, setControlsEnabled(true) re-enables it', () => {
