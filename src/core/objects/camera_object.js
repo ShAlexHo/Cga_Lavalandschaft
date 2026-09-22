@@ -25,24 +25,26 @@ export function createCameraController(renderer) {
 
     return {
         camera,
-        update(target_position, delta_seconds, time_scale, autonomous_mode) {
+        update(target_position, delta_seconds, time_scale, autonomous_mode, is_paused) {
             controls.target.copy(target_position);
 
-            seconds_since_interaction += delta_seconds;
-            const { azimuth_speed, polar_speed, zoom_speed } = stepCameraAutopilot(delta_seconds);
+            if (!is_paused) {
+                seconds_since_interaction += delta_seconds;
+                const { azimuth_speed, polar_speed, zoom_speed } = stepCameraAutopilot(delta_seconds);
 
-            if (autonomous_mode && seconds_since_interaction >= CAMERA_AUTOPILOT_IDLE_SECONDS) {
-                const scaled_delta = delta_seconds * time_scale;
-                const offset = cartesianToSpherical({
-                    x: camera.position.x - target_position.x,
-                    y: camera.position.y - target_position.y,
-                    z: camera.position.z - target_position.z,
-                });
-                offset.theta += azimuth_speed * scaled_delta;
-                offset.phi = clamp(offset.phi + polar_speed * scaled_delta, CAMERA_MIN_POLAR_ANGLE, CAMERA_MAX_POLAR_ANGLE);
-                offset.radius = clamp(offset.radius + zoom_speed * scaled_delta, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE);
-                const new_offset = sphericalToCartesian(offset);
-                camera.position.set(target_position.x + new_offset.x, target_position.y + new_offset.y, target_position.z + new_offset.z);
+                if (autonomous_mode && seconds_since_interaction >= CAMERA_AUTOPILOT_IDLE_SECONDS) {
+                    const scaled_delta = delta_seconds * time_scale;
+                    const offset = cartesianToSpherical({
+                        x: camera.position.x - target_position.x,
+                        y: camera.position.y - target_position.y,
+                        z: camera.position.z - target_position.z,
+                    });
+                    offset.theta += azimuth_speed * scaled_delta;
+                    offset.phi = clamp(offset.phi + polar_speed * scaled_delta, CAMERA_MIN_POLAR_ANGLE, CAMERA_MAX_POLAR_ANGLE);
+                    offset.radius = clamp(offset.radius + zoom_speed * scaled_delta, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE);
+                    const new_offset = sphericalToCartesian(offset);
+                    camera.position.set(target_position.x + new_offset.x, target_position.y + new_offset.y, target_position.z + new_offset.z);
+                }
             }
 
             controls.update();

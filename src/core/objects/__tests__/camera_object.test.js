@@ -180,6 +180,31 @@ describe('createCameraController', () => {
         expect(positionOf(camera_controller)).toEqual(drifted);
     });
 
+    test('is_paused=true freezes the autonomous drift, even when idle and autonomous', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const before = positionOf(camera_controller);
+        stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 1, polar_speed: 1, zoom_speed: 1 });
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, true);
+        expect(positionOf(camera_controller)).toEqual(before);
+        expect(stepCameraAutopilot).not.toHaveBeenCalled();
+    });
+
+    test('is_paused=true also freezes the idle timer, so a paused period does not count toward becoming idle', () => {
+        const camera_controller = createCameraController(makeRenderer());
+        const controls = controls_instances[0];
+        stepCameraAutopilot.mockReturnValue({ azimuth_speed: 1, polar_speed: 0, zoom_speed: 0 });
+
+        controls._dispatch('start'); // resets the idle timer to 0
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, true); // paused: must not advance the idle timer
+        const before = positionOf(camera_controller);
+
+        camera_controller.update(ORIGIN, 0.016, 1, true, false); // resumed, but still not idle long enough
+        expect(positionOf(camera_controller)).toEqual(before);
+
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, false); // now genuinely idle
+        expect(positionOf(camera_controller)).not.toEqual(before);
+    });
+
     test('setControlsEnabled(false) disables OrbitControls, setControlsEnabled(true) re-enables it', () => {
         const camera_controller = createCameraController(makeRenderer());
         camera_controller.setControlsEnabled(false);
