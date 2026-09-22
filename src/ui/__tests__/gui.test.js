@@ -17,7 +17,7 @@ vi.mock('../../persistence/persistence.js', () => ({
 
 import { setupGui } from '../gui.js';
 import { GUI } from 'dat.gui';
-import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../../persistence/persistence.js';
+import { saveToLocalStorage, loadFromLocalStorage } from '../../persistence/persistence.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -267,7 +267,7 @@ describe('setupGui – structure', () => {
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
             'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
-            'Position (Vulkan + Lava)', 'Bloom', 'Himmel', 'Lichtstrahlen', 'Sound', 'Speichern / Laden',
+            'Bloom', 'Himmel', 'Lichtstrahlen', 'Sound', 'Zurücksetzen',
         ]);
     });
 
@@ -299,19 +299,6 @@ describe('setupGui – structure', () => {
         expect(entry.bound_object.time_scale).toBe(2.5);
     });
 
-    test('root effective_time_scale control tracks facade.getTimeScale() live and listens for continuous updates', () => {
-        const { registry } = makeMockGui();
-        let current_time_scale = 1;
-        const facade = makeFacade({ getTimeScale: vi.fn(() => current_time_scale) });
-        setupGui(facade);
-        const entry = find(registry, 'root', 'effective_time_scale');
-        expect(entry.bound_object.effective_time_scale).toBe(1);
-
-        current_time_scale = 10; // e.g. a wave-start boost kicking in
-        expect(entry.bound_object.effective_time_scale).toBe(10); // reflected without any explicit refresh call
-        expect(entry.controller.listen).toHaveBeenCalled();
-    });
-
     test('root interaction_mode control is seeded from facade.getInteractionMode() and writes back via setInteractionMode', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
@@ -331,46 +318,17 @@ describe('setupGui – structure', () => {
         fire(registry, 'root', 'autonomous_mode', true); // switching autonomous mode on...
         expect(facade.setInteractionMode).toHaveBeenCalledWith(false); // ...turns interaction mode off
     });
-
-    test('root interaction_smoke_visible control is seeded from facade.getInteractionSmokeVisible() and writes back via setInteractionSmokeVisible', () => {
-        const { registry } = makeMockGui();
-        const facade = makeFacade({ getInteractionSmokeVisible: vi.fn(() => false) });
-        setupGui(facade);
-        const entry = find(registry, 'root', 'interaction_smoke_visible');
-        expect(entry.bound_object.interaction_smoke_visible).toBe(false);
-        fire(registry, 'root', 'interaction_smoke_visible', true);
-        expect(facade.setInteractionSmokeVisible).toHaveBeenCalledWith(true);
-    });
 });
 
 // ─── Metaballs folder ────────────────────────────────────────────────────────
 
 describe('setupGui – Metaballs folder', () => {
-    test('count control is seeded from getMetaballCount/getMaxMetaballCount and rebuilds via setMetaballCount', () => {
-        const { registry } = makeMockGui();
-        const facade = makeFacade({ getMetaballCount: vi.fn(() => 42), getMaxMetaballCount: vi.fn(() => 200) });
-        setupGui(facade);
-        const entry = find(registry, 'Metaballs', 'count');
-        expect(entry.bound_object.count).toBe(42);
-        fire(registry, 'Metaballs', 'count', 77);
-        expect(facade.setMetaballCount).toHaveBeenCalledWith(77);
-    });
-
-    test.each([
-        ['isolation', 'setMetaballIsolation'],
-        ['radius', 'setMetaballRadius'],
-        ['spread', 'setMetaballSpread'],
-        ['speed_factor', 'setMetaballSpeed'],
-        ['sink_speed', 'setMetaballSinkSpeed'],
-        ['disappear_y', 'setMetaballDisappearY'],
-        ['height', 'setMetaballHeight'],
-        ['flow_z_radius', 'setFlowRadius'],
-    ])('%s onChange calls facade.%s', (key, setter) => {
+    test('radius onChange calls facade.setMetaballRadius', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
         setupGui(facade);
-        fire(registry, 'Metaballs', key, 123);
-        expect(facade[setter]).toHaveBeenCalledWith(123);
+        fire(registry, 'Metaballs', 'radius', 123);
+        expect(facade.setMetaballRadius).toHaveBeenCalledWith(123);
     });
 });
 
@@ -419,16 +377,7 @@ describe('setupGui – Boden folder', () => {
         ['color_2', 'setGroundColor2', '#553300'],
         ['color_3', 'setGroundColor3', '#003355'],
         ['color_4', 'setGroundColor4', '#445566'],
-        ['crack_color', 'setGroundCrackColor', '#000001'],
-        ['crack_color_2', 'setGroundCrackColor2', '#000002'],
-        ['crack_color_3', 'setGroundCrackColor3', '#000003'],
-        ['crack_color_4', 'setGroundCrackColor4', '#000004'],
-        ['crack_softness', 'setGroundCrackSoftness', 0.6],
-        ['proximity_color', 'setGroundProximityColor', '#654321'],
-        ['proximity_noise_color', 'setGroundProximityNoiseColor', '#123abc'],
         ['proximity_radius', 'setGroundProximityRadius', 12.5],
-        ['sun_focus_radius', 'setGroundSunFocusRadius', 6.5],
-        ['rock_variance_radius', 'setGroundRockVarianceRadius', 55.0],
         ['displacement_scale', 'setGroundDisplacementScale', 1.2],
         ['displacement_frequency', 'setGroundDisplacementFrequency', 0.2],
         ['height', 'setGroundHeight', -1.5],
@@ -505,30 +454,12 @@ describe('setupGui – Rauch & Asche folder', () => {
     });
 });
 
-// ─── Position folder ─────────────────────────────────────────────────────────
-
-describe('setupGui – Position folder', () => {
-    test.each([
-        ['x', 'setOffsetX', 4.5],
-        ['y', 'setOffsetY', -2.0],
-        ['z', 'setOffsetZ', 1.1],
-    ])('%s onChange calls facade.%s', (key, setter, value) => {
-        const { registry } = makeMockGui();
-        const facade = makeFacade();
-        setupGui(facade);
-        fire(registry, 'Position (Vulkan + Lava)', key, value);
-        expect(facade[setter]).toHaveBeenCalledWith(value);
-    });
-});
-
 // ─── Bloom folder ────────────────────────────────────────────────────────────
 
 describe('setupGui – Bloom folder', () => {
     test.each([
         ['enabled', 'setBloomEnabled', false],
         ['strength', 'setBloomStrength', 1.2],
-        ['radius', 'setBloomRadius', 0.9],
-        ['threshold', 'setBloomThreshold', 0.6],
     ])('%s onChange calls facade.%s', (key, setter, value) => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -585,42 +516,10 @@ describe('setupGui – Sound folder', () => {
 
 // ─── Persistenz ──────────────────────────────────────────────────────────────
 
-describe('setupGui – Speichern / Laden', () => {
+describe('setupGui – Zurücksetzen', () => {
     beforeEach(() => {
         saveToLocalStorage.mockClear();
         loadFromLocalStorage.mockClear().mockReturnValue(null);
-        downloadJson.mockClear();
-        uploadJson.mockClear();
-    });
-
-    test('save saves the facade snapshot to localStorage and as a download', () => {
-        const { registry } = makeMockGui();
-        const snapshot = { paused: true, count: 7 };
-        const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
-        setupGui(facade);
-
-        const entry = find(registry, 'Speichern / Laden', 'save');
-        entry.bound_object.save();
-
-        expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
-        expect(downloadJson).toHaveBeenCalledWith(snapshot);
-    });
-
-    test('load applies the uploaded data via the facade and refreshes every controller display', () => {
-        const { registry } = makeMockGui();
-        const facade = makeFacade();
-        setupGui(facade);
-
-        const uploaded = { count: 55 };
-        uploadJson.mockImplementation(on_loaded => on_loaded(uploaded));
-
-        const entry = find(registry, 'Speichern / Laden', 'load');
-        entry.bound_object.load();
-
-        expect(facade.applySnapshot).toHaveBeenCalledWith(uploaded);
-        registry
-            .filter(entry => entry.folder !== 'Speichern / Laden')
-            .forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
     });
 
     test('reset resets the facade to defaults and refreshes every controller display', () => {
@@ -628,12 +527,12 @@ describe('setupGui – Speichern / Laden', () => {
         const facade = makeFacade();
         setupGui(facade);
 
-        const entry = find(registry, 'Speichern / Laden', 'reset');
+        const entry = find(registry, 'Zurücksetzen', 'reset');
         entry.bound_object.reset();
 
         expect(facade.resetToDefaults).toHaveBeenCalledOnce();
         registry
-            .filter(entry => entry.folder !== 'Speichern / Laden')
+            .filter(entry => entry.folder !== 'Zurücksetzen')
             .forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
     });
 

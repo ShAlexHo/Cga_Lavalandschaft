@@ -1,5 +1,5 @@
 import { GUI } from 'dat.gui';
-import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence/persistence.js';
+import { saveToLocalStorage, loadFromLocalStorage } from '../persistence/persistence.js';
 
 export function setupGui(facade) {
     const gui = new GUI();
@@ -27,16 +27,11 @@ export function setupGui(facade) {
     const root_parameters = makeParameters({
         paused: facade.isPaused,
         time_scale: facade.getBaseTimeScale, // not getTimeScale - a boosted read-back would fight the user's drag
-        interaction_smoke_visible: facade.getInteractionSmokeVisible,
     });
-    defineLiveProperty(root_parameters, 'effective_time_scale', () => facade.getTimeScale(), () => {});
     defineLiveProperty(root_parameters, 'interaction_mode', () => facade.getInteractionMode(), value => facade.setInteractionMode(value));
     defineLiveProperty(root_parameters, 'autonomous_mode', () => !facade.getInteractionMode(), value => facade.setInteractionMode(!value));
     bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
     bind(gui.add(root_parameters, 'time_scale', 0.1, 100, 0.1)).name('Zeitgeschwindigkeit').onChange(value => facade.setTimeScale(value));
-    bind(gui.add(root_parameters, 'effective_time_scale'))
-        .name('Aktuelles Tempo (inkl. Welle-Boost)')
-        .listen();
     bind(gui.add(root_parameters, 'autonomous_mode'))
         .name('Autonomer Modus (Zeit-Boost bei Welle)')
         .onChange(value => facade.setInteractionMode(!value))
@@ -45,47 +40,14 @@ export function setupGui(facade) {
         .name('Interaktionsmodus')
         .onChange(value => facade.setInteractionMode(value))
         .listen();
-    bind(gui.add(root_parameters, 'interaction_smoke_visible')).name('Rauch bei Berührung').onChange(value => facade.setInteractionSmokeVisible(value));
 
     const metaballs_folder = gui.addFolder('Metaballs');
     const metaballs_parameters = makeParameters({
-        count: facade.getMetaballCount,
-        isolation: facade.getMetaballIsolation,
         radius: facade.getMetaballRadius,
-        spread: facade.getMetaballSpread,
-        speed_factor: facade.getMetaballSpeed,
-        sink_speed: facade.getMetaballSinkSpeed,
-        disappear_y: facade.getMetaballDisappearY,
-        height: facade.getMetaballHeight,
-        flow_z_radius: facade.getFlowRadius,
     });
-    bind(metaballs_folder.add(metaballs_parameters, 'count', 1, facade.getMaxMetaballCount(), 1))
-        .name('Limit')
-        .onChange(value => facade.setMetaballCount(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'isolation', 1, 100, 1))
-        .name('Schwellenwert')
-        .onChange(value => facade.setMetaballIsolation(value));
     bind(metaballs_folder.add(metaballs_parameters, 'radius', 0.2, 3.0, 0.05))
         .name('Radius')
         .onChange(value => facade.setMetaballRadius(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'spread', 0.1, 2.0, 0.01))
-        .name('Verteilung')
-        .onChange(value => facade.setMetaballSpread(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'speed_factor', 0.0, 0.01, 0.0001))
-        .name('Geschwindigkeit')
-        .onChange(value => facade.setMetaballSpeed(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'sink_speed', 0.05, 2.0, 0.01))
-        .name('Versinken')
-        .onChange(value => facade.setMetaballSinkSpeed(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'disappear_y', 0.15, 0.4, 0.005))
-        .name('Verschwindehöhe')
-        .onChange(value => facade.setMetaballDisappearY(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'height', 0, 5, 0.05))
-        .name('Höhe')
-        .onChange(value => facade.setMetaballHeight(value));
-    bind(metaballs_folder.add(metaballs_parameters, 'flow_z_radius', 0, 20, 0.1))
-        .name('Steigung')
-        .onChange(value => facade.setFlowRadius(value));
 
     const colors_folder = gui.addFolder('Lavafarbe');
     const color_parameters = makeParameters({
@@ -145,16 +107,7 @@ export function setupGui(facade) {
         color_2: facade.getGroundColor2,
         color_3: facade.getGroundColor3,
         color_4: facade.getGroundColor4,
-        crack_color: facade.getGroundCrackColor,
-        crack_color_2: facade.getGroundCrackColor2,
-        crack_color_3: facade.getGroundCrackColor3,
-        crack_color_4: facade.getGroundCrackColor4,
-        crack_softness: facade.getGroundCrackSoftness,
-        proximity_color: facade.getGroundProximityColor,
-        proximity_noise_color: facade.getGroundProximityNoiseColor,
         proximity_radius: facade.getGroundProximityRadius,
-        sun_focus_radius: facade.getGroundSunFocusRadius,
-        rock_variance_radius: facade.getGroundRockVarianceRadius,
         displacement_scale: facade.getGroundDisplacementScale,
         displacement_frequency: facade.getGroundDisplacementFrequency,
         height: facade.getGroundHeight,
@@ -166,44 +119,17 @@ export function setupGui(facade) {
         .name('Farbe')
         .onChange(value => facade.setGroundColor(value));
     bind(ground_folder.addColor(ground_parameters, 'color_2'))
-        .name('Farbe 2 (Gesteinsart)')
+        .name('Farbe 2')
         .onChange(value => facade.setGroundColor2(value));
     bind(ground_folder.addColor(ground_parameters, 'color_3'))
-        .name('Farbe 3 (Gesteinsart)')
+        .name('Farbe 3')
         .onChange(value => facade.setGroundColor3(value));
     bind(ground_folder.addColor(ground_parameters, 'color_4'))
-        .name('Farbe 4 (Gesteinsart)')
+        .name('Farbe 4')
         .onChange(value => facade.setGroundColor4(value));
-    bind(ground_folder.addColor(ground_parameters, 'crack_color'))
-        .name('Rissfarbe')
-        .onChange(value => facade.setGroundCrackColor(value));
-    bind(ground_folder.addColor(ground_parameters, 'crack_color_2'))
-        .name('Rissfarbe 2')
-        .onChange(value => facade.setGroundCrackColor2(value));
-    bind(ground_folder.addColor(ground_parameters, 'crack_color_3'))
-        .name('Rissfarbe 3')
-        .onChange(value => facade.setGroundCrackColor3(value));
-    bind(ground_folder.addColor(ground_parameters, 'crack_color_4'))
-        .name('Rissfarbe 4 (Rotblitz)')
-        .onChange(value => facade.setGroundCrackColor4(value));
-    bind(ground_folder.add(ground_parameters, 'crack_softness', 0.001, 1.0, 0.001))
-        .name('Rissweichheit')
-        .onChange(value => facade.setGroundCrackSoftness(value));
-    bind(ground_folder.addColor(ground_parameters, 'proximity_color'))
-        .name('Farbe nahe Vulkan')
-        .onChange(value => facade.setGroundProximityColor(value));
-    bind(ground_folder.addColor(ground_parameters, 'proximity_noise_color'))
-        .name('Farbrauschen nahe Vulkan')
-        .onChange(value => facade.setGroundProximityNoiseColor(value));
     bind(ground_folder.add(ground_parameters, 'proximity_radius', 0.0, 40.0, 0.5))
         .name('Reichweite (Vulkannähe)')
         .onChange(value => facade.setGroundProximityRadius(value));
-    bind(ground_folder.add(ground_parameters, 'sun_focus_radius', 0.0, 40.0, 0.1))
-        .name('Sonnenfokus-Nähe (Vulkan)')
-        .onChange(value => facade.setGroundSunFocusRadius(value));
-    bind(ground_folder.add(ground_parameters, 'rock_variance_radius', 0.0, 80.0, 0.5))
-        .name('Reichweite bis Gesteinsvarianz')
-        .onChange(value => facade.setGroundRockVarianceRadius(value));
     bind(ground_folder.add(ground_parameters, 'displacement_scale', 0.0, 3.0, 0.05))
         .name('Unebenheit')
         .onChange(value => facade.setGroundDisplacementScale(value));
@@ -290,28 +216,10 @@ export function setupGui(facade) {
         .name('Abkühlzeit (Glut)')
         .onChange(value => facade.setSmokeEmberCoolingTime(value));
 
-    const position_folder = gui.addFolder('Position (Vulkan + Lava)');
-    const position_parameters = makeParameters({
-        x: facade.getOffsetX,
-        y: facade.getOffsetY,
-        z: facade.getOffsetZ,
-    });
-    bind(position_folder.add(position_parameters, 'x', -10, 10, 0.1))
-        .name('X')
-        .onChange(value => facade.setOffsetX(value));
-    bind(position_folder.add(position_parameters, 'y', -6, 6, 0.1))
-        .name('Y-Versatz')
-        .onChange(value => facade.setOffsetY(value));
-    bind(position_folder.add(position_parameters, 'z', -10, 10, 0.1))
-        .name('Z')
-        .onChange(value => facade.setOffsetZ(value));
-
     const bloom_folder = gui.addFolder('Bloom');
     const bloom_parameters = makeParameters({
         enabled: facade.getBloomEnabled,
         strength: facade.getBloomStrength,
-        radius: facade.getBloomRadius,
-        threshold: facade.getBloomThreshold,
     });
     bind(bloom_folder.add(bloom_parameters, 'enabled'))
         .name('Aktiviert')
@@ -319,12 +227,6 @@ export function setupGui(facade) {
     bind(bloom_folder.add(bloom_parameters, 'strength', 0.0, 4.0, 0.05))
         .name('Stärke')
         .onChange(value => facade.setBloomStrength(value));
-    bind(bloom_folder.add(bloom_parameters, 'radius', 0.0, 1.5, 0.01))
-        .name('Radius')
-        .onChange(value => facade.setBloomRadius(value));
-    bind(bloom_folder.add(bloom_parameters, 'threshold', 0.0, 1.0, 0.01))
-        .name('Schwellenwert')
-        .onChange(value => facade.setBloomThreshold(value));
 
     const sky_folder = gui.addFolder('Himmel');
     const sky_parameters = makeParameters({ color: facade.getSkyColor });
@@ -374,18 +276,10 @@ export function setupGui(facade) {
     }
 
     const persistence_actions = {
-        save: () => {
-            const data = facade.getSnapshot();
-            saveToLocalStorage(data);
-            downloadJson(data);
-        },
-        load: () => uploadJson(data => { facade.applySnapshot(data); refreshDisplay(); }),
         reset: () => { facade.resetToDefaults(); refreshDisplay(); },
     };
 
-    const persistence_folder = gui.addFolder('Speichern / Laden');
-    persistence_folder.add(persistence_actions, 'save').name('💾 Speichern');
-    persistence_folder.add(persistence_actions, 'load').name('📂 Laden');
+    const persistence_folder = gui.addFolder('Zurücksetzen');
     persistence_folder.add(persistence_actions, 'reset').name('🔄 Standard');
 
     const saved = loadFromLocalStorage();

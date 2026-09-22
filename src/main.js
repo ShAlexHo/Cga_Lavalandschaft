@@ -4,7 +4,6 @@ import { createCameraController } from './core/objects/camera_object.js';
 import { createKeyLight } from './core/objects/key_light_object.js';
 import { createPostProcessing } from './core/rendering/post_processing.js';
 import { setupGui } from './ui/gui.js';
-import { createFpsMeter } from './ui/fps_meter.js';
 import DEFAULT_SETTINGS from './core/default_settings.json';
 
 const scene = new THREE.Scene();
@@ -40,7 +39,6 @@ post_processing.setOccluders({
 });
 
 setupGui(controller);
-const fps_meter = createFpsMeter();
 
 // unlocks Web Audio, which browsers block until a user gesture
 window.addEventListener('pointerdown', controller.startAudio, { once: true });
@@ -61,7 +59,6 @@ const animate = () => {
     camera_controller.update(controller.getVolcanoPosition(), delta, time_scale, !controller.getInteractionMode(), controller.isPaused());
     controller.update(elapsed_time, delta);
     post_processing.render();
-    fps_meter.tick();
 };
 
 animate();
