@@ -39,7 +39,8 @@ float metaballField(vec3 local_position) {
     return field;
 }
 
-// Distance to the nearest ball's isosurface (see ballToWorldRadius) is always a safe march stride.
+// Distance to the nearest ball's own isosurface - a safe (if conservative) march stride while the
+// combined field below hasn't crossed the isolation threshold yet.
 float safeStepDistance(vec3 march_position) {
     float nearest = 1.0e6;
     for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
@@ -81,23 +82,42 @@ void main() {
     const float SURFACE_EPSILON = 0.0005;
     const float STEP_SAFETY = 0.8; // shrinks each stride so overlapping balls can't be stepped over
     const float MIN_STEP = 0.001; // floor stride so tracing still advances where the field is nearly flat
+    const int BISECTION_STEPS = 6; // refines the crossing point found below to sub-stride precision
 
     float t = t_enter;
     bool did_hit = false;
+    float previous_t = t_enter;
 
     for (int i = 0; i < METABALL_RAYMARCH_MAX_STEPS; i++) {
         if (i >= u_raymarch_steps || t > t_exit) break;
         vec3 march_position = local_camera + ray_direction * t;
-        float distance_to_surface = safeStepDistance(march_position);
-        // Biases the safe distance itself, so the raymarcher converges onto an actually bulged surface.
-        if (u_displacement > 0.0) {
-            vec3 probe_world_position = u_effect_position + u_effect_scale * march_position;
-            distance_to_surface -= crustColdness(probe_world_position) * u_displacement;
-        }
-        if (distance_to_surface < SURFACE_EPSILON) {
+
+        // The combined field (not just the nearest ball's own isosurface) is what actually decides
+        // the hit, so two nearby-but-not-yet-overlapping balls bulge into a shared surface between
+        // them instead of only ever reading as a plain union of separate spheres.
+        if (metaballField(march_position) >= u_isolation) {
+            float lo = previous_t, hi = t;
+            for (int b = 0; b < BISECTION_STEPS; b++) {
+                float mid = 0.5 * (lo + hi);
+                if (metaballField(local_camera + ray_direction * mid) >= u_isolation) hi = mid; else lo = mid;
+            }
+            t = hi;
             did_hit = true;
             break;
         }
+
+        float distance_to_surface = safeStepDistance(march_position);
+        // Biases the safe distance itself, so a bulged crust can still trigger a hit slightly early.
+        if (u_displacement > 0.0) {
+            vec3 probe_world_position = u_effect_position + u_effect_scale * march_position;
+            distance_to_surface -= crustColdness(probe_world_position) * u_displacement;
+            if (distance_to_surface < SURFACE_EPSILON) {
+                did_hit = true;
+                break;
+            }
+        }
+
+        previous_t = t;
         t += max(distance_to_surface * STEP_SAFETY, MIN_STEP);
     }
 
