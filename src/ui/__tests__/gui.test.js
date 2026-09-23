@@ -266,7 +266,7 @@ describe('setupGui – structure', () => {
         setupGui(makeFacade());
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
-            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
+            'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
             'Bloom', 'Himmel', 'Lichtstrahlen', 'Sound', 'Zurücksetzen',
         ]);
     });
@@ -321,16 +321,6 @@ describe('setupGui – structure', () => {
 });
 
 // ─── Metaballs folder ────────────────────────────────────────────────────────
-
-describe('setupGui – Metaballs folder', () => {
-    test('radius onChange calls facade.setMetaballRadius', () => {
-        const { registry } = makeMockGui();
-        const facade = makeFacade();
-        setupGui(facade);
-        fire(registry, 'Metaballs', 'radius', 123);
-        expect(facade.setMetaballRadius).toHaveBeenCalledWith(123);
-    });
-});
 
 // ─── Lavafarbe folder ────────────────────────────────────────────────────────
 

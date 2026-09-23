@@ -41,14 +41,6 @@ export function setupGui(facade) {
         .onChange(value => facade.setInteractionMode(value))
         .listen();
 
-    const metaballs_folder = gui.addFolder('Metaballs');
-    const metaballs_parameters = makeParameters({
-        radius: facade.getMetaballRadius,
-    });
-    bind(metaballs_folder.add(metaballs_parameters, 'radius', 0.2, 3.0, 0.05))
-        .name('Radius')
-        .onChange(value => facade.setMetaballRadius(value));
-
     const colors_folder = gui.addFolder('Lavafarbe');
     const color_parameters = makeParameters({
         color_hot: facade.getColorHot,
