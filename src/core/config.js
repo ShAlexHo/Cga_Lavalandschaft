@@ -245,3 +245,12 @@ export const AUDIO_PRESS_NOISE_DURATION = 3.0;
 export const AUDIO_PRESS_BANDPASS_FREQUENCY = 2500;
 export const AUDIO_PRESS_GAIN = 1.4;
 export const AUDIO_PRESS_FADE_TIME_CONSTANT = 0.15;
+
+// gains interpolate far -> near by proximity², proximity running 0 -> 1 from FAR to NEAR distance
+export const AUDIO_PROXIMITY_NEAR_DISTANCE = CAMERA_MIN_DISTANCE;
+export const AUDIO_PROXIMITY_FAR_DISTANCE = CAMERA_MAX_DISTANCE;
+export const AUDIO_PROXIMITY_AMBIENT_FAR_GAIN = 0.6; // lava flow bed, spawn noise, press noise
+export const AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN = 1.2;
+export const AUDIO_PROXIMITY_ACCENT_FAR_GAIN = 0.25; // crackle, rumble pulses, spawn thump
+export const AUDIO_PROXIMITY_ACCENT_NEAR_GAIN = 1.8;
+export const AUDIO_PROXIMITY_FADE_TIME_CONSTANT = 0.1;

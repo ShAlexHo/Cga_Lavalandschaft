@@ -14,8 +14,20 @@ import {
     AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_START, AUDIO_METABALL_SPAWN_THUMP_FREQUENCY_END,
     AUDIO_METABALL_SPAWN_DURATION, AUDIO_METABALL_SPAWN_GAIN,
     AUDIO_PRESS_NOISE_DURATION, AUDIO_PRESS_BANDPASS_FREQUENCY, AUDIO_PRESS_GAIN, AUDIO_PRESS_FADE_TIME_CONSTANT,
+    AUDIO_PROXIMITY_NEAR_DISTANCE, AUDIO_PROXIMITY_FAR_DISTANCE,
+    AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN,
+    AUDIO_PROXIMITY_ACCENT_FAR_GAIN, AUDIO_PROXIMITY_ACCENT_NEAR_GAIN, AUDIO_PROXIMITY_FADE_TIME_CONSTANT,
 } from '../config.js';
+import { clamp } from '../animation/math_utils.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
+
+export function computeProximityGain(camera_distance, far_gain, near_gain) {
+    const proximity = clamp(
+        (AUDIO_PROXIMITY_FAR_DISTANCE - camera_distance) / (AUDIO_PROXIMITY_FAR_DISTANCE - AUDIO_PROXIMITY_NEAR_DISTANCE),
+        0, 1,
+    );
+    return far_gain + (near_gain - far_gain) * proximity * proximity;
+}
 
 export function pickNextEventTime(current_time, min_interval, max_interval) {
     return current_time + random(min_interval, max_interval);
@@ -58,6 +70,13 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         master_gain.gain.setTargetAtTime(enabled ? volume : 0, audio_context.currentTime, 0.2);
     }
 
+    const ambient_proximity_gain = audio_context.createGain();
+    ambient_proximity_gain.gain.value = AUDIO_PROXIMITY_AMBIENT_FAR_GAIN;
+    ambient_proximity_gain.connect(master_gain);
+    const accent_proximity_gain = audio_context.createGain();
+    accent_proximity_gain.gain.value = AUDIO_PROXIMITY_ACCENT_FAR_GAIN;
+    accent_proximity_gain.connect(master_gain);
+
     const lava_noise_buffer = createNoiseBuffer(audio_context, AUDIO_LAVA_NOISE_DURATION, fillBrownNoise);
     const crackle_buffer = createNoiseBuffer(audio_context, AUDIO_CRACKLE_DURATION, fillCrackleBurst);
 
@@ -69,7 +88,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
     lava_lowpass.frequency.value = AUDIO_LAVA_LOWPASS_FREQUENCY;
     const lava_flow_gain = audio_context.createGain();
     lava_flow_gain.gain.value = AUDIO_LAVA_FLOW_GAIN;
-    lava_noise_source.connect(lava_lowpass).connect(lava_flow_gain).connect(master_gain);
+    lava_noise_source.connect(lava_lowpass).connect(lava_flow_gain).connect(ambient_proximity_gain);
     lava_noise_source.start();
 
     const flow_lfo = audio_context.createOscillator();
@@ -87,7 +106,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         bandpass.frequency.value = AUDIO_CRACKLE_BANDPASS_FREQUENCY;
         const gain = audio_context.createGain();
         gain.gain.value = AUDIO_CRACKLE_GAIN * random(AUDIO_CRACKLE_GAIN_VARIANCE_MIN, AUDIO_CRACKLE_GAIN_VARIANCE_MAX);
-        source.connect(bandpass).connect(gain).connect(master_gain);
+        source.connect(bandpass).connect(gain).connect(accent_proximity_gain);
         source.start(start_time);
     }
 
@@ -112,7 +131,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         gain.gain.setValueAtTime(0.0001, start_time);
         gain.gain.exponentialRampToValueAtTime(AUDIO_RUMBLE_GAIN * gain_scale, start_time + 0.1);
         gain.gain.exponentialRampToValueAtTime(0.0001, start_time + AUDIO_RUMBLE_DURATION);
-        oscillator.connect(gain).connect(master_gain);
+        oscillator.connect(gain).connect(accent_proximity_gain);
         oscillator.start(start_time);
         oscillator.stop(start_time + AUDIO_RUMBLE_DURATION + 0.05);
     }
@@ -135,7 +154,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         lowpass.frequency.value = AUDIO_METABALL_SPAWN_LOWPASS_FREQUENCY;
         const noise_gain = audio_context.createGain();
         noise_gain.gain.value = AUDIO_METABALL_SPAWN_GAIN;
-        noise_source.connect(lowpass).connect(noise_gain).connect(master_gain);
+        noise_source.connect(lowpass).connect(noise_gain).connect(ambient_proximity_gain);
         noise_source.start();
 
         const thump = audio_context.createOscillator();
@@ -146,7 +165,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         thump_gain.gain.setValueAtTime(0.0001, now);
         thump_gain.gain.exponentialRampToValueAtTime(AUDIO_METABALL_SPAWN_GAIN, now + 0.02);
         thump_gain.gain.exponentialRampToValueAtTime(0.0001, now + AUDIO_METABALL_SPAWN_DURATION);
-        thump.connect(thump_gain).connect(master_gain);
+        thump.connect(thump_gain).connect(accent_proximity_gain);
         thump.start(now);
         thump.stop(now + AUDIO_METABALL_SPAWN_DURATION + 0.05);
     }
@@ -160,7 +179,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
     press_bandpass.frequency.value = AUDIO_PRESS_BANDPASS_FREQUENCY;
     const press_gain = audio_context.createGain();
     press_gain.gain.value = 0;
-    press_noise_source.connect(press_bandpass).connect(press_gain).connect(master_gain);
+    press_noise_source.connect(press_bandpass).connect(press_gain).connect(ambient_proximity_gain);
     press_noise_source.start();
 
     let next_crackle_time = pickNextEventTime(0, AUDIO_CRACKLE_MIN_INTERVAL, AUDIO_CRACKLE_MAX_INTERVAL);
@@ -181,6 +200,17 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
         playMetaballSpawn,
         setPressing: is_pressing => {
             press_gain.gain.setTargetAtTime(is_pressing ? AUDIO_PRESS_GAIN : 0, audio_context.currentTime, AUDIO_PRESS_FADE_TIME_CONSTANT);
+        },
+        setCameraDistance: camera_distance => {
+            const now = audio_context.currentTime;
+            ambient_proximity_gain.gain.setTargetAtTime(
+                computeProximityGain(camera_distance, AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN),
+                now, AUDIO_PROXIMITY_FADE_TIME_CONSTANT,
+            );
+            accent_proximity_gain.gain.setTargetAtTime(
+                computeProximityGain(camera_distance, AUDIO_PROXIMITY_ACCENT_FAR_GAIN, AUDIO_PROXIMITY_ACCENT_NEAR_GAIN),
+                now, AUDIO_PROXIMITY_FADE_TIME_CONSTANT,
+            );
         },
         getEnabled: () => enabled,
         setEnabled: value => { enabled = value; applyMasterGain(); },

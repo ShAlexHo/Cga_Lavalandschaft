@@ -126,6 +126,7 @@ vi.mock('../audio/volcano_audio.js', () => ({
             update: vi.fn(),
             playMetaballSpawn: vi.fn(),
             setPressing: vi.fn(),
+            setCameraDistance: vi.fn(),
             getEnabled: () => state.enabled,
             setEnabled: value => { state.enabled = value; },
             getVolume: () => state.volume,
@@ -764,5 +765,21 @@ describe('createSceneController – update()', () => {
         interaction.step.mockReturnValueOnce({ touch_points: [], smoke_bursts: [], is_touching_lava: false });
         controller.update(2);
         expect(volcano_audio.setPressing).toHaveBeenCalledWith(false);
+    });
+
+    test('forwards the camera-to-volcano distance to volcano_audio.setCameraDistance', () => {
+        const camera = makeCamera();
+        const controller = createSceneController({
+            scene: makeScene(), camera, renderer: makeRenderer(),
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(),
+            setControlsEnabled: vi.fn(),
+        });
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+        const volcano_position = controller.getVolcanoPosition();
+        camera.position = { x: volcano_position.x + 3, y: volcano_position.y + 4, z: volcano_position.z };
+
+        controller.update(1);
+
+        expect(volcano_audio.setCameraDistance).toHaveBeenCalledWith(5);
     });
 });

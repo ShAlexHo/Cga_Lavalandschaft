@@ -23,6 +23,10 @@ export function worldAzimuth(center, point) {
     return Math.atan2(point.z - center.z, point.x - center.x);
 }
 
+export function distance(point_a, point_b) {
+    return Math.hypot(point_a.x - point_b.x, point_a.y - point_b.y, point_a.z - point_b.z);
+}
+
 export function horizontalDistance(point_a, point_b) {
     return Math.hypot(point_a.x - point_b.x, point_a.z - point_b.z);
 }

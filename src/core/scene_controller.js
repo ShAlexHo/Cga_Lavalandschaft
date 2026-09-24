@@ -8,7 +8,7 @@ import { createInteractionController } from './objects/interaction_controller.js
 import { createImpactSmoke } from './objects/impact_smoke_object.js';
 import { createVolcanoAudio } from './audio/volcano_audio.js';
 import { SMOKE_SPAWN_HEIGHT, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES } from './config.js';
-import { smoothstep } from './animation/math_utils.js';
+import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
 export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled }) {
@@ -70,6 +70,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             smoke.update(camera, sun.light.position, time, metaball_field.getEruptionIntensity(time));
             volcano_audio.update(time);
             volcano_audio.setPressing(is_touching_lava);
+            volcano_audio.setCameraDistance(distance(camera.position, volcano.mesh.position));
 
             const spawn_count = metaball_field.getSpawnCount();
             if (spawn_count !== last_spawn_count) {

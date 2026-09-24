@@ -1,8 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createVolcanoAudio, pickNextEventTime } from '../volcano_audio.js';
+import { createVolcanoAudio, pickNextEventTime, computeProximityGain } from '../volcano_audio.js';
 import {
     AUDIO_CRACKLE_MIN_INTERVAL, AUDIO_CRACKLE_MAX_INTERVAL, AUDIO_RUMBLE_MIN_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL,
     AUDIO_METABALL_SPAWN_GAIN, AUDIO_PRESS_GAIN,
+    AUDIO_PROXIMITY_NEAR_DISTANCE, AUDIO_PROXIMITY_FAR_DISTANCE,
+    AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN,
+    AUDIO_PROXIMITY_ACCENT_FAR_GAIN, AUDIO_PROXIMITY_ACCENT_NEAR_GAIN,
 } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 
@@ -60,6 +63,20 @@ describe('pickNextEventTime', () => {
             expect(result).toBeGreaterThanOrEqual(12);
             expect(result).toBeLessThanOrEqual(15);
         }
+    });
+});
+
+describe('computeProximityGain', () => {
+    test('returns far_gain at or beyond the far distance and near_gain at or inside the near distance', () => {
+        expect(computeProximityGain(AUDIO_PROXIMITY_FAR_DISTANCE, 0.2, 2)).toBeCloseTo(0.2, 9);
+        expect(computeProximityGain(AUDIO_PROXIMITY_FAR_DISTANCE + 10, 0.2, 2)).toBeCloseTo(0.2, 9);
+        expect(computeProximityGain(AUDIO_PROXIMITY_NEAR_DISTANCE, 0.2, 2)).toBeCloseTo(2, 9);
+        expect(computeProximityGain(AUDIO_PROXIMITY_NEAR_DISTANCE - 10, 0.2, 2)).toBeCloseTo(2, 9);
+    });
+
+    test('rises quadratically, not linearly, as the camera approaches', () => {
+        const halfway = (AUDIO_PROXIMITY_NEAR_DISTANCE + AUDIO_PROXIMITY_FAR_DISTANCE) / 2;
+        expect(computeProximityGain(halfway, 0, 1)).toBeCloseTo(0.25, 9);
     });
 });
 
@@ -192,6 +209,36 @@ describe('createVolcanoAudio', () => {
         audio.playMetaballSpawn();
         const [noise_gain] = context._created.gains.slice(-2);
         expect(noise_gain.gain.value).toBeCloseTo(AUDIO_METABALL_SPAWN_GAIN, 9);
+    });
+
+    test('setCameraDistance() drives the ambient and accent proximity buses between their far and near gains', () => {
+        const audio = createVolcanoAudio(context);
+        const [, ambient_proximity_gain, accent_proximity_gain] = context._created.gains;
+
+        audio.setCameraDistance(AUDIO_PROXIMITY_FAR_DISTANCE);
+        expect(ambient_proximity_gain.gain.value).toBeCloseTo(AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, 9);
+        expect(accent_proximity_gain.gain.value).toBeCloseTo(AUDIO_PROXIMITY_ACCENT_FAR_GAIN, 9);
+
+        audio.setCameraDistance(AUDIO_PROXIMITY_NEAR_DISTANCE);
+        expect(ambient_proximity_gain.gain.value).toBeCloseTo(AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN, 9);
+        expect(accent_proximity_gain.gain.value).toBeCloseTo(AUDIO_PROXIMITY_ACCENT_NEAR_GAIN, 9);
+    });
+
+    test('crackle, rumble and spawn thump route through the accent bus, the lava bed through the ambient bus', () => {
+        const audio = createVolcanoAudio(context);
+        const [, ambient_proximity_gain, accent_proximity_gain] = context._created.gains;
+        const lava_flow_gain = context._created.gains[3];
+        expect(lava_flow_gain.connect).toHaveBeenCalledWith(ambient_proximity_gain);
+
+        const gains_before = context._created.gains.length;
+        audio.update(Math.max(AUDIO_CRACKLE_MAX_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL) + 0.01);
+        audio.playMetaballSpawn();
+        const event_gains = context._created.gains.slice(gains_before);
+        const thump_gain = event_gains.at(-1);
+        const spawn_noise_gain = event_gains.at(-2);
+        for (const gain of event_gains.slice(0, -2)) expect(gain.connect).toHaveBeenCalledWith(accent_proximity_gain);
+        expect(thump_gain.connect).toHaveBeenCalledWith(accent_proximity_gain);
+        expect(spawn_noise_gain.connect).toHaveBeenCalledWith(ambient_proximity_gain);
     });
 
     test('the press noise bed starts silent', () => {
