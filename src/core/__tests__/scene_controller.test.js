@@ -231,6 +231,7 @@ function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, t
 function makeGodRaysPass() {
     const state = { weight: 0.25, exposure: 0.5, decay: 0.96, density: 0.93, tintColor: '#ff2211' };
     return {
+        enabled: true,
         getWeight: () => state.weight,
         setWeight: value => { state.weight = value; },
         getExposure: () => state.exposure,
@@ -556,6 +557,20 @@ describe('createSceneController – sun', () => {
         expect(ground_material.uniforms.u_sun_strength.value).toBe(0.15);
         expect(volcano_material.uniforms.u_sun_strength.value).toBe(0.15);
         expect(smoke_material.uniforms.u_sun_strength.value).toBe(0.15);
+    });
+
+    test('setSunVisible(false) disables the god rays pass, setSunVisible(true) re-enables it', () => {
+        const god_rays_pass = makeGodRaysPass();
+        const controller = createSceneController({
+            scene: makeScene(), camera: makeCamera(), renderer: makeRenderer(),
+            bloom_pass: makeBloomPass(), god_rays_pass, setControlsEnabled: vi.fn(),
+        });
+
+        controller.setSunVisible(false);
+        expect(god_rays_pass.enabled).toBe(false);
+
+        controller.setSunVisible(true);
+        expect(god_rays_pass.enabled).toBe(true);
     });
 
     test('setSunVisible/setSunStrength also forward to the impact smoke object', () => {

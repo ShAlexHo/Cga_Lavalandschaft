@@ -204,6 +204,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getSunVisible: () => sun.getVisible(),
         setSunVisible: value => {
             sun.setVisible(value);
+            god_rays_pass.enabled = value;
             ground.setSunEnabled(value);
             volcano.setSunEnabled(value);
             smoke.setSunEnabled(value);

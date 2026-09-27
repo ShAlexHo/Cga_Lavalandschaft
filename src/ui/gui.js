@@ -2,7 +2,7 @@ import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../persistence/persistence.js';
 
 export function setupGui(facade) {
-    const gui = new GUI();
+    const gui = new GUI({ closed: true });
     const all_controllers = [];
     const refresh_bindings = [];
 

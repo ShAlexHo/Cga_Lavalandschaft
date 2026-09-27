@@ -255,6 +255,12 @@ describe('setupGui – structure', () => {
         expect(GUI).toHaveBeenCalledOnce();
     });
 
+    test('starts with the GUI collapsed', () => {
+        makeMockGui();
+        setupGui(makeFacade());
+        expect(GUI).toHaveBeenCalledWith({ closed: true });
+    });
+
     test('returns the GUI instance', () => {
         const { gui } = makeMockGui();
         const result = setupGui(makeFacade());
