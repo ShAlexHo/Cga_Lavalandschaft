@@ -18,6 +18,10 @@ vi.mock('../../persistence/persistence.js', () => ({
 import { setupGui } from '../gui.js';
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../../persistence/persistence.js';
+import { setLanguage } from '../language.js';
+
+// the folder-based lookups below use the German labels
+beforeEach(() => setLanguage('de'));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -585,6 +589,47 @@ describe('setupGui – Zurücksetzen', () => {
     });
 });
 
+// ─── Language ────────────────────────────────────────────────────────────────
+
+describe('setupGui – language', () => {
+    test('labels folders and controls in English when English is selected', () => {
+        setLanguage('en');
+        const { gui, registry } = makeMockGui();
+        setupGui(makeFacade());
+
+        expect(gui.addFolder.mock.calls.map(call => call[0])).toContain('Ground');
+        expect(find(registry, 'Ground', 'height').controller.name).toHaveBeenLastCalledWith('Height');
+        expect(find(registry, 'root', 'interaction_mode').controller.name).toHaveBeenLastCalledWith('Interaction mode');
+    });
+
+    test('relabels controls and folders live when the language changes', () => {
+        setLanguage('en');
+        const { gui, registry } = makeMockGui();
+        setupGui(makeFacade());
+        const ground_folder = gui.addFolder.mock.results[gui.addFolder.mock.calls.findIndex(call => call[0] === 'Ground')].value;
+
+        setLanguage('de');
+
+        expect(find(registry, 'Ground', 'height').controller.name).toHaveBeenLastCalledWith('Höhe');
+        expect(find(registry, 'root', 'interaction_mode').controller.name).toHaveBeenLastCalledWith('Interaktionsmodus');
+        expect(ground_folder.name).toBe('Boden');
+    });
+
+    test('translates the open/close button and re-renders it', () => {
+        setLanguage('en');
+        const { gui } = makeMockGui();
+        setupGui(makeFacade());
+        const closed_setter = vi.fn();
+        Object.defineProperty(gui, 'closed', { get: () => true, set: closed_setter, configurable: true });
+
+        setLanguage('de');
+
+        expect(GUI.TEXT_OPEN).toBe('Steuerung öffnen');
+        expect(GUI.TEXT_CLOSED).toBe('Steuerung schließen');
+        expect(closed_setter).toHaveBeenCalledWith(true);
+    });
+});
+
 // ─── mode_controls_only ──────────────────────────────────────────────────────
 
 describe('setupGui – mode_controls_only', () => {
@@ -593,12 +638,47 @@ describe('setupGui – mode_controls_only', () => {
         loadFromLocalStorage.mockClear().mockReturnValue(null);
     });
 
-    test('shows only the autonomous and interaction mode toggles, without any folder', () => {
+    test('shows only the time scale and the mode toggles, without any folder', () => {
         const { gui, registry } = makeMockGui();
         setupGui(makeFacade(), { mode_controls_only: true });
 
-        expect(registry.map(entry => `${entry.folder}/${entry.key}`)).toEqual(['root/autonomous_mode', 'root/interaction_mode']);
+        expect(registry.map(entry => `${entry.folder}/${entry.key}`)).toEqual(['root/time_scale', 'root/autonomous_mode', 'root/interaction_mode', 'root/reset']);
         expect(gui.addFolder).not.toHaveBeenCalled();
+    });
+
+    test('the reset button resets the facade to defaults and refreshes the visible controls', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true });
+
+        const entry = find(registry, 'root', 'reset');
+        expect(entry.controller.name).toHaveBeenLastCalledWith('🔄 Auf Standard zurücksetzen');
+        entry.bound_object.reset();
+
+        expect(facade.resetToDefaults).toHaveBeenCalledOnce();
+        registry
+            .filter(other => other.key !== 'reset')
+            .forEach(other => expect(other.controller.updateDisplay).toHaveBeenCalled());
+    });
+
+    test('the time scale slider ranges from 1 to 6 in whole steps and writes back via setTimeScale', () => {
+        const { gui, registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true });
+
+        const time_scale_call = gui.add.mock.calls.find(call => call[1] === 'time_scale');
+        expect(time_scale_call.slice(2)).toEqual([1, 6, 1]);
+        fire(registry, 'root', 'time_scale', 4);
+        expect(facade.setTimeScale).toHaveBeenCalledWith(4);
+    });
+
+    test('restores the saved time scale, clamped to the slider range', () => {
+        makeMockGui();
+        loadFromLocalStorage.mockReturnValue({ interactionMode: false, timeScale: 50 });
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true });
+
+        expect(facade.applySnapshot).toHaveBeenCalledWith({ interactionMode: false, timeScale: 6 });
     });
 
     test('the mode toggles still write back via setInteractionMode', () => {

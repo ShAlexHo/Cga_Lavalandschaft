@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5c0906"/>
+      <stop offset="1" stop-color="#a3150a"/>
+    </linearGradient>
+    <linearGradient id="lava" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0a0"/>
+      <stop offset="0.35" stop-color="#ffa62e"/>
+      <stop offset="1" stop-color="#ff4a0f"/>
+    </linearGradient>
+    <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1c19"/>
+      <stop offset="1" stop-color="#120c0b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb347" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ff5b00" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tile">
+      <rect width="64" height="64" rx="14"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="64" height="64" fill="url(#sky)"/>
+    <circle cx="49" cy="14" r="6" fill="#ff3b26"/>
+    <ellipse cx="32" cy="22" rx="17" ry="11" fill="url(#glow)"/>
+    <circle cx="28.5" cy="13" r="2" fill="#ffc34d"/>
+    <circle cx="35" cy="8.5" r="1.6" fill="#ffa62e"/>
+    <path d="M0 64 L0 58 L22 24 Q32 19.5 42 24 L64 58 L64 64 Z" fill="url(#rock)"/>
+    <path d="M22.5 24 Q32 20 41.5 24 L44.5 31 Q39.5 35.5 42.5 43 Q46 51 44 64 L32.5 64 Q35 54 31 47.5 Q28 42.5 29.5 36 Q26 42 25.5 50 Q25 57 26 64 L14 64 Q14 50 18.5 39.5 Q21 32 22.5 24 Z" fill="url(#lava)"/>
+  </g>
+</svg>

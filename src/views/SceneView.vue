@@ -2,6 +2,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { getSceneEngine } from '../scene_engine.js';
 import { scene_screenshot_url } from '../scene_screenshot.js';
+import { localize } from '../language_state.js';
 
 const scene_container = ref(null);
 const engine = getSceneEngine();
@@ -16,7 +17,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div ref="scene_container" class="scene">
-        <RouterLink :to="{ name: 'landing' }" class="home-button" aria-label="Zur Startseite" title="Zur Startseite">
+        <RouterLink :to="{ name: 'landing' }" class="home-button" :aria-label="localize('scene.home')" :title="localize('scene.home')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z" /></svg>
         </RouterLink>
     </div>

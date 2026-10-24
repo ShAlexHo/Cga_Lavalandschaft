@@ -13,4 +13,4 @@ Applies to all `src/` code, including tests (`__tests__/`, `e2e/`).
 ## Language
 
 - **Code is English**: identifiers (variables, constants, functions, files) and comments are written in English.
-- **Exception**: user-facing GUI text (e.g. dat.gui folder/control labels in `ui/gui.js`) stays German, since that is the visible interface for German-speaking users.
+- **User-facing text** (landing page, dat.gui labels) is never hardcoded: it lives in `ui/messages.js` in English and German and is looked up via `translate()` / `localize()`. English is the default language.

@@ -63,10 +63,10 @@ test('landing page enters the scene via the play button and shows the left scene
     const console_errors = collectConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Unstill Life: Lava Landscape' })).toBeVisible();
     await expect(page.locator('canvas')).toHaveCount(0);
 
-    const preview = page.getByRole('link', { name: 'Szene starten' });
+    const preview = page.getByRole('link', { name: 'Start scene' });
     const play_button = preview.locator('.play-button');
     await expect(play_button).toHaveCSS('opacity', '0');
     await preview.hover();
@@ -74,14 +74,37 @@ test('landing page enters the scene via the play button and shows the left scene
     await expect(play_button).toHaveCSS('opacity', '1', { timeout: 60_000 });
 
     await preview.click();
-    await expect(page).toHaveURL(/\/scene$/);
+    // the screenshot zooms to full size and covers the scene until it has rendered
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
+    await expect(page).toHaveURL(/\/scene$/, { timeout: 60_000 });
     await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await page.waitForTimeout(500);
 
-    await page.getByRole('link', { name: 'Zur Startseite' }).click();
+    await page.getByRole('link', { name: 'Back to start page' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('canvas')).toHaveCount(0);
     await expect(page.locator('.preview-image')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});
+
+test('language switch translates the landing page and the scene GUI, and is remembered', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByRole('button', { name: 'DE' }).click();
+    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+    await expect(page).toHaveTitle('Unstill Life: Lavalandschaft');
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+
+    // software WebGL may still be pre-baking the scene and block the click for a while
+    await page.getByRole('link', { name: 'Szene starten' }).click();
+    await expect(page).toHaveURL(/\/scene$/, { timeout: 60_000 });
+    await expect(page.locator('.dg .property-name', { hasText: 'Interaktionsmodus' })).toHaveCount(1, { timeout: 60_000 });
+    await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
 });
