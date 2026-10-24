@@ -123,6 +123,7 @@ vi.mock('../audio/volcano_audio.js', () => ({
         const state = { enabled: true, volume: 0.5 };
         return {
             start: vi.fn(),
+            stop: vi.fn(),
             update: vi.fn(),
             playMetaballSpawn: vi.fn(),
             setPressing: vi.fn(),
@@ -766,6 +767,44 @@ describe('createSceneController – update()', () => {
         getSpawnCount.mockReturnValueOnce(1);
         controller.update(3);
         expect(volcano_audio.playMetaballSpawn).toHaveBeenCalledTimes(1);
+    });
+
+    test('fastForward steps the lava simulation from 0 up to the given duration', () => {
+        const controller = makeController();
+        stepMetaballAnimation.mockClear();
+
+        controller.fastForward(2, 0.5);
+
+        expect(stepMetaballAnimation.mock.calls.map(call => call[0])).toEqual([0, 0.5, 1, 1.5, 2]);
+    });
+
+    test('fastForward spawns stay silent and trigger no wave boost on the next frame', () => {
+        getSpawnCount.mockReturnValue(0);
+        getWaveStartCount.mockReturnValue(0);
+        const controller = makeController();
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+
+        getSpawnCount.mockReturnValue(17);
+        getWaveStartCount.mockReturnValue(3);
+        controller.fastForward(600, 0.5);
+        controller.update(600);
+
+        expect(volcano_audio.playMetaballSpawn).not.toHaveBeenCalled();
+        expect(controller.getTimeScale()).toBe(controller.getBaseTimeScale());
+
+        getSpawnCount.mockReturnValue(0);
+        getWaveStartCount.mockReturnValue(0);
+    });
+
+    test('startAudio/stopAudio resume and suspend volcano_audio', () => {
+        const controller = makeController();
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+
+        controller.startAudio();
+        expect(volcano_audio.start).toHaveBeenCalledTimes(1);
+
+        controller.stopAudio();
+        expect(volcano_audio.stop).toHaveBeenCalledTimes(1);
     });
 
     test('forwards is_touching_lava to volcano_audio.setPressing', () => {

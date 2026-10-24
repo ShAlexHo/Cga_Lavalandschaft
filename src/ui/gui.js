@@ -1,7 +1,8 @@
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../persistence/persistence.js';
 
-export function setupGui(facade) {
+// with mode_controls_only, hidden settings can't be reset, so only the mode is restored
+export function setupGui(facade, { mode_controls_only = false } = {}) {
     const gui = new GUI({ closed: true });
     const all_controllers = [];
     const refresh_bindings = [];
@@ -30,8 +31,10 @@ export function setupGui(facade) {
     });
     defineLiveProperty(root_parameters, 'interaction_mode', () => facade.getInteractionMode(), value => facade.setInteractionMode(value));
     defineLiveProperty(root_parameters, 'autonomous_mode', () => !facade.getInteractionMode(), value => facade.setInteractionMode(!value));
-    bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
-    bind(gui.add(root_parameters, 'time_scale', 0.1, 100, 0.1)).name('Zeitgeschwindigkeit').onChange(value => facade.setTimeScale(value));
+    if (!mode_controls_only) {
+        bind(gui.add(root_parameters, 'paused')).name('⏸ Pausiert').onChange(value => facade.setPaused(value));
+        bind(gui.add(root_parameters, 'time_scale', 0.1, 100, 0.1)).name('Zeitgeschwindigkeit').onChange(value => facade.setTimeScale(value));
+    }
     bind(gui.add(root_parameters, 'autonomous_mode'))
         .name('Autonomer Modus (Zeit-Boost bei Welle)')
         .onChange(value => facade.setInteractionMode(!value))
@@ -40,6 +43,36 @@ export function setupGui(facade) {
         .name('Interaktionsmodus')
         .onChange(value => facade.setInteractionMode(value))
         .listen();
+
+    function refreshDisplay() {
+        refresh_bindings.forEach(update => update());
+        all_controllers.forEach(controller => controller.updateDisplay());
+    }
+
+    function restoreSavedSettings(keys) {
+        const saved = loadFromLocalStorage();
+        if (!saved) return;
+        const restored = keys
+            ? Object.fromEntries(keys.filter(key => key in saved).map(key => [key, saved[key]]))
+            : saved;
+        facade.applySnapshot(restored);
+        refreshDisplay();
+    }
+
+    window.addEventListener('beforeunload', () => saveToLocalStorage(facade.getSnapshot()));
+
+    if (mode_controls_only) {
+        restoreSavedSettings(['interactionMode']);
+        return gui;
+    }
+
+    const metaballs_folder = gui.addFolder('Metaballs');
+    const metaballs_parameters = makeParameters({
+        height: facade.getMetaballHeight,
+    });
+    bind(metaballs_folder.add(metaballs_parameters, 'height', 0, 5, 0.05))
+        .name('Höhe')
+        .onChange(value => facade.setMetaballHeight(value));
 
     const colors_folder = gui.addFolder('Lavafarbe');
     const color_parameters = makeParameters({
@@ -262,11 +295,6 @@ export function setupGui(facade) {
         .name('Lautstärke')
         .onChange(value => facade.setSoundVolume(value));
 
-    function refreshDisplay() {
-        refresh_bindings.forEach(update => update());
-        all_controllers.forEach(controller => controller.updateDisplay());
-    }
-
     const persistence_actions = {
         reset: () => { facade.resetToDefaults(); refreshDisplay(); },
     };
@@ -274,10 +302,7 @@ export function setupGui(facade) {
     const persistence_folder = gui.addFolder('Zurücksetzen');
     persistence_folder.add(persistence_actions, 'reset').name('🔄 Standard');
 
-    const saved = loadFromLocalStorage();
-    if (saved) { facade.applySnapshot(saved); refreshDisplay(); }
-
-    window.addEventListener('beforeunload', () => saveToLocalStorage(facade.getSnapshot()));
+    restoreSavedSettings();
 
     return gui;
 }

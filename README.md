@@ -53,6 +53,7 @@ npm run preview
 | Paket | Zweck |
 |-------|-------|
 | [Three.js](https://threejs.org/) | 3D-Rendering |
+| [Vue.js](https://vuejs.org/) + [Vue Router](https://router.vuejs.org/) | Landing Page & Routing |
 | [Vite](https://vitejs.dev/) | Build-Tool & Dev-Server |
 
 ## Coding Guidelines
@@ -122,6 +123,7 @@ npm run preview
 | Package | Purpose |
 |---------|---------|
 | [Three.js](https://threejs.org/) | 3D rendering |
+| [Vue.js](https://vuejs.org/) + [Vue Router](https://router.vuejs.org/) | Landing page & routing |
 | [Vite](https://vitejs.dev/) | Build tool & dev server |
 
 ## Coding Guidelines

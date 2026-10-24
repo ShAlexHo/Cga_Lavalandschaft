@@ -87,6 +87,15 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             }
         },
 
+        // Steps only the lava simulation, the one stateful part - sun, smoke and the rest derive
+        // from the time alone. Spawns along the way stay silent.
+        fastForward(duration, step) {
+            const step_count = Math.floor(duration / step);
+            for (let i = 0; i <= step_count; i++) metaball_field.update(i * step, camera, volcano.mesh.position);
+            last_spawn_count = metaball_field.getSpawnCount();
+            last_wave_start_count = metaball_field.getWaveStartCount();
+        },
+
         isPaused: () => metaball_field.isPaused(),
         setPaused: value => metaball_field.setPaused(value),
 
@@ -279,6 +288,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         setGodRaysTintColor: value => god_rays_pass.setTintColor(value),
 
         startAudio: () => volcano_audio.start(),
+        stopAudio: () => volcano_audio.stop(),
         getSoundEnabled: () => volcano_audio.getEnabled(),
         setSoundEnabled: value => volcano_audio.setEnabled(value),
         getSoundVolume: () => volcano_audio.getVolume(),

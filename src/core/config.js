@@ -5,6 +5,11 @@
 
 export const RANDOM_SEED = 42; // fixed, so particle placement/variance is identical on every load
 
+// ─── Scene start ─────────────────────────────────────────────────────────────
+
+export const SCENE_WARM_UP_SECONDS = 7200; // scene time simulated before the first frame, so it opens mid-eruption
+export const SCENE_WARM_UP_STEP_SECONDS = 0.5;
+
 // ─── Camera (perspective camera + OrbitControls) ────────────────────────────
 
 export const CAMERA_FOV = 75;

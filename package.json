@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "dat.gui": "^0.7.9",
-    "three": "^0.175.0"
+    "three": "^0.175.0",
+    "vue": "^3.5.44",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/coverage-v8": "^3.2.3",
     "happy-dom": "^20.10.6",
     "pngjs": "^7.0.0",

@@ -29,6 +29,7 @@ function makeMockAudioContext() {
         sampleRate: 44100,
         destination: makeMockNode(),
         resume: vi.fn(),
+        suspend: vi.fn(),
         createBuffer: vi.fn((channels, length) => ({
             getChannelData: () => new Float32Array(length),
         })),
@@ -101,6 +102,12 @@ describe('createVolcanoAudio', () => {
         const audio = createVolcanoAudio(context);
         audio.start();
         expect(context.resume).toHaveBeenCalledTimes(1);
+    });
+
+    test('stop() suspends the audio context', () => {
+        const audio = createVolcanoAudio(context);
+        audio.stop();
+        expect(context.suspend).toHaveBeenCalledTimes(1);
     });
 
     test('defaults to enabled at DEFAULT_SETTINGS.soundVolume', () => {

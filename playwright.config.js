@@ -2,7 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
-    fullyParallel: true,
+    // software WebGL takes seconds per frame, so tests run one at a time
+    workers: 1,
+    timeout: 180_000,
     reporter: 'list',
     use: {
         baseURL: 'http://localhost:5183',

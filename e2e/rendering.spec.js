@@ -8,14 +8,19 @@ import { PNG } from 'pngjs';
 // a genuinely black/blank canvas (broken shader, failed WebGL context, an
 // exception inside the animate loop, ...).
 
-test('scene renders a non-blank image', async ({ page }) => {
+function collectConsoleErrors(page) {
     const console_errors = [];
     page.on('console', message => {
         if (message.type() === 'error') console_errors.push(message.text());
     });
     page.on('pageerror', error => console_errors.push(error.message));
+    return console_errors;
+}
 
-    await page.goto('/');
+test('scene renders a non-blank image', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/scene');
 
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
@@ -25,10 +30,9 @@ test('scene renders a non-blank image', async ({ page }) => {
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 
-    // The dat.GUI panel is a DOM overlay drawn on top of the canvas - remove it
-    // so the screenshot only reflects what WebGL actually rendered.
+    // DOM overlays would skew the pixel checks
     await page.evaluate(() => {
-        document.querySelectorAll('.dg').forEach(el => el.remove());
+        document.querySelectorAll('.dg, .home-button').forEach(element => element.remove());
     });
 
     const box = await canvas.boundingBox();
@@ -51,6 +55,33 @@ test('scene renders a non-blank image', async ({ page }) => {
 
     // The lava glow + bloom pass should push a meaningful share of pixels
     // well above the scene's very dark background (#0a0505, luminance ~7.5).
-    const bright_share = luminances.filter(l => l > 40).length / luminances.length;
+    const bright_share = luminances.filter(luminance => luminance > 40).length / luminances.length;
     expect(bright_share).toBeGreaterThan(0.01);
+});
+
+test('landing page enters the scene via the play button and shows the left scene on return', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+    await expect(page.locator('canvas')).toHaveCount(0);
+
+    const preview = page.getByRole('link', { name: 'Szene starten' });
+    const play_button = preview.locator('.play-button');
+    await expect(play_button).toHaveCSS('opacity', '0');
+    await preview.hover();
+    // the landing page pre-bakes the scene meanwhile, which software WebGL renders slowly
+    await expect(play_button).toHaveCSS('opacity', '1', { timeout: 60_000 });
+
+    await preview.click();
+    await expect(page).toHaveURL(/\/scene$/);
+    await expect(page.locator('canvas')).toBeVisible();
+    await page.waitForTimeout(500);
+
+    await page.getByRole('link', { name: 'Zur Startseite' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('canvas')).toHaveCount(0);
+    await expect(page.locator('.preview-image')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });

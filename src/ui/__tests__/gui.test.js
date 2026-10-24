@@ -272,7 +272,7 @@ describe('setupGui – structure', () => {
         setupGui(makeFacade());
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
         expect(folders).toEqual([
-            'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
+            'Metaballs', 'Lavafarbe', 'Noise', 'Boden', 'Vulkan', 'Sonne', 'Rauch & Asche',
             'Bloom', 'Himmel', 'Lichtstrahlen', 'Sound', 'Zurücksetzen',
         ]);
     });
@@ -327,6 +327,22 @@ describe('setupGui – structure', () => {
 });
 
 // ─── Metaballs folder ────────────────────────────────────────────────────────
+
+describe('setupGui – Metaballs folder', () => {
+    test('height control is seeded from facade.getMetaballHeight()', () => {
+        const { registry } = makeMockGui();
+        setupGui(makeFacade({ getMetaballHeight: vi.fn(() => 0.7) }));
+        expect(find(registry, 'Metaballs', 'height').bound_object.height).toBe(0.7);
+    });
+
+    test('height onChange calls facade.setMetaballHeight', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade);
+        fire(registry, 'Metaballs', 'height', 2.5);
+        expect(facade.setMetaballHeight).toHaveBeenCalledWith(2.5);
+    });
+});
 
 // ─── Lavafarbe folder ────────────────────────────────────────────────────────
 
@@ -562,6 +578,57 @@ describe('setupGui – Zurücksetzen', () => {
         setupGui(facade);
         const handler = add_event_listener_spy.mock.calls.find(call => call[0] === 'beforeunload')[1];
         saveToLocalStorage.mockClear();
+        handler();
+
+        expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
+        add_event_listener_spy.mockRestore();
+    });
+});
+
+// ─── mode_controls_only ──────────────────────────────────────────────────────
+
+describe('setupGui – mode_controls_only', () => {
+    beforeEach(() => {
+        saveToLocalStorage.mockClear();
+        loadFromLocalStorage.mockClear().mockReturnValue(null);
+    });
+
+    test('shows only the autonomous and interaction mode toggles, without any folder', () => {
+        const { gui, registry } = makeMockGui();
+        setupGui(makeFacade(), { mode_controls_only: true });
+
+        expect(registry.map(entry => `${entry.folder}/${entry.key}`)).toEqual(['root/autonomous_mode', 'root/interaction_mode']);
+        expect(gui.addFolder).not.toHaveBeenCalled();
+    });
+
+    test('the mode toggles still write back via setInteractionMode', () => {
+        const { registry } = makeMockGui();
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true });
+
+        fire(registry, 'root', 'interaction_mode', true);
+        expect(facade.setInteractionMode).toHaveBeenLastCalledWith(true);
+        fire(registry, 'root', 'autonomous_mode', true);
+        expect(facade.setInteractionMode).toHaveBeenLastCalledWith(false);
+    });
+
+    test('restores only the saved interaction mode, not the hidden settings', () => {
+        makeMockGui();
+        loadFromLocalStorage.mockReturnValue({ interactionMode: true, metaballHeight: 0.7, skyColor: '#ffffff' });
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true });
+
+        expect(facade.applySnapshot).toHaveBeenCalledWith({ interactionMode: true });
+    });
+
+    test('still saves the snapshot on beforeunload', () => {
+        makeMockGui();
+        const snapshot = { interactionMode: true };
+        const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
+        const add_event_listener_spy = vi.spyOn(window, 'addEventListener');
+
+        setupGui(facade, { mode_controls_only: true });
+        const handler = add_event_listener_spy.mock.calls.find(call => call[0] === 'beforeunload')[1];
         handler();
 
         expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);

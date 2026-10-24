@@ -187,6 +187,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
 
     return {
         start: () => audio_context.resume(),
+        stop: () => audio_context.suspend(),
         update(time) {
             if (time >= next_crackle_time) {
                 playCrackle();
