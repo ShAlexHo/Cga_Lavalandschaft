@@ -10,7 +10,7 @@ const route = useRoute();
 
 // once the scene has faded in completely, the zoomed screenshot covering it fades out
 function onRouteEntered() {
-    if (route.name === 'scene') revealScene();
+    if (route.name === 'main-scene') revealScene();
 }
 </script>
 

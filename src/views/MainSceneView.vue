@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { getSceneEngine } from '../scene_engine.js';
+import { getSceneEngine } from '../scenes/main-scene/scene_engine.js';
 import { scene_screenshot_url } from '../scene_screenshot.js';
 import { localize } from '../language_state.js';
 

@@ -20,7 +20,7 @@ function collectConsoleErrors(page) {
 test('scene renders a non-blank image', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 
-    await page.goto('/scene');
+    await page.goto('/main-scene');
 
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
@@ -76,7 +76,7 @@ test('landing page enters the scene via the play button and shows the left scene
     await preview.click();
     // the screenshot zooms to full size and covers the scene until it has rendered
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
-    await expect(page).toHaveURL(/\/scene$/, { timeout: 60_000 });
+    await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
     await expect(page.locator('canvas')).toBeVisible();
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await page.waitForTimeout(500);
@@ -104,7 +104,7 @@ test('language switch translates the landing page and the scene GUI, and is reme
 
     // software WebGL may still be pre-baking the scene and block the click for a while
     await page.getByRole('link', { name: 'Szene starten' }).click();
-    await expect(page).toHaveURL(/\/scene$/, { timeout: 60_000 });
+    await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
     await expect(page.locator('.dg .property-name', { hasText: 'Interaktionsmodus' })).toHaveCount(1, { timeout: 60_000 });
     await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
 });

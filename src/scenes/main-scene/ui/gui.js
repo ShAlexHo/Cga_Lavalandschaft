@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../persistence/persistence.js';
-import { translate, onLanguageChange } from './language.js';
+import { translate, onLanguageChange } from '../../../ui/language.js';
 
 const TIME_SCALE_MIN = 1;
 const TIME_SCALE_MAX = 6;

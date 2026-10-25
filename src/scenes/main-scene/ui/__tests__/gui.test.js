@@ -18,7 +18,7 @@ vi.mock('../../persistence/persistence.js', () => ({
 import { setupGui } from '../gui.js';
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../../persistence/persistence.js';
-import { setLanguage } from '../language.js';
+import { setLanguage } from '../../../../ui/language.js';
 
 // the folder-based lookups below use the German labels
 beforeEach(() => setLanguage('de'));

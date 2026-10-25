@@ -28,7 +28,7 @@ vi.mock('three', () => ({
 
 // ─── Mock scene modules ──────────────────────────────────────────────────────
 
-vi.mock('../core/scene_controller.js', () => ({
+vi.mock('../scene_controller.js', () => ({
     createSceneController: vi.fn(() => ({
         update: vi.fn(),
         getTimeScale: vi.fn(() => 1),
@@ -44,7 +44,7 @@ vi.mock('../core/scene_controller.js', () => ({
     })),
 }));
 
-vi.mock('../core/objects/camera_object.js', () => ({
+vi.mock('../objects/camera_object.js', () => ({
     createCameraController: vi.fn(() => ({
         camera: {},
         update: vi.fn(),
@@ -53,9 +53,9 @@ vi.mock('../core/objects/camera_object.js', () => ({
     })),
 }));
 
-vi.mock('../core/objects/key_light_object.js', () => ({ createKeyLight: vi.fn() }));
+vi.mock('../objects/key_light_object.js', () => ({ createKeyLight: vi.fn() }));
 
-vi.mock('../core/rendering/post_processing.js', () => ({
+vi.mock('../rendering/post_processing.js', () => ({
     createPostProcessing: vi.fn(() => ({
         bloom_pass: {},
         god_rays_pass: {},
@@ -76,11 +76,11 @@ vi.mock('../ui/gui.js', () => ({
 }));
 
 import { createSceneEngine, getSceneEngine } from '../scene_engine.js';
-import { createSceneController } from '../core/scene_controller.js';
-import { createCameraController } from '../core/objects/camera_object.js';
-import { createPostProcessing } from '../core/rendering/post_processing.js';
+import { createSceneController } from '../scene_controller.js';
+import { createCameraController } from '../objects/camera_object.js';
+import { createPostProcessing } from '../rendering/post_processing.js';
 import { setupGui } from '../ui/gui.js';
-import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from '../core/config.js';
+import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from '../config.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

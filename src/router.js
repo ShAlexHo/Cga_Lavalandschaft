@@ -5,7 +5,7 @@ export const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         { path: '/', name: 'landing', component: LandingView },
-        { path: '/scene', name: 'scene', component: () => import('./views/SceneView.vue') },
+        { path: '/main-scene', name: 'main-scene', component: () => import('./views/MainSceneView.vue') },
         { path: '/:path(.*)*', redirect: { name: 'landing' } },
     ],
 });

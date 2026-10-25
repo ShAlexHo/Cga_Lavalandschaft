@@ -23,7 +23,7 @@ function updatePreviewRatio(event) {
 }
 
 const router = useRouter();
-const SCENE_HREF = router.resolve({ name: 'scene' }).href;
+const SCENE_HREF = router.resolve({ name: 'main-scene' }).href;
 const preview_frame = ref(null);
 const preview_image = ref(null);
 let is_entering = false;
@@ -36,7 +36,7 @@ async function enterScene(event) {
     is_entering = true;
 
     await expandIntoScene({ frame: preview_frame.value, image: preview_image.value });
-    await router.push({ name: 'scene' });
+    await router.push({ name: 'main-scene' });
 }
 
 // Safari has no requestIdleCallback
@@ -48,7 +48,7 @@ function runWhenIdle(callback) {
 // bakes the scene while idle, so pressing play starts without a stall
 onMounted(() => {
     runWhenIdle(async () => {
-        const { getSceneEngine } = await import('../scene_engine.js');
+        const { getSceneEngine } = await import('../scenes/main-scene/scene_engine.js');
         getSceneEngine().prepare();
     });
 });

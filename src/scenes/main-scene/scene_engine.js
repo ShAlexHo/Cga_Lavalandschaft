@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { createSceneController } from './core/scene_controller.js';
-import { createCameraController } from './core/objects/camera_object.js';
-import { createKeyLight } from './core/objects/key_light_object.js';
-import { createPostProcessing } from './core/rendering/post_processing.js';
+import { createSceneController } from './scene_controller.js';
+import { createCameraController } from './objects/camera_object.js';
+import { createKeyLight } from './objects/key_light_object.js';
+import { createPostProcessing } from './rendering/post_processing.js';
 import { setupGui } from './ui/gui.js';
-import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from './core/config.js';
-import DEFAULT_SETTINGS from './core/default_settings.json';
+import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from './config.js';
+import DEFAULT_SETTINGS from './default_settings.json';
 
 const SCREENSHOT_TYPE = 'image/jpeg';
 const SCREENSHOT_QUALITY = 0.9;

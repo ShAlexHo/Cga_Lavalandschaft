@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { importFreshModule } from '../../core/test-utils/reimport.js';
+import { importFreshModule } from '../../scenes/main-scene/test-utils/reimport.js';
 import { MESSAGES } from '../messages.js';
 
 const STORAGE_KEY = 'lavalandschaft_language';
