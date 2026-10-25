@@ -36,8 +36,8 @@ float simplexNoise(vec3 position) {
         lattice_point.y + vec4(0.0, corner_offset_1.y, corner_offset_2.y, 1.0)) +
         lattice_point.x + vec4(0.0, corner_offset_1.x, corner_offset_2.x, 1.0));
 
-    float one_seventh = 0.142857142857;
-    vec3  gradient_scale = one_seventh * HELPER_CONSTANTS.wyz - HELPER_CONSTANTS.xzx;
+    const float ONE_SEVENTH = 0.142857142857;
+    vec3  gradient_scale = ONE_SEVENTH * HELPER_CONSTANTS.wyz - HELPER_CONSTANTS.xzx;
 
     vec4 gradient_index = permutation - 49.0 * floor(permutation * gradient_scale.z * gradient_scale.z);
     vec4 floor_x = floor(gradient_index * gradient_scale.z);
@@ -96,13 +96,10 @@ float fractalBrownianMotion(vec3 position) {
     return value;
 }
 
-// Remaps fractalBrownianMotion()'s [-1, 1] output to [0, 1] for mix/smoothstep use.
 float normalizedFractalBrownianMotion(vec3 position) {
     return fractalBrownianMotion(position) * 0.5 + 0.5;
 }
 
-// Extra simplex-displaced fbm pass, for churning turbulence instead of one smooth layer.
-// Shared by the lava crust and the sun's plasma surface.
 float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     vec3 warped = position + warp_strength * vec3(
         simplexNoise(position + vec3(1.7, 9.2, 0.0)),
@@ -112,8 +109,6 @@ float warpedFractalBrownianMotion(vec3 position, float warp_strength) {
     return normalizedFractalBrownianMotion(warped);
 }
 
-// Displaces `position` (already scaled by `frequency`) so crack patterns read as jagged veins
-// instead of straight lines.
 vec3 crackWarpOffset(vec3 position, float frequency) {
     return vec3(
         simplexNoise(position * frequency * 0.6 + vec3(1.7, 9.2, 0.0)),
@@ -122,8 +117,6 @@ vec3 crackWarpOffset(vec3 position, float frequency) {
     );
 }
 
-// `crack_width` is solid around the noise's zero-crossing, blending to rock only in its outer 15%.
-// `frequency` is modulated by a slow noise field so crack size varies across the terrain.
 float crackPattern(vec3 position, float frequency, float crack_width) {
     const float FREQUENCY_MODULATION_BASE  = 0.6;
     const float FREQUENCY_MODULATION_RANGE = 0.8;
@@ -137,8 +130,6 @@ float crackPattern(vec3 position, float frequency, float crack_width) {
     return smoothstep(crack_width - edge, crack_width + edge, distance_from_crack);
 }
 
-// Blends three crack colors via two independent noise fields at different frequencies/offsets;
-// crack_color_3 uses squared noise so it appears as isolated accent patches, not a linear slide.
 vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, vec3 world_position) {
     float base_blend = normalizedFractalBrownianMotion(world_position * 0.6);
     vec3 base_color = mix(crack_color, crack_color_2, base_blend);
@@ -147,9 +138,6 @@ vec3 blendCrackColors(vec3 crack_color, vec3 crack_color_2, vec3 crack_color_3, 
     return mix(base_color, crack_color_3, accent_blend * accent_blend);
 }
 
-// Like blendCrackColors, but at the terrain's own displacement frequency (so patches line up with
-// hills). Narrow smoothstep bands (instead of a plain linear mix) keep most of each patch a pure
-// color, so the four rock types read as distinct instead of mostly-blended.
 vec3 blendTerrainColors(vec3 rock_color, vec3 rock_color_2, vec3 rock_color_3, vec3 rock_color_4, vec3 world_position, float frequency) {
     float base_blend = normalizedFractalBrownianMotion(world_position * frequency);
     vec3 color = mix(rock_color, rock_color_2, smoothstep(0.4, 0.6, base_blend));
@@ -157,14 +145,10 @@ vec3 blendTerrainColors(vec3 rock_color, vec3 rock_color_2, vec3 rock_color_3, v
     float accent_blend = normalizedFractalBrownianMotion(world_position * frequency * 1.8 + vec3(52.1, 14.7, 8.3));
     color = mix(color, rock_color_3, smoothstep(0.4, 0.6, accent_blend));
 
-    // higher threshold than the other two, so rock_color_4 covers less area
     float fourth_blend = normalizedFractalBrownianMotion(world_position * frequency * 1.4 + vec3(-33.7, 21.3, 9.6));
     return mix(color, rock_color_4, smoothstep(0.72, 0.82, fourth_blend));
 }
 
-// Mask for the ground's sun-focus boost zone: a trapezoid from the volcano out to one fixed side
-// (not tied to the sun's real position, so it stays put as the sun orbits), narrow at the volcano
-// and widening out to `radius`.
 float sunFocusTrapezoidMask(vec3 world_position, vec3 volcano_position, float radius) {
     vec2 trapezoid_forward = vec2(1.0, 0.0);
     vec2 trapezoid_right = vec2(-trapezoid_forward.y, trapezoid_forward.x);
@@ -180,31 +164,24 @@ float sunFocusTrapezoidMask(vec3 world_position, vec3 volcano_position, float ra
     return trapezoid_length_mask * trapezoid_width_mask;
 }
 
-// Sun-facing wash plus a fresnel rim highlight at the silhouette. Shared by the ground and volcano.
 float sunDiffuseTerm(vec3 normal, vec3 view_direction, vec3 sun_direction, float sun_focus) {
     float sun_facing = max(dot(normal, sun_direction), 0.0);
     float sun_wash = pow(sun_facing, sun_focus) * 0.2;
-    // capped like sun_wash, or this blows out at any grazing view angle (pow(1.0, x) == 1.0)
     float sun_rim = pow(1.0 - max(dot(normal, view_direction), 0.0), sun_focus) * sun_facing * 0.2;
     return sun_wash + sun_rim;
 }
 
-// `height` is roughly [-1, 1]; smoothstep since the noise driving it clusters near 0.
 float heightAmbientOcclusion(float height) {
-    const float MIN_OCCLUSION = 0.6;
+    const float MINIMUM_OCCLUSION = 0.6;
     const float CONTRAST_BAND = 0.35;
-    return mix(MIN_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
+    return mix(MINIMUM_OCCLUSION, 1.0, smoothstep(-CONTRAST_BAND, CONTRAST_BAND, height));
 }
 
-// Perspective point-size falloff for gl_PointSize, referenced against REFERENCE_DISTANCE. Shared
-// by the smoke and impact-smoke particle vertex shaders.
 float pointSizeAttenuation(vec3 view_position) {
     const float REFERENCE_DISTANCE = 10.0;
     return REFERENCE_DISTANCE / max(-view_position.z, 0.001);
 }
 
-// Independent simplex sample per axis, for a shading-normal perturbation. Shared by the ground
-// and lava crust bump mapping.
 vec3 bumpOffset(vec3 world_position, float scale) {
     vec3 coordinate = world_position * scale;
     return vec3(

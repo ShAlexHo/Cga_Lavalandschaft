@@ -10,7 +10,6 @@ import {
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { updateKeyAndSunLightUniforms } from './light_utils.js';
 
-// Compile-time array size for GLSL; mirrors GOD_RAYS_NUM_SAMPLES in god_rays_material.js.
 const vertex_glsl_resolved = vertex_glsl.replaceAll('INTERACTION_MAX_POINTS', INTERACTION_MAX_POINTS);
 
 export function createVolcanoMaterial() {
@@ -45,7 +44,6 @@ export function updateVolcanoLight(material, camera, sun_world_position) {
     updateKeyAndSunLightUniforms(material, camera, sun_world_position);
 }
 
-// camera/volcano_center are optional - omit them to skip visibility culling.
 export function updateVolcanoInteraction(material, touch_points, camera, volcano_center) {
     const positions = material.uniforms.u_interaction_positions.value;
     const strengths = material.uniforms.u_interaction_strengths.value;

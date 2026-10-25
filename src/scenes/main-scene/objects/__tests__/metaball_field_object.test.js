@@ -105,11 +105,11 @@ describe('createMetaballField', () => {
 
     test('squeezeNearestBall shrinks the active ball closest to the given world position, leaving others untouched', () => {
         const field = createMetaballField(makeScene());
-        const near_ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 }; // world position (0, 0, 0)
-        const far_ball = { x: 0.6, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 }; // world position (6, 0, 0)
+        const near_ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 };
+        const far_ball = { x: 0.6, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 4, shrink_fraction: 0 };
         getActiveBalls.mockReturnValueOnce([far_ball, near_ball]);
 
-        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 }); // 10% smaller radius
+        field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 });
 
         expect(near_ball.strength).toBeCloseTo(4 * 0.9 * 0.9, 9);
         expect(near_ball.active).toBe(true);
@@ -118,14 +118,12 @@ describe('createMetaballField', () => {
 
     test('squeezeNearestBall accumulates onto the ball\'s own persisted shrink_fraction instead of resetting it, so a ball already shrunk in an earlier press stays shrunk', () => {
         const field = createMetaballField(makeScene());
-        const ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 2.56, shrink_fraction: 0.2 }; // already 20% shrunk from an earlier press
+        const ball = { x: 0.5, y: 0.5, z: 0.5, active: true, base_strength: 4, strength: 2.56, shrink_fraction: 0.2 };
 
-        // A fresh press session reports a zero increment on its first frame - must not pop back to full size.
         getActiveBalls.mockReturnValueOnce([ball]);
         field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0 });
         expect(ball.strength).toBeCloseTo(4 * 0.8 * 0.8, 9);
 
-        // Continuing to hold accumulates further, on top of the earlier 20% - not starting over from 0.
         getActiveBalls.mockReturnValueOnce([ball]);
         field.squeezeNearestBall({ x: 0, y: 0, z: 0, shrink_increment: 0.1 });
         expect(ball.shrink_fraction).toBeCloseTo(0.3, 9);

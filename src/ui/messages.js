@@ -14,8 +14,27 @@ export const MESSAGES = {
         'landing.description': 'What happens to a still life that never stands still? Unstill Life: Lava Landscape invites you to slow down and explore a volcanic landscape where lava, sun, and ash shift almost imperceptibly. Metaballs give the glowing lava its soft, fluid forms. Touch the lava flow and see how the terrain responds.',
         'landing.description_modes': 'The scene runs on its own, but you can explore it with the mouse and touch it in interaction mode. The panel in the top right switches between autonomous and interaction mode.',
 
+        'landing.details_title': 'Implementation details',
+        'landing.details_intro': 'A closer look at how individual parts of the landscape were built.',
+
+        'details.metaballs.title': 'Metaballs',
+        'details.metaballs.start_scene': 'Start metaballs scene',
+        'details.metaballs.preview_alt': 'Screenshot of the metaballs scene',
+        'details.metaballs.text_1': 'The lava is made of metaballs: every ball spreads a field that fades with distance, and the visible surface lies wherever the summed fields cross a threshold. Neighbouring balls therefore don’t just overlap – they melt into one soft, continuous body, which is exactly how viscous lava should behave.',
+
+        'details.noise.title': 'Noise',
+        'details.noise.start_scene': 'Start noise scene',
+        'details.noise.preview_alt': 'Screenshot of the noise scene',
+        'details.noise.text_1': 'The colour of the metaballs varies because of noise. For every point of the surface, the shader evaluates 3D simplex noise, sums four octaves of it and mixes in a domain-warped copy; the result blends between two colours, so irregular patterns drift slowly across the metaballs. A second, independent noise layer adds patches of a third colour.',
+
         'scene.home': 'Back to start page',
         'scene.loading': 'Loading scene…',
+        'scene.description_in_work': 'Description in work',
+
+        'metaballs.scroll_hint': 'About metaballs',
+        'metaballs.description_title': 'Metaballs',
+        'noise.scroll_hint': 'About noise',
+        'noise.description_title': 'Noise',
 
         'gui.open_controls': 'Open Controls',
         'gui.close_controls': 'Close Controls',
@@ -84,6 +103,11 @@ export const MESSAGES = {
 
         'gui.reset.defaults': '🔄 Defaults',
         'gui.reset.all': '🔄 Reset to defaults',
+
+        'gui.metaballs.speed': 'Speed',
+        'gui.metaballs.count': 'Count',
+        'gui.metaballs.isolation': 'Threshold (isolation)',
+        'gui.metaballs.spread': 'Spread',
     },
     de: {
         'app.title': 'Unstill Life: Lavalandschaft',
@@ -100,8 +124,27 @@ export const MESSAGES = {
         'landing.description': 'Was geschieht mit einem Stillleben, das niemals stillsteht? Unstill Life: Lavalandschaft lädt dich ein, innezuhalten und eine Vulkanlandschaft zu erkunden, in der sich Lava, Sonne und Asche fast unmerklich verändern. Metaballs verleihen der glühenden Lava ihre weichen, fließenden Formen. Berühre den Lavastrom und sieh, wie das Terrain darauf reagiert.',
         'landing.description_modes': 'Die Szene läuft von selbst, lässt sich aber mit der Maus erkunden und im Interaktionsmodus auch berühren. Über das Panel oben rechts wechselst du zwischen autonomem Modus und Interaktionsmodus.',
 
+        'landing.details_title': 'Implementierungsdetails',
+        'landing.details_intro': 'Ein genauerer Blick darauf, wie einzelne Teile der Landschaft umgesetzt wurden.',
+
+        'details.metaballs.title': 'Metaballs',
+        'details.metaballs.start_scene': 'Metaball-Szene starten',
+        'details.metaballs.preview_alt': 'Screenshot der Metaball-Szene',
+        'details.metaballs.text_1': 'Die Lava besteht aus Metaballs: Jede Kugel erzeugt ein Feld, das mit der Entfernung abnimmt, und die sichtbare Oberfläche liegt dort, wo die aufsummierten Felder einen Schwellwert überschreiten. Benachbarte Kugeln überlappen sich deshalb nicht einfach – sie verschmelzen zu einem weichen, zusammenhängenden Körper, genau wie zähflüssige Lava.',
+
+        'details.noise.title': 'Noise',
+        'details.noise.start_scene': 'Noise-Szene starten',
+        'details.noise.preview_alt': 'Screenshot der Noise-Szene',
+        'details.noise.text_1': 'Die Farbe der Metaballs variiert durch Noise. Für jeden Punkt der Oberfläche wertet der Shader 3D-Simplex-Noise aus, summiert vier Oktaven davon und mischt eine domain-gewarpte Variante hinzu; das Ergebnis überblendet zwischen zwei Farben, sodass unregelmäßige Muster langsam über die Metaballs wandern. Eine zweite, unabhängige Noise-Schicht ergänzt Flecken in einer dritten Farbe.',
+
         'scene.home': 'Zur Startseite',
         'scene.loading': 'Szene wird geladen…',
+        'scene.description_in_work': 'Beschreibung in Arbeit',
+
+        'metaballs.scroll_hint': 'Über Metaballs',
+        'metaballs.description_title': 'Metaballs',
+        'noise.scroll_hint': 'Über Noise',
+        'noise.description_title': 'Noise',
 
         'gui.open_controls': 'Steuerung öffnen',
         'gui.close_controls': 'Steuerung schließen',
@@ -170,5 +213,10 @@ export const MESSAGES = {
 
         'gui.reset.defaults': '🔄 Standard',
         'gui.reset.all': '🔄 Auf Standard zurücksetzen',
+
+        'gui.metaballs.speed': 'Geschwindigkeit',
+        'gui.metaballs.count': 'Anzahl',
+        'gui.metaballs.isolation': 'Schwellwert (Isolation)',
+        'gui.metaballs.spread': 'Streuung',
     },
 };

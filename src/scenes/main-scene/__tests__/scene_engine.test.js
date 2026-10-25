@@ -1,7 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// ─── Mock three ──────────────────────────────────────────────────────────────
-
 const clock_state = vi.hoisted(() => ({ deltas: [] }));
 const renderer_state = vi.hoisted(() => ({ last: null }));
 
@@ -16,6 +14,8 @@ vi.mock('three', () => ({
             this.setSize = vi.fn();
             this.setPixelRatio = vi.fn();
             this.compile = vi.fn();
+            this.dispose = vi.fn();
+            this.forceContextLoss = vi.fn();
             renderer_state.last = this;
         }
     },
@@ -25,8 +25,6 @@ vi.mock('three', () => ({
     ReinhardToneMapping: 'reinhard',
     PCFSoftShadowMap: 'pcf-soft',
 }));
-
-// ─── Mock scene modules ──────────────────────────────────────────────────────
 
 vi.mock('../scene_controller.js', () => ({
     createSceneController: vi.fn(() => ({
@@ -40,13 +38,16 @@ vi.mock('../scene_controller.js', () => ({
         getVolcanoMesh: vi.fn(),
         startAudio: vi.fn(),
         stopAudio: vi.fn(),
+        closeAudio: vi.fn(),
         fastForward: vi.fn(),
+        getSnapshot: vi.fn(() => ({ timeScale: 1, groundHeight: -6 })),
+        applySnapshot: vi.fn(),
     })),
 }));
 
 vi.mock('../objects/camera_object.js', () => ({
     createCameraController: vi.fn(() => ({
-        camera: {},
+        camera: { position: { copy: vi.fn(), clone: vi.fn(() => ({ x: 1, y: 2, z: 3 })) } },
         update: vi.fn(),
         resize: vi.fn(),
         setControlsEnabled: vi.fn(),
@@ -75,14 +76,13 @@ vi.mock('../ui/gui.js', () => ({
     }),
 }));
 
-import { createSceneEngine, getSceneEngine } from '../scene_engine.js';
+import { createSceneEngine, getSceneEngine, closeSceneEngine } from '../scene_engine.js';
+import { closeOtherScenes } from '../../scene_registry.js';
 import { createSceneController } from '../scene_controller.js';
 import { createCameraController } from '../objects/camera_object.js';
 import { createPostProcessing } from '../rendering/post_processing.js';
 import { setupGui } from '../ui/gui.js';
 import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from '../config.js';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 let pending_frame = null;
 let next_frame_id = 1;
@@ -122,8 +122,6 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
 describe('createSceneEngine', () => {
     test('fast-forwards the lava simulation and starts the clock at the warm-up time', () => {
         const engine = createSceneEngine();
@@ -132,9 +130,9 @@ describe('createSceneEngine', () => {
         expect(engine.getElapsedTime()).toBe(SCENE_WARM_UP_SECONDS);
     });
 
-    test('sets up the GUI with only the mode toggles', () => {
+    test('sets up the GUI with only the mode toggles, restoring the saved ones on a fresh start', () => {
         createSceneEngine();
-        expect(setupGui).toHaveBeenCalledWith(expect.anything(), { mode_controls_only: true });
+        expect(setupGui).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ mode_controls_only: true, restore_saved: true }));
     });
 
     test('detaches the GUI panel from <body> until the scene is mounted', () => {
@@ -201,7 +199,6 @@ describe('createSceneEngine', () => {
         engine.unmount();
         expect(engine.getElapsedTime()).toBe(SCENE_WARM_UP_SECONDS + 2);
 
-        // 120 s away are swallowed by mount()'s discarding getDelta() call
         clock_state.deltas = [120, 0.5];
         engine.mount(makeContainer());
 
@@ -294,9 +291,83 @@ describe('createSceneEngine', () => {
     });
 });
 
+describe('createSceneEngine – closing and resuming', () => {
+    const RESUME_STATE = { elapsed_time: 9000, snapshot: { timeScale: 4, groundHeight: -6 }, camera_position: { x: 5, y: 6, z: 7 } };
+
+    test('getResumeState() captures scene time, settings and camera position', () => {
+        const engine = createSceneEngine();
+        expect(engine.getResumeState()).toEqual({
+            elapsed_time: SCENE_WARM_UP_SECONDS,
+            snapshot: { timeScale: 1, groundHeight: -6 },
+            camera_position: { x: 1, y: 2, z: 3 },
+        });
+    });
+
+    test('a resumed engine continues the scene time without warming up again', () => {
+        const engine = createSceneEngine(RESUME_STATE);
+
+        expect(lastController().fastForward).not.toHaveBeenCalled();
+        expect(engine.getElapsedTime()).toBe(9000);
+        expect(createCameraController.mock.results.at(-1).value.camera.position.copy).toHaveBeenCalledWith(RESUME_STATE.camera_position);
+    });
+
+    test('a resumed engine only reapplies the settings that differ, and skips the saved GUI settings', () => {
+        createSceneEngine(RESUME_STATE);
+
+        expect(lastController().applySnapshot).toHaveBeenCalledWith({ timeScale: 4 });
+        expect(setupGui).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ restore_saved: false }));
+    });
+
+    test('dispose() stops the loop, aborts every listener, closes audio and frees the WebGL context', () => {
+        const engine = createSceneEngine();
+        const container = makeContainer();
+        engine.mount(container);
+        const gui_signal = setupGui.mock.calls.at(-1)[1].signal;
+        const controller_signal = createSceneController.mock.calls.at(-1)[0].signal;
+
+        engine.dispose();
+
+        expect(pending_frame).toBeNull();
+        expect(gui_signal.aborted).toBe(true);
+        expect(controller_signal).toBe(gui_signal);
+        expect(lastController().closeAudio).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.dispose).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.forceContextLoss).toHaveBeenCalledTimes(1);
+        expect(container.querySelector('canvas')).toBeNull();
+    });
+});
+
 describe('getSceneEngine', () => {
     test('creates the engine once and reuses it', () => {
         expect(getSceneEngine()).toBe(getSceneEngine());
         expect(createSceneController).toHaveBeenCalledTimes(1);
+    });
+
+    test('closeSceneEngine() frees the engine, and the next one resumes where it was left', () => {
+        const closed_engine = getSceneEngine();
+        const closed_renderer = renderer_state.last;
+        closeSceneEngine();
+        expect(closed_renderer.forceContextLoss).toHaveBeenCalled();
+
+        const resumed_engine = getSceneEngine();
+        expect(resumed_engine).not.toBe(closed_engine);
+        expect(lastController().fastForward).not.toHaveBeenCalled();
+        expect(resumed_engine.getElapsedTime()).toBe(closed_engine.getElapsedTime());
+    });
+
+    test('opening another scene closes this one through the scene registry', () => {
+        getSceneEngine();
+        const renderer = renderer_state.last;
+
+        closeOtherScenes('metaballs-scene');
+        expect(renderer.forceContextLoss).toHaveBeenCalled();
+    });
+
+    test('the scene itself is not closed when it is the one being opened', () => {
+        getSceneEngine();
+        const renderer = renderer_state.last;
+
+        closeOtherScenes('main-scene');
+        expect(renderer.forceContextLoss).not.toHaveBeenCalled();
     });
 });

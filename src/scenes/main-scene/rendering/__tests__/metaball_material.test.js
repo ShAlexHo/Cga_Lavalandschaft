@@ -3,9 +3,9 @@ import { MockVector3, MockRgbColor, MockShaderMaterial, MockMatrix4 } from '../.
 
 vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, Matrix4: MockMatrix4, DoubleSide: 2, BackSide: 1, GLSL3: '300 es' }));
 
-vi.mock('../../shaders/metaball.vert?raw', () => ({ default: '// vertex shader' }));
-vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
-vi.mock('../../shaders/metaball.frag?raw', () => ({ default: '// frag shader' }));
+vi.mock('../../shaders/metaball.vert?raw', () => ({ default: 'vertex shader' }));
+vi.mock('../../shaders/noise.glsl?raw', () => ({ default: 'noise glsl' }));
+vi.mock('../../shaders/metaball.frag?raw', () => ({ default: 'fragment shader' }));
 
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../metaball_material.js';
 import {
@@ -24,6 +24,7 @@ function makeEffect() {
                 u_ball_center: { value: Array.from({ length: METABALL_GPU_MAX_BALLS }, () => new MockVector3()) },
                 u_ball_strength: { value: new Array(METABALL_GPU_MAX_BALLS).fill(0) },
                 u_ball_subtract: { value: new Array(METABALL_GPU_MAX_BALLS).fill(0) },
+                u_ball_count: { value: 0 },
                 u_isolation: { value: 0 },
                 u_effect_position: { value: new MockVector3() },
                 u_effect_scale: { value: 1 },
@@ -33,6 +34,14 @@ function makeEffect() {
 }
 
 describe('createMetaballMaterial', () => {
+    test('sizes the ball arrays and the shader to max_balls, defaulting to the main scene’s GPU maximum', () => {
+        expect(createMetaballMaterial().uniforms.u_ball_strength.value).toHaveLength(METABALL_GPU_MAX_BALLS);
+
+        const small_material = createMetaballMaterial({ max_balls: 24 });
+        expect(small_material.uniforms.u_ball_center.value).toHaveLength(24);
+        expect(small_material.uniforms.u_ball_strength.value).toHaveLength(24);
+    });
+
     test('contains all expected uniforms', () => {
         const material = createMetaballMaterial();
         const expected_keys = [
@@ -80,12 +89,12 @@ describe('createMetaballMaterial', () => {
 
     test('renders back faces so the raymarcher works whether the camera is inside or outside the proxy box', () => {
         const material = createMetaballMaterial();
-        expect(material.side).toBe(1); // THREE.BackSide, per the mock above
+        expect(material.side).toBe(1);
     });
 
     test('uses GLSL3 so the fragment shader can write gl_FragDepth', () => {
         const material = createMetaballMaterial();
-        expect(material.glslVersion).toBe('300 es'); // THREE.GLSL3, per the mock above
+        expect(material.glslVersion).toBe('300 es');
     });
 
     test('u_time starts at 0', () => {
@@ -177,7 +186,7 @@ describe('updateMetaballBalls', () => {
     test('scales uploaded strength by radius_scale squared', () => {
         effect.radius_scale = 2;
         updateMetaballBalls(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40 }]);
-        expect(effect.material.uniforms.u_ball_strength.value[0]).toBeCloseTo(2.0, 9); // 0.5 * 2^2
+        expect(effect.material.uniforms.u_ball_strength.value[0]).toBeCloseTo(0.5 * 2 ** 2, 9);
     });
 
     test('zeroes the strength of every slot beyond the given balls', () => {
@@ -200,6 +209,14 @@ describe('updateMetaballBalls', () => {
         expect(effect.material.uniforms.u_ball_strength.value.every(strength => strength === 0)).toBe(true);
     });
 
+    test('tells the shader how many slots are filled, so its loops stop there', () => {
+        updateMetaballBalls(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }, { x: 0.4, y: 0.5, z: 0.5, strength: 1, subtract: 30 }]);
+        expect(effect.material.uniforms.u_ball_count.value).toBe(2);
+
+        updateMetaballBalls(effect, Array.from({ length: METABALL_GPU_MAX_BALLS + 10 }, () => ({ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 })));
+        expect(effect.material.uniforms.u_ball_count.value).toBe(METABALL_GPU_MAX_BALLS);
+    });
+
     test('without a camera, every ball keeps full strength regardless of its angle', () => {
         updateMetaballBalls(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: Math.PI }]);
         expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
@@ -207,7 +224,7 @@ describe('updateMetaballBalls', () => {
 
     test('a ball facing the camera keeps full strength', () => {
         effect.position = { x: 0, y: 0, z: 0 };
-        const camera = { position: { x: 10, y: 0, z: 0 } }; // camera azimuth (from effect center) = 0
+        const camera = { position: { x: 10, y: 0, z: 0 } };
         updateMetaballBalls(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 0.5, subtract: 40, angle: 0 }], camera);
         expect(effect.material.uniforms.u_ball_strength.value[0]).toBe(0.5);
     });
@@ -222,7 +239,7 @@ describe('updateMetaballBalls', () => {
     test('a ball inside the fade buffer at the arc edge is partially visible', () => {
         effect.position = { x: 0, y: 0, z: 0 };
         const camera = { position: { x: 10, y: 0, z: 0 } };
-        const angle_at_fade_midpoint = (130 * Math.PI) / 180; // arc half is 135 deg, fade band is 125-135 deg
+        const angle_at_fade_midpoint = (130 * Math.PI) / 180;
         updateMetaballBalls(effect, [{ x: 0.5, y: 0.5, z: 0.5, strength: 1.0, subtract: 40, angle: angle_at_fade_midpoint }], camera);
         const strength = effect.material.uniforms.u_ball_strength.value[0];
         expect(strength).toBeGreaterThan(0);

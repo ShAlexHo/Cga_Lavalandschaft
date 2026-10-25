@@ -3,9 +3,9 @@ import { MockHexColor, MockShaderMaterial } from '../../test-utils/three_mocks.j
 
 vi.mock('three', () => ({ Color: MockHexColor, ShaderMaterial: MockShaderMaterial }));
 
-vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
-vi.mock('../../shaders/sun.vert?raw', () => ({ default: '// vertex shader' }));
-vi.mock('../../shaders/sun.frag?raw', () => ({ default: '// fragment shader' }));
+vi.mock('../../shaders/noise.glsl?raw', () => ({ default: 'noise glsl' }));
+vi.mock('../../shaders/sun.vert?raw', () => ({ default: 'vertex shader' }));
+vi.mock('../../shaders/sun.frag?raw', () => ({ default: 'fragment shader' }));
 
 import { createSunMaterial, updateSunMaterial } from '../sun_material.js';
 import { SUN_LIGHT_COLOR, SUN_CORE_COLOR, SUN_BLOOD_ORANGE_COLOR } from '../../config.js';

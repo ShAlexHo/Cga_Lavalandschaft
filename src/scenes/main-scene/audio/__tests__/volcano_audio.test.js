@@ -23,37 +23,38 @@ function makeMockNode() {
 }
 
 function makeMockAudioContext() {
-    const created = { buffer_sources: [], oscillators: [], filters: [], gains: [] };
+    const created_nodes = { buffer_sources: [], oscillators: [], filters: [], gains: [] };
     return {
         currentTime: 0,
         sampleRate: 44100,
         destination: makeMockNode(),
         resume: vi.fn(),
         suspend: vi.fn(),
+        close: vi.fn(),
         createBuffer: vi.fn((channels, length) => ({
             getChannelData: () => new Float32Array(length),
         })),
         createGain: vi.fn(() => {
             const node = { ...makeMockNode(), gain: new MockAudioParam(1) };
-            created.gains.push(node);
+            created_nodes.gains.push(node);
             return node;
         }),
         createBiquadFilter: vi.fn(() => {
             const node = { ...makeMockNode(), type: 'lowpass', frequency: new MockAudioParam(0) };
-            created.filters.push(node);
+            created_nodes.filters.push(node);
             return node;
         }),
         createBufferSource: vi.fn(() => {
             const node = { ...makeMockNode(), buffer: null, loop: false, start: vi.fn(), stop: vi.fn() };
-            created.buffer_sources.push(node);
+            created_nodes.buffer_sources.push(node);
             return node;
         }),
         createOscillator: vi.fn(() => {
             const node = { ...makeMockNode(), type: 'sine', frequency: new MockAudioParam(0), start: vi.fn(), stop: vi.fn() };
-            created.oscillators.push(node);
+            created_nodes.oscillators.push(node);
             return node;
         }),
-        _created: created,
+        created_nodes,
     };
 }
 
@@ -87,7 +88,7 @@ describe('createVolcanoAudio', () => {
 
     test('starts a looping buffer source for the continuous lava noise bed', () => {
         createVolcanoAudio(context);
-        const lava_source = context._created.buffer_sources[0];
+        const lava_source = context.created_nodes.buffer_sources[0];
         expect(lava_source.loop).toBe(true);
         expect(lava_source.buffer).not.toBeNull();
         expect(lava_source.start).toHaveBeenCalled();
@@ -95,7 +96,7 @@ describe('createVolcanoAudio', () => {
 
     test('starts an LFO oscillator modulating the flow bed gain', () => {
         createVolcanoAudio(context);
-        expect(context._created.oscillators[0].start).toHaveBeenCalled();
+        expect(context.created_nodes.oscillators[0].start).toHaveBeenCalled();
     });
 
     test('start() resumes the audio context', () => {
@@ -104,8 +105,28 @@ describe('createVolcanoAudio', () => {
         expect(context.resume).toHaveBeenCalledTimes(1);
     });
 
+    test('close() releases the audio context for good', () => {
+        const audio = createVolcanoAudio(context);
+        audio.close();
+        expect(context.close).toHaveBeenCalledTimes(1);
+    });
+
+    test('starts suspended and muted, so it stays silent until start() even if the browser would let it play', () => {
+        createVolcanoAudio(context);
+        expect(context.suspend).toHaveBeenCalledTimes(1);
+        expect(context.resume).not.toHaveBeenCalled();
+        expect(context.created_nodes.gains[0].gain.value).toBe(0);
+    });
+
+    test('start() fades the master gain in to the volume', () => {
+        const audio = createVolcanoAudio(context);
+        audio.start();
+        expect(context.created_nodes.gains[0].gain.value).toBeCloseTo(DEFAULT_SETTINGS.soundVolume, 9);
+    });
+
     test('stop() suspends the audio context', () => {
         const audio = createVolcanoAudio(context);
+        context.suspend.mockClear();
         audio.stop();
         expect(context.suspend).toHaveBeenCalledTimes(1);
     });
@@ -118,7 +139,7 @@ describe('createVolcanoAudio', () => {
 
     test('setEnabled(false) mutes the master gain, setEnabled(true) restores it to the current volume', () => {
         const audio = createVolcanoAudio(context);
-        const master_gain = context._created.gains[0];
+        const master_gain = context.created_nodes.gains[0];
 
         audio.setEnabled(false);
         expect(master_gain.gain.value).toBe(0);
@@ -130,61 +151,61 @@ describe('createVolcanoAudio', () => {
     test('setVolume() updates the master gain while enabled', () => {
         const audio = createVolcanoAudio(context);
         audio.setVolume(0.8);
-        expect(context._created.gains[0].gain.value).toBeCloseTo(0.8, 9);
+        expect(context.created_nodes.gains[0].gain.value).toBeCloseTo(0.8, 9);
     });
 
     test('setVolume() while disabled keeps the master gain muted until re-enabled', () => {
         const audio = createVolcanoAudio(context);
         audio.setEnabled(false);
         audio.setVolume(0.8);
-        expect(context._created.gains[0].gain.value).toBe(0);
+        expect(context.created_nodes.gains[0].gain.value).toBe(0);
         audio.setEnabled(true);
-        expect(context._created.gains[0].gain.value).toBeCloseTo(0.8, 9);
+        expect(context.created_nodes.gains[0].gain.value).toBeCloseTo(0.8, 9);
     });
 
     test('update() triggers no crackle/rumble before their first scheduled time', () => {
         const audio = createVolcanoAudio(context);
-        const buffer_sources_before = context._created.buffer_sources.length;
-        const oscillators_before = context._created.oscillators.length;
+        const buffer_sources_before = context.created_nodes.buffer_sources.length;
+        const oscillators_before = context.created_nodes.oscillators.length;
         audio.update(0);
-        expect(context._created.buffer_sources.length).toBe(buffer_sources_before);
-        expect(context._created.oscillators.length).toBe(oscillators_before);
+        expect(context.created_nodes.buffer_sources.length).toBe(buffer_sources_before);
+        expect(context.created_nodes.oscillators.length).toBe(oscillators_before);
     });
 
     test('update() plays a crackle burst once enough simulated time has passed', () => {
         const audio = createVolcanoAudio(context);
-        const buffer_sources_before = context._created.buffer_sources.length;
+        const buffer_sources_before = context.created_nodes.buffer_sources.length;
         audio.update(AUDIO_CRACKLE_MAX_INTERVAL + 0.01);
-        expect(context._created.buffer_sources.length).toBeGreaterThan(buffer_sources_before);
+        expect(context.created_nodes.buffer_sources.length).toBeGreaterThan(buffer_sources_before);
     });
 
     test('update() plays a two-pulse rumble once enough simulated time has passed', () => {
         const audio = createVolcanoAudio(context);
-        const oscillators_before = context._created.oscillators.length;
+        const oscillators_before = context.created_nodes.oscillators.length;
         audio.update(AUDIO_RUMBLE_MAX_INTERVAL + 0.01);
-        expect(context._created.oscillators.length).toBe(oscillators_before + 2);
+        expect(context.created_nodes.oscillators.length).toBe(oscillators_before + 2);
     });
 
     test('update() does not retrigger a crackle on the same or an earlier time', () => {
         const audio = createVolcanoAudio(context);
         audio.update(AUDIO_CRACKLE_MAX_INTERVAL + 0.01);
-        const count_after_first = context._created.buffer_sources.length;
+        const count_after_first = context.created_nodes.buffer_sources.length;
         audio.update(AUDIO_CRACKLE_MAX_INTERVAL + 0.01);
-        expect(context._created.buffer_sources.length).toBe(count_after_first);
+        expect(context.created_nodes.buffer_sources.length).toBe(count_after_first);
     });
 
     test('a crackle occasionally clusters into a quick flurry of several pops instead of exactly one', () => {
         const audio = createVolcanoAudio(context);
-        const buffer_sources_before = context._created.buffer_sources.length;
+        const buffer_sources_before = context.created_nodes.buffer_sources.length;
         let time = 0;
         let trigger_count = 0;
         for (let i = 0; i < 30; i++) {
             time += AUDIO_CRACKLE_MAX_INTERVAL + 0.01;
-            const count_before = context._created.buffer_sources.length;
+            const count_before = context.created_nodes.buffer_sources.length;
             audio.update(time);
-            if (context._created.buffer_sources.length > count_before) trigger_count++;
+            if (context.created_nodes.buffer_sources.length > count_before) trigger_count++;
         }
-        const total_pops = context._created.buffer_sources.length - buffer_sources_before;
+        const total_pops = context.created_nodes.buffer_sources.length - buffer_sources_before;
         expect(trigger_count).toBeGreaterThan(0);
         expect(total_pops).toBeGreaterThan(trigger_count);
     });
@@ -192,21 +213,21 @@ describe('createVolcanoAudio', () => {
     test('a triggered crackle schedules its next occurrence within the configured interval bounds', () => {
         const audio = createVolcanoAudio(context);
         audio.update(AUDIO_CRACKLE_MIN_INTERVAL);
-        const count_at_min = context._created.buffer_sources.length;
+        const count_at_minimum_interval = context.created_nodes.buffer_sources.length;
         audio.update(AUDIO_CRACKLE_MIN_INTERVAL + AUDIO_CRACKLE_MAX_INTERVAL + 0.01);
-        expect(context._created.buffer_sources.length).toBeGreaterThan(count_at_min);
+        expect(context.created_nodes.buffer_sources.length).toBeGreaterThan(count_at_minimum_interval);
     });
 
     test('playMetaballSpawn() plays a noise burst and a pitch-dropping thump', () => {
         const audio = createVolcanoAudio(context);
-        const buffer_sources_before = context._created.buffer_sources.length;
-        const oscillators_before = context._created.oscillators.length;
+        const buffer_sources_before = context.created_nodes.buffer_sources.length;
+        const oscillators_before = context.created_nodes.oscillators.length;
 
         audio.playMetaballSpawn();
 
-        expect(context._created.buffer_sources.length).toBe(buffer_sources_before + 1);
-        expect(context._created.oscillators.length).toBe(oscillators_before + 1);
-        const thump = context._created.oscillators.at(-1);
+        expect(context.created_nodes.buffer_sources.length).toBe(buffer_sources_before + 1);
+        expect(context.created_nodes.oscillators.length).toBe(oscillators_before + 1);
+        const thump = context.created_nodes.oscillators.at(-1);
         expect(thump.start).toHaveBeenCalled();
         expect(thump.stop).toHaveBeenCalled();
     });
@@ -214,13 +235,13 @@ describe('createVolcanoAudio', () => {
     test('playMetaballSpawn() plays its noise body at AUDIO_METABALL_SPAWN_GAIN', () => {
         const audio = createVolcanoAudio(context);
         audio.playMetaballSpawn();
-        const [noise_gain] = context._created.gains.slice(-2);
+        const [noise_gain] = context.created_nodes.gains.slice(-2);
         expect(noise_gain.gain.value).toBeCloseTo(AUDIO_METABALL_SPAWN_GAIN, 9);
     });
 
     test('setCameraDistance() drives the ambient and accent proximity buses between their far and near gains', () => {
         const audio = createVolcanoAudio(context);
-        const [, ambient_proximity_gain, accent_proximity_gain] = context._created.gains;
+        const [, ambient_proximity_gain, accent_proximity_gain] = context.created_nodes.gains;
 
         audio.setCameraDistance(AUDIO_PROXIMITY_FAR_DISTANCE);
         expect(ambient_proximity_gain.gain.value).toBeCloseTo(AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, 9);
@@ -233,14 +254,14 @@ describe('createVolcanoAudio', () => {
 
     test('crackle, rumble and spawn thump route through the accent bus, the lava bed through the ambient bus', () => {
         const audio = createVolcanoAudio(context);
-        const [, ambient_proximity_gain, accent_proximity_gain] = context._created.gains;
-        const lava_flow_gain = context._created.gains[3];
+        const [, ambient_proximity_gain, accent_proximity_gain] = context.created_nodes.gains;
+        const lava_flow_gain = context.created_nodes.gains[3];
         expect(lava_flow_gain.connect).toHaveBeenCalledWith(ambient_proximity_gain);
 
-        const gains_before = context._created.gains.length;
+        const gains_before = context.created_nodes.gains.length;
         audio.update(Math.max(AUDIO_CRACKLE_MAX_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL) + 0.01);
         audio.playMetaballSpawn();
-        const event_gains = context._created.gains.slice(gains_before);
+        const event_gains = context.created_nodes.gains.slice(gains_before);
         const thump_gain = event_gains.at(-1);
         const spawn_noise_gain = event_gains.at(-2);
         for (const gain of event_gains.slice(0, -2)) expect(gain.connect).toHaveBeenCalledWith(accent_proximity_gain);
@@ -250,13 +271,13 @@ describe('createVolcanoAudio', () => {
 
     test('the press noise bed starts silent', () => {
         createVolcanoAudio(context);
-        const press_gain = context._created.gains.at(-1);
+        const press_gain = context.created_nodes.gains.at(-1);
         expect(press_gain.gain.value).toBe(0);
     });
 
     test('setPressing(true) raises the press noise to AUDIO_PRESS_GAIN, setPressing(false) silences it again', () => {
         const audio = createVolcanoAudio(context);
-        const press_gain = context._created.gains.at(-1);
+        const press_gain = context.created_nodes.gains.at(-1);
 
         audio.setPressing(true);
         expect(press_gain.gain.value).toBeCloseTo(AUDIO_PRESS_GAIN, 9);

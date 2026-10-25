@@ -1,3 +1,3 @@
-import { ref } from 'vue';
+import { reactive } from 'vue';
 
-export const scene_screenshot_url = ref(null);
+export const scene_screenshots = reactive({});

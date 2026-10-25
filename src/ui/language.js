@@ -5,7 +5,6 @@ const STORAGE_KEY = 'lavalandschaft_language';
 export const LANGUAGES = Object.keys(MESSAGES);
 export const DEFAULT_LANGUAGE = 'en';
 
-// storage can be missing or blocked; the language then just isn't remembered
 function loadSavedLanguage() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -19,7 +18,7 @@ function saveLanguage(language) {
     try {
         localStorage.setItem(STORAGE_KEY, language);
     } catch {
-        // not remembered across reloads
+        return;
     }
 }
 

@@ -3,9 +3,9 @@ import { MockVector3, MockRgbColor, MockShaderMaterial } from '../../test-utils/
 
 vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, DoubleSide: 2 }));
 
-vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
-vi.mock('../../shaders/volcano.vert?raw', () => ({ default: '// vertex shader' }));
-vi.mock('../../shaders/volcano.frag?raw', () => ({ default: '// frag shader' }));
+vi.mock('../../shaders/noise.glsl?raw', () => ({ default: 'noise glsl' }));
+vi.mock('../../shaders/volcano.vert?raw', () => ({ default: 'vertex shader' }));
+vi.mock('../../shaders/volcano.frag?raw', () => ({ default: 'fragment shader' }));
 
 import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } from '../volcano_material.js';
 import {
@@ -123,7 +123,7 @@ describe('updateVolcanoInteraction', () => {
 
     test('a touch point facing the camera keeps full strength', () => {
         const material = createVolcanoMaterial();
-        const camera = { position: { x: 10, y: 0, z: 0 } }; // camera azimuth (from volcano_center) = 0
+        const camera = { position: { x: 10, y: 0, z: 0 } };
         const volcano_center = { x: 0, y: 0, z: 0 };
         updateVolcanoInteraction(material, [{ x: 5, y: 0, z: 0, strength: 0.5, radius: 0.3, decay_progress: 0.2 }], camera, volcano_center);
         expect(material.uniforms.u_interaction_strengths.value[0]).toBe(0.5);

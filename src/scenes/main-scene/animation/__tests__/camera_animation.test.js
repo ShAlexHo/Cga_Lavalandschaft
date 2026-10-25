@@ -7,7 +7,7 @@ import {
     CAMERA_AUTOPILOT_DIRECTION_INTERVAL,
     CAMERA_AUTOPILOT_TRANSITION_DURATION,
 } from '../../config.js';
-import { importFreshModule } from '../../test-utils/reimport.js';
+import { importFreshModule } from '../../test-utils/import_fresh_module.js';
 
 let animation_module;
 beforeEach(async () => {

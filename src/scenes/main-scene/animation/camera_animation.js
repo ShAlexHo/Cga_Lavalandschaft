@@ -1,4 +1,4 @@
-import { random } from '../rand.js';
+import { random } from '../random.js';
 import { smoothstep } from './math_utils.js';
 import {
     CAMERA_AUTOPILOT_MIN_AZIMUTH_SPEED, CAMERA_AUTOPILOT_MAX_AZIMUTH_SPEED,

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { settings, registerTouch, stepInteractionAnimation, stepInteractionSmoke, resetTouchSession, isOnLava } from '../animation/interaction_animation.js';
-import { random } from '../rand.js';
+import { random } from '../random.js';
 import { INTERACTION_AUTO_TOUCH_MIN_INTERVAL, INTERACTION_AUTO_TOUCH_MAX_INTERVAL, INTERACTION_AUTO_TOUCH_HOLD_DURATION } from '../config.js';
 
 function randomAutoTouchInterval() {
@@ -12,7 +12,7 @@ function applyTouch(time, point, metaballs, camera_position, squeezeMetaballNear
     if (metaball_squeeze) squeezeMetaballNear(metaball_squeeze);
 }
 
-export function createInteractionController(renderer, volcano_mesh) {
+export function createInteractionController(renderer, volcano_mesh, { signal } = {}) {
     const raycaster = new THREE.Raycaster();
     const pointer_ndc = new THREE.Vector2();
     let is_mouse_down = false;
@@ -23,9 +23,9 @@ export function createInteractionController(renderer, volcano_mesh) {
     let auto_touch_target = null;
 
     function updatePointerNdc(event) {
-        const rect = renderer.domElement.getBoundingClientRect();
-        pointer_ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        pointer_ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        const bounds = renderer.domElement.getBoundingClientRect();
+        pointer_ndc.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+        pointer_ndc.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
     }
 
     renderer.domElement.addEventListener('mousedown', event => {
@@ -35,10 +35,9 @@ export function createInteractionController(renderer, volcano_mesh) {
         updatePointerNdc(event);
     });
     renderer.domElement.addEventListener('mousemove', updatePointerNdc);
-    window.addEventListener('mouseup', () => { is_mouse_down = false; });
+    window.addEventListener('mouseup', () => { is_mouse_down = false; }, { signal });
 
     return {
-        // getMetaballWorldPositions/squeezeMetaballNear are thunks, only invoked on an actual hit.
         step(time, camera, getMetaballWorldPositions, squeezeMetaballNear, real_delta_seconds) {
             if (!settings.enabled && was_enabled) {
                 seconds_until_auto_touch = randomAutoTouchInterval();
@@ -53,8 +52,6 @@ export function createInteractionController(renderer, volcano_mesh) {
                 const metaballs = hits.length > 0 ? getMetaballWorldPositions() : null;
                 const on_lava = Boolean(metaballs && isOnLava(hits[0].point, metaballs));
 
-                // Hovering (not just pressing) over a metaball hints that it's interactive, whether
-                // or not the mouse is currently held down.
                 renderer.domElement.style.cursor = on_lava ? 'pointer' : '';
 
                 if (is_mouse_down && hits.length > 0) {
@@ -97,7 +94,7 @@ export function createInteractionController(renderer, volcano_mesh) {
             };
         },
         getEnabled: () => settings.enabled,
-        setEnabled: value => {
+        setEnabled(value) {
             settings.enabled = value;
             if (!value) renderer.domElement.style.cursor = '';
         },

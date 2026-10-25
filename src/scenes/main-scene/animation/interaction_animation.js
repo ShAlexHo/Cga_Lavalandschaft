@@ -18,20 +18,21 @@ export const settings = {
     enabled: DEFAULT_SETTINGS.interactionMode,
 };
 
-// ─── shared helpers ───────────────────────────────────────────────────────────
-
 function distance(point_a, point_b) {
-    const dx = point_a.x - point_b.x, dy = point_a.y - point_b.y, dz = point_a.z - point_b.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const offset_x = point_a.x - point_b.x;
+    const offset_y = point_a.y - point_b.y;
+    const offset_z = point_a.z - point_b.z;
+    return Math.sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
 }
 
-// How far off-center point looks on screen along the camera ray through ray_point, regardless of depth.
 function distanceFromViewRay(camera_position, ray_point, point) {
     const direction_x = ray_point.x - camera_position.x;
     const direction_y = ray_point.y - camera_position.y;
     const direction_z = ray_point.z - camera_position.z;
     const direction_length = Math.sqrt(direction_x ** 2 + direction_y ** 2 + direction_z ** 2);
-    const unit_x = direction_x / direction_length, unit_y = direction_y / direction_length, unit_z = direction_z / direction_length;
+    const unit_x = direction_x / direction_length;
+    const unit_y = direction_y / direction_length;
+    const unit_z = direction_z / direction_length;
 
     const to_point_x = point.x - camera_position.x;
     const to_point_y = point.y - camera_position.y;
@@ -60,17 +61,11 @@ function findNearestActive(pool, point) {
     return { record: nearest, distance: nearest_distance };
 }
 
-// ─── touch bump pool (the volcano-surface push at each active touch point) ──
-
 const touch_pool = Array.from({ length: MAX_POINTS }, () => ({
     x: 0, y: 0, z: 0, height_cap: 0, last_touched_time: -Infinity, active: false,
 }));
 let pool_head = 0;
 
-// ─── lava-presence gating (is hit_point actually on the rendered metaball surface) ──
-
-// Mirrors metaball.frag's field equation (summed per-ball contributions), since raycasting a
-// separate mesh only approximates the true blended isosurface.
 export function isOnLava(point, metaballs) {
     let field_value = 0;
     for (const metaball of metaballs) {
@@ -81,9 +76,6 @@ export function isOnLava(point, metaballs) {
     return metaballs.length > 0 && field_value >= metaballs[0].isolation * INTERACTION_LAVA_DETECTION_TOLERANCE;
 }
 
-// ─── metaball center-press tracking (how long the same metaball's center has been pressed) ──
-
-// { x, y, z, last_press_time } for the metaball currently under a centered press, or null.
 let center_press = null;
 
 function updateCenterPress(time, metaball) {
@@ -99,20 +91,15 @@ function updateCenterPress(time, metaball) {
     return { x: metaball.x, y: metaball.y, z: metaball.z, shrink_increment };
 }
 
-// Call on mouse-down so a center press doesn't carry over from an earlier, unrelated press.
 export function resetTouchSession() {
     center_press = null;
 }
-
-// ─── impact smoke bursts (spawned above a touch while it's on a metaball) ──
 
 const smoke_burst_pool = Array.from({ length: INTERACTION_SMOKE_MAX_BURSTS }, () => ({
     x: 0, y: 0, z: 0, first_active_time: -Infinity, last_active_time: -Infinity, ember_start_time: -Infinity, ember_strength: 1, active: false,
 }));
 let smoke_burst_head = 0;
 
-// Keeps following position while touched; ember_start_time resets (and ember_strength decays)
-// only on genuine movement, so holding still cools the tint to grey.
 function updateSmokeBurst(time, position) {
     const { record: nearest, distance: nearest_distance } = findNearestActive(smoke_burst_pool, position);
     if (nearest && nearest_distance <= INTERACTION_DWELL_POSITION_TOLERANCE) {
@@ -139,8 +126,6 @@ function updateSmokeBurst(time, position) {
     smoke_burst_head = (smoke_burst_head + 1) % INTERACTION_SMOKE_MAX_BURSTS;
 }
 
-// hit_point predates volcano.vert's own camera-ward push at this spot; nudges it back out by
-// push_amount so smoke doesn't spawn inside the bump the touch just raised.
 function pushedSurfacePoint(hit_point, camera_position, push_amount) {
     const direction_x = camera_position.x - hit_point.x;
     const direction_y = camera_position.y - hit_point.y;
@@ -153,8 +138,6 @@ function pushedSurfacePoint(hit_point, camera_position, push_amount) {
     };
 }
 
-// Lifts the origin above the (pushed) surface so the smoke hovers over the volcano instead of
-// clipping into it.
 function smokeOriginAt(surface_point) {
     return { x: surface_point.x, y: surface_point.y + INTERACTION_SMOKE_SURFACE_OFFSET, z: surface_point.z };
 }
@@ -164,11 +147,6 @@ function spawnSmokeAt(time, hit_point, camera_position, height_cap) {
     updateSmokeBurst(time, smokeOriginAt(surface_point));
 }
 
-// ─── public API ───────────────────────────────────────────────────────────────
-
-// Registers a bump/smoke only where hit_point is on rendered lava (isOnLava); returns a metaball
-// squeeze signal ({x,y,z,shrink_increment}, by view-ray distance) when centered on a ball, regardless
-// of whether a bump was created, refreshed, or gated out.
 export function registerTouch(time, hit_point, metaballs, camera_position) {
     let nearest_metaball_by_view = null;
     let nearest_view_distance = Infinity;
@@ -190,13 +168,11 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
         time,
         nearest_view_distance <= INTERACTION_METABALL_CENTER_THRESHOLD ? nearest_metaball_by_view : null,
     );
-    // Squeezing a ball counts as lava even if its shrinking radius briefly fails the field check.
     const on_lava = isOnLava(hit_point, metaballs) || metaball_squeeze !== null;
 
     const { record: nearest_point, distance: nearest_point_distance } = findNearestActive(touch_pool, hit_point);
     if (nearest_point && nearest_point_distance <= INTERACTION_MIN_POINT_SPACING) {
         if (on_lava) {
-            // Repeated hovers nudge height_cap higher, capped so a long gap adds only a small bump.
             const hover_delta_time = clamp(time - nearest_point.last_touched_time, 0, INTERACTION_HOVER_RISE_MAX_DELTA);
             nearest_point.height_cap += hover_delta_time * INTERACTION_HOVER_RISE_RATE;
             nearest_point.last_touched_time = time;
@@ -223,7 +199,6 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
 
 const active_touch_points = [];
 
-// decay_progress drives volcano.vert's axis-outward wipe rather than shrinking the radius itself.
 export function stepInteractionAnimation(time) {
     active_touch_points.length = 0;
     for (let i = 0; i < MAX_POINTS; i++) {
@@ -245,8 +220,6 @@ export function stepInteractionAnimation(time) {
 
 const active_smoke_bursts = [];
 
-// bloom cools the ember-to-smoke tint since ember_start_time; fade begins only once released and
-// scales with how long the burst was held (see impact_smoke.vert for elapsed's per-puff cycling).
 export function stepInteractionSmoke(time) {
     active_smoke_bursts.length = 0;
     for (const burst of smoke_burst_pool) {

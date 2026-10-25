@@ -1,14 +1,13 @@
 import * as THREE from 'three';
-import passthrough_vert from '../shaders/god_rays_passthrough.vert?raw';
-import generate_frag from '../shaders/god_rays_generate.frag?raw';
-import sun_disc_vert from '../shaders/god_rays_sun_disc.vert?raw';
-import sun_disc_frag from '../shaders/god_rays_sun_disc.frag?raw';
-import combine_frag from '../shaders/god_rays_combine.frag?raw';
-import { GOD_RAYS_NUM_SAMPLES } from '../config.js';
+import passthrough_vertex_glsl from '../shaders/god_rays_passthrough.vert?raw';
+import generate_fragment_glsl from '../shaders/god_rays_generate.frag?raw';
+import sun_disc_vertex_glsl from '../shaders/god_rays_sun_disc.vert?raw';
+import sun_disc_fragment_glsl from '../shaders/god_rays_sun_disc.frag?raw';
+import combine_fragment_glsl from '../shaders/god_rays_combine.frag?raw';
+import { GOD_RAYS_SAMPLE_COUNT } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-// GLSL for-loops need a compile-time-constant bound, so this is baked in as text rather than a uniform.
-const generate_frag_resolved = generate_frag.replaceAll('NUM_SAMPLES', GOD_RAYS_NUM_SAMPLES);
+const generate_fragment_glsl_resolved = generate_fragment_glsl.replaceAll('GOD_RAYS_SAMPLE_COUNT', GOD_RAYS_SAMPLE_COUNT);
 
 export function createGodRaysOcclusionMaterial() {
     return new THREE.MeshBasicMaterial({ color: 0x000000 });
@@ -16,8 +15,8 @@ export function createGodRaysOcclusionMaterial() {
 
 export function createGodRaysSunDiscMaterial() {
     return new THREE.ShaderMaterial({
-        vertexShader: sun_disc_vert,
-        fragmentShader: sun_disc_frag,
+        vertexShader: sun_disc_vertex_glsl,
+        fragmentShader: sun_disc_fragment_glsl,
         depthWrite: false,
         precision: 'highp',
     });
@@ -35,8 +34,8 @@ export function createGodRaysGenerateMaterial() {
             u_visibility: { value: 1.0 },
             u_aspect: { value: 1.0 },
         },
-        vertexShader: passthrough_vert,
-        fragmentShader: generate_frag_resolved,
+        vertexShader: passthrough_vertex_glsl,
+        fragmentShader: generate_fragment_glsl_resolved,
         precision: 'highp',
     });
 }
@@ -49,8 +48,8 @@ export function createGodRaysCombineMaterial() {
             u_depth: { value: null },
             u_tint: { value: new THREE.Color(DEFAULT_SETTINGS.godRaysTintColor) },
         },
-        vertexShader: passthrough_vert,
-        fragmentShader: combine_frag,
+        vertexShader: passthrough_vertex_glsl,
+        fragmentShader: combine_fragment_glsl,
         precision: 'highp',
     });
 }

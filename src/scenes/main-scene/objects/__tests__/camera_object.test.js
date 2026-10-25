@@ -1,7 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { MockVector3 } from '../../test-utils/three_mocks.js';
 
-// vi.mock() factories hoist above this, so this array needs vi.hoisted() to be visible down here
 const { controls_instances } = vi.hoisted(() => ({ controls_instances: [] }));
 
 vi.mock('three', () => {
@@ -22,9 +21,9 @@ vi.mock('three/addons/controls/OrbitControls.js', () => {
             this.dom_element = dom_element;
             this.target = { x: 0, y: 0, z: 0, copy(other) { this.x = other.x; this.y = other.y; this.z = other.z; return this; } };
             this.update = vi.fn();
-            this._listeners = {};
-            this.addEventListener = (type, callback) => { (this._listeners[type] ||= []).push(callback); };
-            this._dispatch = type => { (this._listeners[type] || []).forEach(callback => callback()); };
+            this.listeners = {};
+            this.addEventListener = (type, callback) => { (this.listeners[type] ||= []).push(callback); };
+            this.dispatch = type => { (this.listeners[type] || []).forEach(callback => callback()); };
             controls_instances.push(this);
         }
     }
@@ -106,7 +105,7 @@ describe('createCameraController', () => {
         const initial_offset = cartesianToSpherical(positionOf(camera_controller));
 
         stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 0.05, polar_speed: 0.01, zoom_speed: 0.2 });
-        camera_controller.update(ORIGIN, 2, 3, true); // scaled delta = 6
+        camera_controller.update(ORIGIN, 2, 3, true);
 
         const expected_offset = sphericalToCartesian({
             radius: clamp(initial_offset.radius + 0.2 * 6, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE),
@@ -145,10 +144,10 @@ describe('createCameraController', () => {
     test('leaves the camera position untouched during the idle grace period after an interaction', () => {
         const camera_controller = createCameraController(makeRenderer());
         const controls = controls_instances[0];
-        controls._dispatch('start');
+        controls.dispatch('start');
         const before = positionOf(camera_controller);
         stepCameraAutopilot.mockReturnValueOnce({ azimuth_speed: 1, polar_speed: 1, zoom_speed: 1 });
-        camera_controller.update(ORIGIN, 1, 1, true); // only 1s idle, well under CAMERA_AUTOPILOT_IDLE_SECONDS
+        camera_controller.update(ORIGIN, 1, 1, true);
         expect(positionOf(camera_controller)).toEqual(before);
     });
 
@@ -160,7 +159,7 @@ describe('createCameraController', () => {
         camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true);
         const drifted = positionOf(camera_controller);
 
-        controls._dispatch('start');
+        controls.dispatch('start');
         camera_controller.update(ORIGIN, 0.016, 1, true);
         expect(positionOf(camera_controller)).toEqual(drifted);
 
@@ -175,7 +174,7 @@ describe('createCameraController', () => {
         camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true);
         const drifted = positionOf(camera_controller);
 
-        controls._dispatch('end');
+        controls.dispatch('end');
         camera_controller.update(ORIGIN, 0.016, 1, true);
         expect(positionOf(camera_controller)).toEqual(drifted);
     });
@@ -194,14 +193,14 @@ describe('createCameraController', () => {
         const controls = controls_instances[0];
         stepCameraAutopilot.mockReturnValue({ azimuth_speed: 1, polar_speed: 0, zoom_speed: 0 });
 
-        controls._dispatch('start'); // resets the idle timer to 0
-        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, true); // paused: must not advance the idle timer
+        controls.dispatch('start');
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, true);
         const before = positionOf(camera_controller);
 
-        camera_controller.update(ORIGIN, 0.016, 1, true, false); // resumed, but still not idle long enough
+        camera_controller.update(ORIGIN, 0.016, 1, true, false);
         expect(positionOf(camera_controller)).toEqual(before);
 
-        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, false); // now genuinely idle
+        camera_controller.update(ORIGIN, CAMERA_AUTOPILOT_IDLE_SECONDS, 1, true, false);
         expect(positionOf(camera_controller)).not.toEqual(before);
     });
 

@@ -1,56 +1,97 @@
+<script>
+let saved_scroll_top = 0;
+</script>
+
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { scene_screenshot_url } from '../scene_screenshot.js';
-import { expandIntoScene } from '../scene_transition.js';
+import { scene_screenshots } from '../scene_screenshot.js';
+import { expandIntoScene, whenReturnFinished } from '../scene_transition.js';
 import { current_language, localize } from '../language_state.js';
 import { LANGUAGES, setLanguage } from '../ui/language.js';
-import scene_preview_url from '../assets/scene_preview.jpg';
+import main_scene_preview_url from '../assets/scene_preview.jpg';
+import metaballs_scene_preview_url from '../assets/metaballs_preview.jpg';
+import noise_scene_preview_url from '../assets/noise_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
 const AUTHOR_URL = 'https://github.com/ShAlexHo';
 const SEMINAR_URL = 'https://hpicgs.github.io/seminar-3d-rendering-computational-art-2026/';
 
-const preview_url = computed(() => scene_screenshot_url.value ?? scene_preview_url);
+const router = useRouter();
 
-// the frame takes the screenshot's own aspect ratio, i.e. the browser window's when it was taken
-const preview_ratio = ref(16 / 9);
+const DETAILS = [
+    { scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', bundled_preview_url: metaballs_scene_preview_url },
+    { scene_name: 'noise-scene', message_key_prefix: 'details.noise', bundled_preview_url: noise_scene_preview_url },
+].map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
 
-function updatePreviewRatio(event) {
-    const image = event.target;
-    if (image.naturalHeight > 0) preview_ratio.value = image.naturalWidth / image.naturalHeight;
+const preview_url = computed(() => scene_screenshots['main-scene'] ?? main_scene_preview_url);
+
+function detailPreviewUrl(detail) {
+    return scene_screenshots[detail.scene_name] ?? detail.bundled_preview_url;
 }
 
-const router = useRouter();
-const SCENE_HREF = router.resolve({ name: 'main-scene' }).href;
+const preview_ratios = reactive(Object.fromEntries(['main-scene', ...DETAILS.map(detail => detail.scene_name)].map(scene_name => [scene_name, 16 / 9])));
+
+function updatePreviewRatio(event, scene_name) {
+    const image = event.target;
+    if (image.naturalHeight > 0) preview_ratios[scene_name] = image.naturalWidth / image.naturalHeight;
+}
+
+const MAIN_SCENE_HREF = router.resolve({ name: 'main-scene' }).href;
 const preview_frame = ref(null);
 const preview_image = ref(null);
+const detail_preview_elements_by_scene_name = {};
 let is_entering = false;
 
-async function enterScene(event) {
-    // modified clicks keep their default, e.g. opening the scene in a new tab
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+function setDetailPreviewElement(scene_name, kind, element) {
+    (detail_preview_elements_by_scene_name[scene_name] ??= {})[kind] = element;
+}
+
+function enterDetailScene(event, detail) {
+    const { frame, image } = detail_preview_elements_by_scene_name[detail.scene_name];
+    return enterScene(event, { scene_name: detail.scene_name, frame, image });
+}
+
+async function enterScene(event, { scene_name, frame, image }) {
+    const is_modified_click = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (is_modified_click) return;
     event.preventDefault();
     if (is_entering) return;
     is_entering = true;
 
-    await expandIntoScene({ frame: preview_frame.value, image: preview_image.value });
-    await router.push({ name: 'main-scene' });
+    await expandIntoScene({ frame, image });
+    await router.push({ name: scene_name });
 }
 
-// Safari has no requestIdleCallback
+const SCENE_ENGINE_LOADERS = [
+    () => import('../scenes/main-scene/scene_engine.js'),
+    () => import('../scenes/metaballs-scene/scene_engine.js'),
+    () => import('../scenes/noise-scene/scene_engine.js'),
+];
+
 function runWhenIdle(callback) {
     if ('requestIdleCallback' in window) window.requestIdleCallback(callback, { timeout: 2000 });
     else setTimeout(callback, 300);
 }
 
-// bakes the scene while idle, so pressing play starts without a stall
-onMounted(() => {
+function prepareScenes(loaders) {
+    if (loaders.length === 0) return;
     runWhenIdle(async () => {
-        const { getSceneEngine } = await import('../scenes/main-scene/scene_engine.js');
-        getSceneEngine().prepare();
+        const scene_module = await loaders[0]();
+        scene_module.getSceneEngine().prepare();
+        prepareScenes(loaders.slice(1));
     });
+}
+
+onMounted(async () => {
+    window.scrollTo(0, saved_scroll_top);
+    await whenReturnFinished();
+    prepareScenes(SCENE_ENGINE_LOADERS);
+});
+
+onBeforeUnmount(() => {
+    saved_scroll_top = window.scrollY;
 });
 </script>
 
@@ -91,18 +132,19 @@ onMounted(() => {
             <div class="preview-area">
                 <a
                     ref="preview_frame"
-                    :href="SCENE_HREF"
+                    :href="MAIN_SCENE_HREF"
                     class="preview"
-                    :style="{ '--preview-ratio': preview_ratio }"
+                    data-scene-preview="main-scene"
+                    :style="{ '--preview-ratio': preview_ratios['main-scene'] }"
                     :aria-label="localize('landing.start_scene')"
-                    @click="enterScene"
+                    @click="enterScene($event, { scene_name: 'main-scene', frame: preview_frame, image: preview_image })"
                 >
                     <img
                         ref="preview_image"
                         :src="preview_url"
                         :alt="localize('landing.preview_alt')"
                         class="preview-image"
-                        @load="updatePreviewRatio"
+                        @load="updatePreviewRatio($event, 'main-scene')"
                     />
                     <span class="play-button" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
@@ -140,16 +182,59 @@ onMounted(() => {
             <p>{{ localize('landing.description') }}</p>
             <p class="description-modes">{{ localize('landing.description_modes') }}</p>
         </section>
+
+        <section class="details">
+            <header class="details-header">
+                <h2 class="details-title">{{ localize('landing.details_title') }}</h2>
+                <p class="details-intro">{{ localize('landing.details_intro') }}</p>
+            </header>
+
+            <div class="details-grid">
+                <article v-for="detail in DETAILS" :key="detail.scene_name" class="detail">
+                    <div class="detail-column">
+                        <h3 class="detail-title">{{ localize(`${detail.message_key_prefix}.title`) }}</h3>
+                    </div>
+                    <a
+                        :ref="element => setDetailPreviewElement(detail.scene_name, 'frame', element)"
+                        :href="detail.href"
+                        class="preview preview-small"
+                        :data-scene-preview="detail.scene_name"
+                        :style="{ '--preview-ratio': preview_ratios[detail.scene_name] }"
+                        :aria-label="localize(`${detail.message_key_prefix}.start_scene`)"
+                        @click="enterDetailScene($event, detail)"
+                    >
+                        <img
+                            :ref="element => setDetailPreviewElement(detail.scene_name, 'image', element)"
+                            :src="detailPreviewUrl(detail)"
+                            :alt="localize(`${detail.message_key_prefix}.preview_alt`)"
+                            class="preview-image"
+                            @load="updatePreviewRatio($event, detail.scene_name)"
+                        />
+                        <span class="play-button play-button-small" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+                        </span>
+                    </a>
+                    <div class="detail-column detail-text">
+                        <p>{{ localize(`${detail.message_key_prefix}.text_1`) }}</p>
+                    </div>
+                </article>
+            </div>
+        </section>
     </main>
 </template>
 
 <style scoped>
+.landing {
+    --main-preview-width: 80vw;
+    --details-width: var(--main-preview-width);
+    --detail-gap: 4vw;
+    --detail-preview-width: calc((var(--details-width) - var(--detail-gap)) / 2);
+}
+
 .hero {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    height: 100vh;
-    height: 100svh;
     padding: 24px;
 }
 
@@ -241,18 +326,13 @@ onMounted(() => {
 
 .preview-area {
     display: flex;
-    flex: 1;
-    min-height: 0;
-    align-items: center;
     justify-content: center;
-    container-type: size;
 }
 
-/* the largest box with the screenshot's aspect ratio that fits the area */
 .preview {
     position: relative;
     display: block;
-    width: min(100cqw, 100cqh * var(--preview-ratio));
+    width: var(--main-preview-width);
     aspect-ratio: var(--preview-ratio);
     overflow: hidden;
     border-radius: 12px;
@@ -309,23 +389,6 @@ onMounted(() => {
     scale: 1;
 }
 
-/* in portrait, a viewport-high hero would leave empty bands around the landscape-shaped screenshot */
-@media (orientation: portrait) {
-    .hero {
-        height: auto;
-    }
-
-    .preview-area {
-        flex: none;
-        container-type: normal;
-    }
-
-    .preview {
-        width: 100%;
-    }
-}
-
-/* no hover on touch screens */
 @media (hover: none) {
     .play-button {
         opacity: 1;
@@ -334,9 +397,9 @@ onMounted(() => {
 }
 
 .description {
-    max-width: 65ch;
+    width: var(--main-preview-width);
     margin: 0 auto;
-    padding: 16px 24px 64px;
+    padding: 16px 0 64px;
     font-size: 1.05rem;
     line-height: 1.65;
 }
@@ -411,6 +474,85 @@ onMounted(() => {
     font-size: 0.95rem;
 }
 
+.details {
+    padding: 0 24px 96px;
+}
+
+.details-header {
+    width: var(--details-width);
+    margin: 0 auto;
+}
+
+.details-header {
+    margin-bottom: 40px;
+    padding-top: 48px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+
+.details-title {
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.details-intro {
+    max-width: 65ch;
+    margin-top: 8px;
+    color: var(--color-text-muted);
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, var(--detail-preview-width));
+    justify-content: center;
+    gap: 64px var(--detail-gap);
+}
+
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detail-column {
+    font-size: 1.05rem;
+}
+
+.detail-title {
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.preview.preview-small {
+    width: 100%;
+}
+
+.play-button.play-button-small {
+    width: 64px;
+    height: 64px;
+}
+
+.play-button-small svg {
+    width: 30px;
+    height: 30px;
+    margin-left: 4px;
+}
+
+.detail-text {
+    line-height: 1.65;
+}
+
+@media (orientation: portrait) {
+    .details-grid {
+        grid-template-columns: var(--details-width);
+    }
+}
+
 @media (max-width: 600px) {
     .hero {
         padding: 16px;
@@ -431,7 +573,11 @@ onMounted(() => {
     }
 
     .description {
-        padding: 8px 16px 48px;
+        padding: 8px 0 48px;
+    }
+
+    .details {
+        padding: 0 16px 72px;
     }
 
     .play-button {

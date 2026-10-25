@@ -5,7 +5,9 @@ export const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         { path: '/', name: 'landing', component: LandingView },
-        { path: '/main-scene', name: 'main-scene', component: () => import('./views/MainSceneView.vue') },
+        { path: '/main-scene', name: 'main-scene', component: () => import('./views/MainSceneView.vue'), meta: { scene: true } },
+        { path: '/metaballs-scene', name: 'metaballs-scene', component: () => import('./views/MetaballsSceneView.vue'), meta: { scene: true } },
+        { path: '/noise-scene', name: 'noise-scene', component: () => import('./views/NoiseSceneView.vue'), meta: { scene: true } },
         { path: '/:path(.*)*', redirect: { name: 'landing' } },
     ],
 });

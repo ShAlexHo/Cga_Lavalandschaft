@@ -49,7 +49,7 @@ export function createImpactSmokeMaterial() {
         },
         transparent: true,
         depthWrite: false,
-        depthTest: false, // always renders in front of the ground/volcano, since it's meant to read as sitting right at the touched surface, not occluded by it
+        depthTest: false,
         precision: 'highp',
     });
 }

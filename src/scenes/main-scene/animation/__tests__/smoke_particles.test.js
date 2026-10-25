@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { importFreshModule } from '../../test-utils/reimport.js';
+import { importFreshModule } from '../../test-utils/import_fresh_module.js';
 import {
     SMOKE_MAX_PARTICLES, SMOKE_LIFETIME,
     SMOKE_SIZE_MULTIPLIER_MIN, SMOKE_SIZE_MULTIPLIER_MAX,
@@ -62,7 +62,6 @@ describe('particle_seeds', () => {
         const near_mean = size_multipliers.filter(value => Math.abs(value - mean) < (SMOKE_SIZE_MULTIPLIER_MAX - mean) * 0.5);
         const near_max = size_multipliers.filter(value => value > mean + (SMOKE_SIZE_MULTIPLIER_MAX - mean) * 0.8);
 
-        // a bell curve clusters near the mean and leaves extreme sizes rare, unlike a uniform distribution
         expect(near_mean.length / size_multipliers.length).toBeGreaterThan(0.6);
         expect(near_max.length / size_multipliers.length).toBeLessThan(0.1);
     });

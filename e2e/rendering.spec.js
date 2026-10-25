@@ -1,12 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { PNG } from 'pngjs';
 
-// This is a real-browser test: it launches the app in headless Chromium (with
-// software WebGL enabled, see playwright.config.js), lets it render a few
-// frames, then inspects the actual pixels of a screenshot. Unlike the
-// mocked unit tests in src/__tests__, this is the only test that would catch
-// a genuinely black/blank canvas (broken shader, failed WebGL context, an
-// exception inside the animate loop, ...).
+const SAMPLED_PIXEL_STRIDE = 37;
+const BRIGHT_LUMINANCE_THRESHOLD = 40;
 
 function collectConsoleErrors(page) {
     const console_errors = [];
@@ -25,37 +21,32 @@ test('scene renders a non-blank image', async ({ page }) => {
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
 
-    // Let the animate() loop run for a bit so lava/volcano/bloom have settled.
     await page.waitForTimeout(1000);
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 
-    // DOM overlays would skew the pixel checks
     await page.evaluate(() => {
         document.querySelectorAll('.dg, .home-button').forEach(element => element.remove());
     });
 
-    const box = await canvas.boundingBox();
-    expect(box.width).toBeGreaterThan(0);
-    expect(box.height).toBeGreaterThan(0);
+    const bounding_box = await canvas.boundingBox();
+    expect(bounding_box.width).toBeGreaterThan(0);
+    expect(bounding_box.height).toBeGreaterThan(0);
 
     const screenshot = await canvas.screenshot();
     const png = PNG.sync.read(screenshot);
 
     const luminances = [];
     const distinct_colors = new Set();
-    for (let i = 0; i < png.data.length; i += 4 * 37) { // sample every 37th pixel for speed
+    for (let i = 0; i < png.data.length; i += 4 * SAMPLED_PIXEL_STRIDE) {
         const r = png.data[i], g = png.data[i + 1], b = png.data[i + 2];
         luminances.push(0.299 * r + 0.587 * g + 0.114 * b);
         distinct_colors.add((r << 16) | (g << 8) | b);
     }
 
-    // A blank/black canvas (failed render) would be a single uniform color.
     expect(distinct_colors.size).toBeGreaterThan(10);
 
-    // The lava glow + bloom pass should push a meaningful share of pixels
-    // well above the scene's very dark background (#0a0505, luminance ~7.5).
-    const bright_share = luminances.filter(luminance => luminance > 40).length / luminances.length;
+    const bright_share = luminances.filter(luminance => luminance > BRIGHT_LUMINANCE_THRESHOLD).length / luminances.length;
     expect(bright_share).toBeGreaterThan(0.01);
 });
 
@@ -66,15 +57,13 @@ test('landing page enters the scene via the play button and shows the left scene
     await expect(page.getByRole('heading', { name: 'Unstill Life: Lava Landscape' })).toBeVisible();
     await expect(page.locator('canvas')).toHaveCount(0);
 
-    const preview = page.getByRole('link', { name: 'Start scene' });
+    const preview = page.getByRole('link', { name: 'Start scene', exact: true });
     const play_button = preview.locator('.play-button');
     await expect(play_button).toHaveCSS('opacity', '0');
     await preview.hover();
-    // the landing page pre-bakes the scene meanwhile, which software WebGL renders slowly
     await expect(play_button).toHaveCSS('opacity', '1', { timeout: 60_000 });
 
     await preview.click();
-    // the screenshot zooms to full size and covers the scene until it has rendered
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
     await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
     await expect(page.locator('canvas')).toBeVisible();
@@ -82,9 +71,12 @@ test('landing page enters the scene via the play button and shows the left scene
     await page.waitForTimeout(500);
 
     await page.getByRole('link', { name: 'Back to start page' }).click();
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.locator('canvas')).toHaveCount(0);
-    await expect(page.locator('.preview-image')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.locator('canvas')).toHaveCount(0, { timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+    await expect(preview).toBeVisible();
+    await expect(page.locator('.preview:not(.preview-small) .preview-image')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
@@ -102,9 +94,53 @@ test('language switch translates the landing page and the scene GUI, and is reme
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
 
-    // software WebGL may still be pre-baking the scene and block the click for a while
-    await page.getByRole('link', { name: 'Szene starten' }).click();
+    await page.getByRole('link', { name: 'Szene starten', exact: true }).click();
     await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
     await expect(page.locator('.dg .property-name', { hasText: 'Interaktionsmodus' })).toHaveCount(1, { timeout: 60_000 });
     await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
+});
+
+test('metaballs detail opens its own scene with an explanation below it', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Implementation details' })).toBeAttached();
+
+    const preview = page.getByRole('link', { name: 'Start metaballs scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    await page.getByRole('button', { name: 'About metaballs' }).click();
+    await expect(page.getByRole('heading', { name: 'Metaballs', level: 2 })).toBeInViewport({ timeout: 60_000 });
+    await expect(page.getByText('Description in work')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Back to start page' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('link', { name: 'Start metaballs scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});
+
+test('noise detail opens its own scene with the colour noise parameters', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: 'Start noise scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/noise-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    for (const label of ['Primary colour', 'Secondary colour']) {
+        await expect(page.locator('.dg li.cr .property-name', { hasText: label })).toHaveCount(1);
+    }
+
+    await page.getByRole('button', { name: 'About noise' }).click();
+    await expect(page.getByRole('heading', { name: 'Noise', level: 2 })).toBeInViewport({ timeout: 60_000 });
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });

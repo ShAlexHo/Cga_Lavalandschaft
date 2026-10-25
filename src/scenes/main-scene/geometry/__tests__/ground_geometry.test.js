@@ -4,7 +4,7 @@ vi.mock('three', () => {
     class Vector3 {
         constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
         set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
-        applyMatrix4() { return this; } // identity - no rotation/scale to model in this mock
+        applyMatrix4() { return this; }
     }
     class PlaneGeometry {
         constructor(width, height, width_segments, height_segments) {
@@ -127,8 +127,8 @@ describe('bakeGroundDisplacement', () => {
     });
 
     test('rebuilds from pristine_positions every time, so repeated bakes do not compound', () => {
-        const pristine = new Float32Array([3, 7, 0]);
-        const mesh = makeMesh(pristine);
+        const pristine_positions = new Float32Array([3, 7, 0]);
+        const mesh = makeMesh(pristine_positions);
 
         bakeGroundDisplacement(mesh, base_parameters);
         const first_z = mesh.geometry.attributes.position.setXYZ.mock.calls[0][3];

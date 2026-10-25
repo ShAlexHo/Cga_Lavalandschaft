@@ -13,6 +13,7 @@ uniform float u_displacement;
 uniform vec3  u_ball_center[METABALL_GPU_MAX_BALLS];
 uniform float u_ball_strength[METABALL_GPU_MAX_BALLS];
 uniform float u_ball_subtract[METABALL_GPU_MAX_BALLS];
+uniform int   u_ball_count;
 uniform float u_isolation;
 uniform vec3  u_effect_position;
 uniform float u_effect_scale;
@@ -20,17 +21,15 @@ uniform vec3  u_box_half_extent;
 uniform vec3  u_box_center;
 uniform int   u_raymarch_steps;
 uniform float u_normal_epsilon;
-uniform mat4  u_projection_matrix; // projectionMatrix isn't declared in fragment shaders - synced from the camera in updateMetaballLight
+uniform mat4  u_projection_matrix;
 
 in vec3 v_local_position;
 
 out vec4 out_color;
 
-// Must match isOnLava()'s formula (interaction_animation.js) - local (2*field-1) space, where
-// each ball's contribution is 4*strength/dist^2 - subtract.
 float metaballField(vec3 local_position) {
     float field = 0.0;
-    for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
+    for (int i = 0; i < u_ball_count; i++) {
         if (u_ball_strength[i] <= 0.0) continue;
         vec3 offset = local_position - u_ball_center[i];
         float distance_squared = max(dot(offset, offset), 0.0001);
@@ -39,11 +38,9 @@ float metaballField(vec3 local_position) {
     return field;
 }
 
-// Distance to the nearest ball's own isosurface - a safe (if conservative) march stride while the
-// combined field below hasn't crossed the isolation threshold yet.
 float safeStepDistance(vec3 march_position) {
     float nearest = 1.0e6;
-    for (int i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
+    for (int i = 0; i < u_ball_count; i++) {
         if (u_ball_strength[i] <= 0.0) continue;
         float local_radius = 2.0 * sqrt(u_ball_strength[i] / (u_isolation + u_ball_subtract[i]));
         nearest = min(nearest, length(march_position - u_ball_center[i]) - local_radius);
@@ -51,63 +48,56 @@ float safeStepDistance(vec3 march_position) {
     return nearest;
 }
 
-// Shared by crustColdness() and the heat computation below, so the crust bulge stays aligned
-// with the same regions the final color reads as "cold".
 vec3 heatCoordinate(vec3 world_position) {
     return world_position * 0.7 + vec3(0.0, -u_time * 0.012, u_time * 0.005);
 }
 
-// Cheap single-octave proxy for the full heat noise below - affordable on every march step.
 float crustColdness(vec3 world_position) {
     float heat_proxy = normalizedFractalBrownianMotion(heatCoordinate(world_position));
     return 1.0 - smoothstep(0.15, 0.65, heat_proxy);
 }
 
 void main() {
-    vec3 local_camera = (cameraPosition - u_effect_position) / u_effect_scale;
-    vec3 ray_direction = normalize(v_local_position - local_camera);
+    vec3 local_camera_position = (cameraPosition - u_effect_position) / u_effect_scale;
+    vec3 ray_direction = normalize(v_local_position - local_camera_position);
 
-    // Slab ray-AABB test against the proxy box, in the same local space as the field above.
-    vec3 box_min = u_box_center - u_box_half_extent;
-    vec3 box_max = u_box_center + u_box_half_extent;
+    vec3 box_minimum = u_box_center - u_box_half_extent;
+    vec3 box_maximum = u_box_center + u_box_half_extent;
     vec3 inverse_direction = 1.0 / ray_direction;
-    vec3 t_lower = (box_min - local_camera) * inverse_direction;
-    vec3 t_upper = (box_max - local_camera) * inverse_direction;
-    vec3 t_min = min(t_lower, t_upper);
-    vec3 t_max = max(t_lower, t_upper);
-    float t_enter = max(max(max(t_min.x, t_min.y), t_min.z), 0.0);
-    float t_exit = min(min(t_max.x, t_max.y), t_max.z);
-    if (t_exit < t_enter) discard;
+    vec3 minimum_slab_distances = (box_minimum - local_camera_position) * inverse_direction;
+    vec3 maximum_slab_distances = (box_maximum - local_camera_position) * inverse_direction;
+    vec3 near_slab_distances = min(minimum_slab_distances, maximum_slab_distances);
+    vec3 far_slab_distances = max(minimum_slab_distances, maximum_slab_distances);
+    float box_entry_distance = max(max(max(near_slab_distances.x, near_slab_distances.y), near_slab_distances.z), 0.0);
+    float box_exit_distance = min(min(far_slab_distances.x, far_slab_distances.y), far_slab_distances.z);
+    if (box_exit_distance < box_entry_distance) discard;
 
     const float SURFACE_EPSILON = 0.0005;
-    const float STEP_SAFETY = 0.8; // shrinks each stride so overlapping balls can't be stepped over
-    const float MIN_STEP = 0.001; // floor stride so tracing still advances where the field is nearly flat
-    const int BISECTION_STEPS = 6; // refines the crossing point found below to sub-stride precision
+    const float STEP_SAFETY = 0.8;
+    const float MINIMUM_STEP = 0.001;
+    const int BISECTION_STEPS = 6;
 
-    float t = t_enter;
+    float ray_distance = box_entry_distance;
     bool did_hit = false;
-    float previous_t = t_enter;
+    float previous_ray_distance = box_entry_distance;
 
     for (int i = 0; i < METABALL_RAYMARCH_MAX_STEPS; i++) {
-        if (i >= u_raymarch_steps || t > t_exit) break;
-        vec3 march_position = local_camera + ray_direction * t;
+        if (i >= u_raymarch_steps || ray_distance > box_exit_distance) break;
+        vec3 march_position = local_camera_position + ray_direction * ray_distance;
 
-        // The combined field (not just the nearest ball's own isosurface) is what actually decides
-        // the hit, so two nearby-but-not-yet-overlapping balls bulge into a shared surface between
-        // them instead of only ever reading as a plain union of separate spheres.
         if (metaballField(march_position) >= u_isolation) {
-            float lo = previous_t, hi = t;
-            for (int b = 0; b < BISECTION_STEPS; b++) {
-                float mid = 0.5 * (lo + hi);
-                if (metaballField(local_camera + ray_direction * mid) >= u_isolation) hi = mid; else lo = mid;
+            float outside_distance = previous_ray_distance;
+            float inside_distance = ray_distance;
+            for (int j = 0; j < BISECTION_STEPS; j++) {
+                float middle_distance = 0.5 * (outside_distance + inside_distance);
+                if (metaballField(local_camera_position + ray_direction * middle_distance) >= u_isolation) inside_distance = middle_distance; else outside_distance = middle_distance;
             }
-            t = hi;
+            ray_distance = inside_distance;
             did_hit = true;
             break;
         }
 
         float distance_to_surface = safeStepDistance(march_position);
-        // Biases the safe distance itself, so a bulged crust can still trigger a hit slightly early.
         if (u_displacement > 0.0) {
             vec3 probe_world_position = u_effect_position + u_effect_scale * march_position;
             distance_to_surface -= crustColdness(probe_world_position) * u_displacement;
@@ -117,38 +107,35 @@ void main() {
             }
         }
 
-        previous_t = t;
-        t += max(distance_to_surface * STEP_SAFETY, MIN_STEP);
+        previous_ray_distance = ray_distance;
+        ray_distance += max(distance_to_surface * STEP_SAFETY, MINIMUM_STEP);
     }
 
     if (!did_hit) discard;
 
-    vec3 hit_local = local_camera + ray_direction * t;
+    vec3 hit_local_position = local_camera_position + ray_direction * ray_distance;
 
-    // The field decreases outward, so its negative gradient is the surface normal.
     vec3 gradient = vec3(
-        metaballField(hit_local + vec3(u_normal_epsilon, 0.0, 0.0)) - metaballField(hit_local - vec3(u_normal_epsilon, 0.0, 0.0)),
-        metaballField(hit_local + vec3(0.0, u_normal_epsilon, 0.0)) - metaballField(hit_local - vec3(0.0, u_normal_epsilon, 0.0)),
-        metaballField(hit_local + vec3(0.0, 0.0, u_normal_epsilon)) - metaballField(hit_local - vec3(0.0, 0.0, u_normal_epsilon))
+        metaballField(hit_local_position + vec3(u_normal_epsilon, 0.0, 0.0)) - metaballField(hit_local_position - vec3(u_normal_epsilon, 0.0, 0.0)),
+        metaballField(hit_local_position + vec3(0.0, u_normal_epsilon, 0.0)) - metaballField(hit_local_position - vec3(0.0, u_normal_epsilon, 0.0)),
+        metaballField(hit_local_position + vec3(0.0, 0.0, u_normal_epsilon)) - metaballField(hit_local_position - vec3(0.0, 0.0, u_normal_epsilon))
     );
     vec3 local_normal = normalize(-gradient);
 
-    vec3 world_position = u_effect_position + u_effect_scale * hit_local;
+    vec3 world_position = u_effect_position + u_effect_scale * hit_local_position;
 
     vec3 view_position = (viewMatrix * vec4(world_position, 1.0)).xyz;
-    // normalMatrix isn't declared in fragment shaders; with no rotation and uniform scale here,
-    // mat3(viewMatrix) differs from it only by a positive scalar that normalize() below removes.
     vec3 normal = normalize(mat3(viewMatrix) * local_normal);
 
     if (u_bump_enabled > 0.5) {
         vec3 bump = bumpOffset(world_position, 3.5);
         vec3 bump_coordinate_2 = world_position * 8.5;
-        vec3 bump2 = vec3(
+        vec3 bump_2 = vec3(
             simplexNoise(bump_coordinate_2 + vec3(0.0, 0.0, 2.3)),
             simplexNoise(bump_coordinate_2 + vec3(2.1, 0.0, 0.0)),
             simplexNoise(bump_coordinate_2 + vec3(0.0, 3.7, 0.0))
         );
-        normal = normalize(normal + bump * 0.20 + bump2 * 0.10);
+        normal = normalize(normal + bump * 0.20 + bump_2 * 0.10);
     }
 
     vec3 light_direction = normalize(u_light_position - view_position);

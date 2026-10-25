@@ -2,22 +2,22 @@
 import { watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
 import { localize } from './language_state.js';
-import { revealScene } from './scene_transition.js';
+import { revealScene, shrinkIntoPreview } from './scene_transition.js';
 
 watchEffect(() => { document.title = localize('app.title'); });
 
 const route = useRoute();
 
-// once the scene has faded in completely, the zoomed screenshot covering it fades out
-function onRouteEntered() {
-    if (route.name === 'main-scene') revealScene();
+function finishTransition() {
+    if (route.meta.scene) revealScene();
+    else shrinkIntoPreview();
 }
 </script>
 
 <template>
-    <RouterView v-slot="{ Component }">
-        <Transition name="fade" mode="out-in" @after-enter="onRouteEntered">
-            <component :is="Component" />
+    <RouterView v-slot="{ Component: route_component }">
+        <Transition name="fade" mode="out-in" @after-enter="finishTransition">
+            <component :is="route_component" />
         </Transition>
     </RouterView>
 </template>
@@ -53,7 +53,6 @@ body {
     pointer-events: none;
 }
 
-/* a CSS transform animation keeps spinning even while building the scene blocks the main thread */
 .scene-transition-spinner {
     position: fixed;
     top: 50%;

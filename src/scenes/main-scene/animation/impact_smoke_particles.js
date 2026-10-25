@@ -1,4 +1,4 @@
-import { random } from '../rand.js';
+import { random } from '../random.js';
 import {
     INTERACTION_SMOKE_MAX_BURSTS,
     INTERACTION_SMOKE_PARTICLES_PER_BURST,
@@ -9,7 +9,7 @@ export const PARTICLE_COUNT = INTERACTION_SMOKE_MAX_BURSTS * INTERACTION_SMOKE_P
 
 function createParticleSeeds() {
     const burst_index = new Float32Array(PARTICLE_COUNT);
-    const seed = new Float32Array(PARTICLE_COUNT * 4); // angle, radius_seed, rise_seed, shape_seed
+    const seed = new Float32Array(PARTICLE_COUNT * 4);
     const phase_offset = new Float32Array(PARTICLE_COUNT);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         burst_index[i] = Math.floor(i / INTERACTION_SMOKE_PARTICLES_PER_BURST);

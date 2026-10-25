@@ -1,8 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { expandIntoScene, revealScene } from '../scene_transition.js';
+import { expandIntoScene, revealScene, coverWithScreenshot, shrinkIntoPreview, whenReturnFinished } from '../scene_transition.js';
 import { translate } from '../ui/language.js';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeAnimationMock() {
     return vi.fn(function animate(keyframes, options) {
@@ -19,6 +17,14 @@ function makePreview({ left = 100, top = 120, width = 800, height = 450 } = {}) 
     document.body.appendChild(frame);
     return { frame, image };
 }
+
+function makeReturnPreview(scene_name, bounds = {}) {
+    const preview = makePreview(bounds);
+    preview.frame.dataset.scenePreview = scene_name;
+    return preview;
+}
+
+const SCREENSHOT_URL = 'data:image/png;base64,BBBB';
 
 function overlay() {
     return document.querySelector('.scene-transition-overlay');
@@ -38,12 +44,11 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-    await revealScene(); // clears any overlay left over from the test
+    await revealScene();
+    await shrinkIntoPreview();
     vi.unstubAllGlobals();
     vi.useRealTimers();
 });
-
-// ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('expandIntoScene', () => {
     test('puts the screenshot on top, growing from its frame to the whole window', async () => {
@@ -56,6 +61,24 @@ describe('expandIntoScene', () => {
         expect(keyframes[1]).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px`, height: `${window.innerHeight}px`, borderRadius: '0px' });
         expect(options.fill).toBe('forwards');
         expect(options.duration).toBeGreaterThan(0);
+    });
+
+    test('moves and grows a small, off-centre preview in a single motion', async () => {
+        await expandIntoScene(makePreview({ left: 100, top: 600, width: 400, height: 225 }));
+
+        expect(Element.prototype.animate).toHaveBeenCalledTimes(1);
+        const [keyframes] = Element.prototype.animate.mock.calls[0];
+        expect(keyframes[0]).toMatchObject({ left: '100px', top: '600px', width: '400px', height: '225px' });
+        expect(keyframes[1]).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px` });
+    });
+
+    test('hides the original preview while the screenshot is lifted off it, and restores it if the scene never shows', async () => {
+        const preview = makePreview();
+        await expandIntoScene(preview);
+        expect(preview.frame.style.visibility).toBe('hidden');
+
+        await revealScene();
+        expect(preview.frame.style.visibility).toBe('');
     });
 
     test('shows a loading spinner once the screenshot is full size, labelled in the current language', async () => {
@@ -108,6 +131,104 @@ describe('revealScene', () => {
 
     test('does nothing when no screenshot is covering the scene', async () => {
         await revealScene();
+        expect(Element.prototype.animate).not.toHaveBeenCalled();
+    });
+});
+
+describe('coverWithScreenshot', () => {
+    test('covers the whole window with the scene’s screenshot', () => {
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+
+        expect(overlay().src).toBe(SCREENSHOT_URL);
+        expect(overlay().style).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px`, height: `${window.innerHeight}px` });
+    });
+
+    test('replaces an earlier cover instead of stacking a second one', () => {
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+        coverWithScreenshot(SCREENSHOT_URL, 'noise-scene');
+
+        expect(document.querySelectorAll('.scene-transition-overlay')).toHaveLength(1);
+    });
+});
+
+describe('shrinkIntoPreview', () => {
+    test('shrinks the screenshot from the whole window onto the scene’s preview, then hands over to it', async () => {
+        const preview = makeReturnPreview('main-scene');
+        let visibility_during_shrink = 'not checked';
+        Element.prototype.animate = vi.fn(function animate(keyframes, options) {
+            visibility_during_shrink = preview.frame.style.visibility;
+            return { keyframes, options, finished: Promise.resolve() };
+        });
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+
+        await shrinkIntoPreview();
+
+        const [[keyframes, options]] = Element.prototype.animate.mock.calls;
+        expect(keyframes[0]).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px`, borderRadius: '0px' });
+        expect(keyframes[1]).toMatchObject({ left: '100px', top: '120px', width: '800px', height: '450px', borderRadius: '12px' });
+        expect(options.duration).toBeGreaterThan(0);
+        expect(visibility_during_shrink).toBe('hidden');
+        expect(preview.frame.style.visibility).toBe('');
+        expect(overlay()).toBeNull();
+    });
+
+    test('shrinks onto a small, off-centre preview in a single motion', async () => {
+        makeReturnPreview('noise-scene', { left: 100, top: 600, width: 400, height: 225 });
+        coverWithScreenshot(SCREENSHOT_URL, 'noise-scene');
+
+        await shrinkIntoPreview();
+
+        expect(Element.prototype.animate).toHaveBeenCalledTimes(1);
+        expect(Element.prototype.animate.mock.calls[0][0][1]).toMatchObject({ left: '100px', top: '600px', width: '400px', height: '225px' });
+    });
+
+    test('only moves the preview of the scene that was left', async () => {
+        const other_preview = makeReturnPreview('metaballs-scene');
+        makeReturnPreview('noise-scene', { left: 30 });
+        coverWithScreenshot(SCREENSHOT_URL, 'noise-scene');
+
+        await shrinkIntoPreview();
+
+        expect(Element.prototype.animate.mock.calls[0][0][1]).toMatchObject({ left: '30px' });
+        expect(other_preview.frame.style.visibility).toBe('');
+    });
+
+    test('fades the screenshot out when the preview cannot be found', async () => {
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+
+        await shrinkIntoPreview();
+
+        expect(Element.prototype.animate.mock.calls[0][0].at(-1)).toEqual({ opacity: 0 });
+        expect(overlay()).toBeNull();
+    });
+
+    test('skips the shrinking when the user prefers reduced motion', async () => {
+        reduced_motion = true;
+        makeReturnPreview('main-scene');
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+
+        await shrinkIntoPreview();
+
+        expect(Element.prototype.animate.mock.calls[0][1].duration).toBe(0);
+    });
+
+    test('lets others wait until the screenshot has settled into its preview', async () => {
+        makeReturnPreview('main-scene');
+        coverWithScreenshot(SCREENSHOT_URL, 'main-scene');
+        let is_finished = false;
+        whenReturnFinished().then(() => { is_finished = true; });
+
+        await Promise.resolve();
+        expect(is_finished).toBe(false);
+
+        await shrinkIntoPreview();
+        await Promise.resolve();
+        expect(is_finished).toBe(true);
+    });
+
+    test('does nothing without a cover', async () => {
+        makeReturnPreview('main-scene');
+        await shrinkIntoPreview();
         expect(Element.prototype.animate).not.toHaveBeenCalled();
     });
 });

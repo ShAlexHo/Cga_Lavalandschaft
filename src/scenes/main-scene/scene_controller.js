@@ -11,14 +11,14 @@ import { SMOKE_SPAWN_HEIGHT, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST
 import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
-export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled }) {
+export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled, signal }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
     const smoke = createSmoke(scene);
     const sun = createSun(scene);
     const sky = createSky(scene);
-    const interaction = createInteractionController(renderer, volcano.mesh);
+    const interaction = createInteractionController(renderer, volcano.mesh, { signal });
     const impact_smoke = createImpactSmoke(scene);
     const volcano_audio = createVolcanoAudio();
 
@@ -87,8 +87,6 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             }
         },
 
-        // Steps only the lava simulation, the one stateful part - sun, smoke and the rest derive
-        // from the time alone. Spawns along the way stay silent.
         fastForward(duration, step) {
             const step_count = Math.floor(duration / step);
             for (let i = 0; i <= step_count; i++) metaball_field.update(i * step, camera, volcano.mesh.position);
@@ -100,11 +98,11 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         setPaused: value => metaball_field.setPaused(value),
 
         getTimeScale: () => time_scale * getWaveBoostMultiplier(),
-        setTimeScale: value => { time_scale = value; },
+        setTimeScale(value) { time_scale = value; },
         getBaseTimeScale: () => time_scale,
 
         getInteractionMode: () => interaction.getEnabled(),
-        setInteractionMode: value => {
+        setInteractionMode(value) {
             interaction.setEnabled(value);
             setControlsEnabled(!value);
         },
@@ -127,7 +125,10 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getMetaballDisappearY: () => metaball_field.getDisappearY(),
         setMetaballDisappearY: value => metaball_field.setDisappearY(value),
         getMetaballHeight: () => metaball_y_offset,
-        setMetaballHeight: value => { metaball_y_offset = value; applyY(ground.mesh.position.y); },
+        setMetaballHeight(value) {
+            metaball_y_offset = value;
+            applyY(ground.mesh.position.y);
+        },
         getFlowRadius: () => metaball_field.getFlowRadius(),
         setFlowRadius: value => metaball_field.setFlowRadius(value),
 
@@ -200,18 +201,18 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getVolcanoRockColor: () => volcano.getRockColor(),
         setVolcanoRockColor: value => volcano.setRockColor(value),
         getVolcanoDisplacementScale: () => volcano.getDisplacementScale(),
-        setVolcanoDisplacementScale: value => {
+        setVolcanoDisplacementScale(value) {
             volcano.setDisplacementScale(value);
             ground.setVolcanoCrackScale(value);
         },
         getVolcanoDisplacementFrequency: () => volcano.getDisplacementFrequency(),
-        setVolcanoDisplacementFrequency: value => {
+        setVolcanoDisplacementFrequency(value) {
             volcano.setDisplacementFrequency(value);
             ground.setVolcanoCrackFrequency(value);
         },
 
         getSunVisible: () => sun.getVisible(),
-        setSunVisible: value => {
+        setSunVisible(value) {
             sun.setVisible(value);
             god_rays_pass.enabled = value;
             ground.setSunEnabled(value);
@@ -220,14 +221,17 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             impact_smoke.setSunEnabled(value);
         },
         getSunStrength: () => volcano.getSunStrength(),
-        setSunStrength: value => {
+        setSunStrength(value) {
             ground.setSunStrength(value);
             volcano.setSunStrength(value);
             smoke.setSunStrength(value);
             impact_smoke.setSunStrength(value);
         },
         getSunFocus: () => volcano.getSunFocus(),
-        setSunFocus: value => { ground.setSunFocus(value); volcano.setSunFocus(value); },
+        setSunFocus(value) {
+            ground.setSunFocus(value);
+            volcano.setSunFocus(value);
+        },
 
         getSmokeVisible: () => smoke.getVisible(),
         setSmokeVisible: value => smoke.setVisible(value),
@@ -250,28 +254,37 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         setSmokeEmberCoolingTime: value => smoke.setEmberCoolingTime(value),
 
         getOffsetX: () => position.x,
-        setOffsetX: value => {
-            position.x = value; volcano.mesh.position.x = value; metaball_field.effect.position.x = value; smoke.effect.position.x = value;
+        setOffsetX(value) {
+            position.x = value;
+            volcano.mesh.position.x = value;
+            metaball_field.effect.position.x = value;
+            smoke.effect.position.x = value;
             volcano.rebakeCrackDisplacement();
             ground.rebakeDisplacement(volcano.mesh.position);
         },
         getOffsetY: () => position.y,
-        setOffsetY: value => { position.y = value; applyY(ground.mesh.position.y); },
+        setOffsetY(value) {
+            position.y = value;
+            applyY(ground.mesh.position.y);
+        },
         getOffsetZ: () => position.z,
-        setOffsetZ: value => {
-            position.z = value; volcano.mesh.position.z = value; metaball_field.effect.position.z = value; smoke.effect.position.z = value;
+        setOffsetZ(value) {
+            position.z = value;
+            volcano.mesh.position.z = value;
+            metaball_field.effect.position.z = value;
+            smoke.effect.position.z = value;
             volcano.rebakeCrackDisplacement();
             ground.rebakeDisplacement(volcano.mesh.position);
         },
 
         getBloomEnabled: () => bloom_pass.enabled,
-        setBloomEnabled: value => { bloom_pass.enabled = value; },
+        setBloomEnabled(value) { bloom_pass.enabled = value; },
         getBloomStrength: () => bloom_pass.strength,
-        setBloomStrength: value => { bloom_pass.strength = value; },
+        setBloomStrength(value) { bloom_pass.strength = value; },
         getBloomRadius: () => bloom_pass.radius,
-        setBloomRadius: value => { bloom_pass.radius = value; },
+        setBloomRadius(value) { bloom_pass.radius = value; },
         getBloomThreshold: () => bloom_pass.threshold,
-        setBloomThreshold: value => { bloom_pass.threshold = value; },
+        setBloomThreshold(value) { bloom_pass.threshold = value; },
 
         getSkyColor: () => sky.getColor(),
         setSkyColor: value => sky.setColor(value),
@@ -289,6 +302,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
 
         startAudio: () => volcano_audio.start(),
         stopAudio: () => volcano_audio.stop(),
+        closeAudio: () => volcano_audio.close(),
         getSoundEnabled: () => volcano_audio.getEnabled(),
         setSoundEnabled: value => volcano_audio.setEnabled(value),
         getSoundVolume: () => volcano_audio.getVolume(),
@@ -299,8 +313,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
     };
 
-    // single source of truth: getSnapshot() and the restore-by-key SETTERS map both derive from this
-    const SETTINGS = [
+    const setting_bindings = [
         { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
         { key: 'timeScale', get: () => controller.getBaseTimeScale(), set: value => controller.setTimeScale(value) },
         { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
@@ -375,17 +388,17 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         { key: 'soundVolume', get: () => controller.getSoundVolume(), set: value => controller.setSoundVolume(value) },
     ];
 
-    const SETTERS = Object.fromEntries(SETTINGS.map(({ key, set }) => [key, set]));
+    const setters_by_key = Object.fromEntries(setting_bindings.map(({ key, set }) => [key, set]));
 
     function getSnapshot() {
         const snapshot = {};
-        for (const { key, get } of SETTINGS) snapshot[key] = get();
+        for (const { key, get } of setting_bindings) snapshot[key] = get();
         return snapshot;
     }
 
     function applySnapshot(data) {
         for (const [key, value] of Object.entries(data)) {
-            if (SETTERS[key]) SETTERS[key](value);
+            if (setters_by_key[key]) setters_by_key[key](value);
         }
     }
 

@@ -2,7 +2,6 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
-    // software WebGL takes seconds per frame, so tests run one at a time
     workers: 1,
     timeout: 180_000,
     reporter: 'list',
@@ -10,9 +9,6 @@ export default defineConfig({
         baseURL: 'http://localhost:5183',
         ...devices['Desktop Chrome'],
         launchOptions: {
-            // Headless Chromium needs to be told explicitly to allow WebGL via
-            // software rendering (SwiftShader/ANGLE) - without these flags the
-            // canvas silently fails to acquire a WebGL context in CI.
             args: [
                 '--use-gl=angle',
                 '--use-angle=swiftshader',

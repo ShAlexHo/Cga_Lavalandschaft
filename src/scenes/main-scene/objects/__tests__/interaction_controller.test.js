@@ -32,9 +32,9 @@ import {
 import { INTERACTION_AUTO_TOUCH_MIN_INTERVAL, INTERACTION_AUTO_TOUCH_MAX_INTERVAL, INTERACTION_AUTO_TOUCH_HOLD_DURATION } from '../../config.js';
 
 function makeRenderer() {
-    const domElement = document.createElement('div');
-    domElement.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 600 });
-    return { domElement };
+    const dom_element = document.createElement('div');
+    dom_element.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 600 });
+    return { domElement: dom_element };
 }
 
 function makeMesh() { return {}; }
@@ -106,15 +106,30 @@ describe('createInteractionController', () => {
         expect(registerTouch).not.toHaveBeenCalled();
     });
 
+    test('aborting the signal removes the window mouseup listener, so a closed scene leaves nothing behind', () => {
+        const renderer = makeRenderer();
+        const lifetime = new AbortController();
+        const controller = createInteractionController(renderer, makeMesh(), { signal: lifetime.signal });
+        settings.enabled = true;
+
+        lifetime.abort();
+        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        window.dispatchEvent(new MouseEvent('mouseup'));
+        raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
+        controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }], vi.fn());
+
+        expect(registerTouch).toHaveBeenCalled();
+    });
+
     test('step() only raycasts when interaction mode is enabled, regardless of whether the mouse is pressed', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
 
-        controller.step(0, {}, () => []); // disabled, never raycasts
+        controller.step(0, {}, () => []);
         expect(raycaster_instances[0].setFromCamera).not.toHaveBeenCalled();
 
         settings.enabled = true;
-        controller.step(0, {}, () => []); // enabled - raycasts for hover even though never pressed
+        controller.step(0, {}, () => []);
         expect(raycaster_instances[0].setFromCamera).toHaveBeenCalled();
     });
 
@@ -264,9 +279,9 @@ describe('hover cursor', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
-        renderer.domElement.style.cursor = 'pointer'; // left over from a previous hover
+        renderer.domElement.style.cursor = 'pointer';
 
-        controller.step(0, {}, () => []); // raycaster mock returns no hit by default
+        controller.step(0, {}, () => []);
 
         expect(renderer.domElement.style.cursor).toBe('');
         expect(isOnLava).not.toHaveBeenCalled();
@@ -332,19 +347,19 @@ describe('auto touch (autonomous mode)', () => {
             controller.step(total, camera, () => metaballs, undefined, frame_delta);
             total += frame_delta;
         }
-        expect(registerTouch).toHaveBeenCalledTimes(1); // just started
+        expect(registerTouch).toHaveBeenCalledTimes(1);
 
         controller.step(total, camera, () => metaballs, undefined, frame_delta);
         expect(registerTouch).toHaveBeenCalledTimes(2);
-        expect(registerTouch.mock.calls[1][1]).toBe(registerTouch.mock.calls[0][1]); // same target throughout
+        expect(registerTouch.mock.calls[1][1]).toBe(registerTouch.mock.calls[0][1]);
 
         controller.step(total, camera, () => metaballs, undefined, frame_delta);
         expect(registerTouch).toHaveBeenCalledTimes(3);
 
-        controller.step(total, camera, () => metaballs, undefined, frame_delta); // crosses the hold duration - fires once more, then ends
+        controller.step(total, camera, () => metaballs, undefined, frame_delta);
         expect(registerTouch).toHaveBeenCalledTimes(4);
 
-        controller.step(total, camera, () => metaballs, undefined, frame_delta); // press has ended
+        controller.step(total, camera, () => metaballs, undefined, frame_delta);
         expect(registerTouch).toHaveBeenCalledTimes(4);
     });
 
@@ -387,7 +402,6 @@ describe('auto touch (autonomous mode)', () => {
         controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, INTERACTION_AUTO_TOUCH_MAX_INTERVAL);
         settings.enabled = false;
 
-        // the countdown just restarted, so even this much elapsed real time (just under the floor of a fresh interval) should not fire yet
         controller.step(0, { position: { x: 0, y: 0, z: 0 } }, () => [{ x: 1, y: 2, z: 3 }], undefined, INTERACTION_AUTO_TOUCH_MIN_INTERVAL - 1);
 
         expect(registerTouch).not.toHaveBeenCalled();

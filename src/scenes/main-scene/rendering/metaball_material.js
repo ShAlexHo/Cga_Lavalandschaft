@@ -14,17 +14,18 @@ import { computeLightViewPosition } from './light_utils.js';
 import { cameraArcVisibility, worldAzimuth, horizontalDistance } from '../animation/math_utils.js';
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(METABALL_LIGHT_POSITION.x, METABALL_LIGHT_POSITION.y, METABALL_LIGHT_POSITION.z);
-const _light_view_position = new THREE.Vector3();
+const scratch_light_view_position = new THREE.Vector3();
 
-// Compile-time array/loop sizes for GLSL; mirrors INTERACTION_MAX_POINTS in volcano_material.js.
-const fragment_glsl_resolved = fragment_glsl
-    .replaceAll('METABALL_GPU_MAX_BALLS', METABALL_GPU_MAX_BALLS)
-    .replaceAll('METABALL_RAYMARCH_MAX_STEPS', METABALL_RAYMARCH_MAX_STEPS);
+function resolveFragmentShader(max_balls) {
+    return fragment_glsl
+        .replaceAll('METABALL_GPU_MAX_BALLS', max_balls)
+        .replaceAll('METABALL_RAYMARCH_MAX_STEPS', METABALL_RAYMARCH_MAX_STEPS);
+}
 
-export function createMetaballMaterial() {
+export function createMetaballMaterial({ max_balls = METABALL_GPU_MAX_BALLS } = {}) {
     return new THREE.ShaderMaterial({
         vertexShader: noise_glsl + vertex_glsl,
-        fragmentShader: noise_glsl + fragment_glsl_resolved,
+        fragmentShader: noise_glsl + resolveFragmentShader(max_balls),
         glslVersion: THREE.GLSL3,
         uniforms: {
             u_light_position: { value: new THREE.Vector3() },
@@ -38,9 +39,10 @@ export function createMetaballMaterial() {
             u_noise_color_2: { value: new THREE.Color(DEFAULT_SETTINGS.noiseColor2) },
             u_bump_enabled: { value: DEFAULT_SETTINGS.bumpEnabled ? 1.0 : 0.0 },
             u_displacement: { value: DEFAULT_SETTINGS.displacementStrength },
-            u_ball_center: { value: Array.from({ length: METABALL_GPU_MAX_BALLS }, () => new THREE.Vector3()) },
-            u_ball_strength: { value: new Float32Array(METABALL_GPU_MAX_BALLS) },
-            u_ball_subtract: { value: new Float32Array(METABALL_GPU_MAX_BALLS) },
+            u_ball_center: { value: Array.from({ length: max_balls }, () => new THREE.Vector3()) },
+            u_ball_strength: { value: new Float32Array(max_balls) },
+            u_ball_subtract: { value: new Float32Array(max_balls) },
+            u_ball_count: { value: 0 },
             u_isolation: { value: DEFAULT_SETTINGS.metaballIsolation },
             u_effect_position: { value: new THREE.Vector3() },
             u_effect_scale: { value: 1.0 },
@@ -58,14 +60,12 @@ export function createMetaballMaterial() {
 }
 
 export function updateMetaballLight(material, camera, time) {
-    computeLightViewPosition(camera, LIGHT_WORLD_POSITION, _light_view_position);
-    material.uniforms.u_light_position.value.copy(_light_view_position);
+    computeLightViewPosition(camera, LIGHT_WORLD_POSITION, scratch_light_view_position);
+    material.uniforms.u_light_position.value.copy(scratch_light_view_position);
     material.uniforms.u_time.value = time;
     material.uniforms.u_projection_matrix.value.copy(camera.projectionMatrix);
 }
 
-// Field-space ball data, doubled into the raymarcher's local coordinate space (see metaball.frag);
-// unused slots get strength 0. camera is optional - omit it to skip visibility culling.
 export function updateMetaballBalls(effect, balls, camera) {
     const uniforms = effect.material.uniforms;
     const centers = uniforms.u_ball_center.value;
@@ -73,7 +73,7 @@ export function updateMetaballBalls(effect, balls, camera) {
     const subtracts = uniforms.u_ball_subtract.value;
     const radius_scale_squared = effect.radius_scale * effect.radius_scale;
     const camera_azimuth = camera && worldAzimuth(effect.position, camera.position);
-    for (let i = 0; i < METABALL_GPU_MAX_BALLS; i++) {
+    for (let i = 0; i < centers.length; i++) {
         const ball = balls[i];
         if (ball) {
             centers[i].set(2 * ball.x - 1, 2 * ball.y - 1, 2 * ball.z - 1);
@@ -84,6 +84,7 @@ export function updateMetaballBalls(effect, balls, camera) {
             strengths[i] = 0.0;
         }
     }
+    uniforms.u_ball_count.value = Math.min(balls.length, centers.length);
     uniforms.u_isolation.value = effect.isolation;
     uniforms.u_effect_position.value.copy(effect.position);
     uniforms.u_effect_scale.value = effect.scale.x;

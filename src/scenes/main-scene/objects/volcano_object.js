@@ -10,9 +10,11 @@ export function createVolcano(scene) {
     const mesh = createVolcanoGeometry(scene, material);
     mesh.castShadow = true;
 
-    const rebakeCrackDisplacement = () => bakeCrackDisplacement(
-        mesh, material.uniforms.u_displacement_frequency.value, material.uniforms.u_displacement_scale.value,
-    );
+    function rebakeCrackDisplacement() {
+        return bakeCrackDisplacement(
+            mesh, material.uniforms.u_displacement_frequency.value, material.uniforms.u_displacement_scale.value,
+        );
+    }
 
     return {
         mesh,

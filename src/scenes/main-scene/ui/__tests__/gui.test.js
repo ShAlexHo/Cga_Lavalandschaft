@@ -1,12 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-// ─── Mock dat.gui ────────────────────────────────────────────────────────────
-
-vi.mock('dat.gui', () => {
-    return { GUI: vi.fn() };
-});
-
-// ─── Mock persistence.js ─────────────────────────────────────────────────────
+vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 
 vi.mock('../../persistence/persistence.js', () => ({
     saveToLocalStorage: vi.fn(),
@@ -20,12 +14,8 @@ import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../../persistence/persistence.js';
 import { setLanguage } from '../../../../ui/language.js';
 
-// the folder-based lookups below use the German labels
 beforeEach(() => setLanguage('de'));
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** A minimal fake of the scene_controller facade, with sensible getter defaults. */
 function makeFacade(overrides = {}) {
     return {
         isPaused: vi.fn(() => false),
@@ -196,24 +186,17 @@ function makeFacade(overrides = {}) {
     };
 }
 
-/** A controller stub supporting the chaining setupGui relies on: .name().onChange(). */
 function makeController() {
     const controller = {
-        _on_change_callback: null,
+        on_change_callback: null,
         name: vi.fn().mockReturnThis(),
-        onChange: vi.fn(callback => { controller._on_change_callback = callback; return controller; }),
+        onChange: vi.fn(callback => { controller.on_change_callback = callback; return controller; }),
         listen: vi.fn().mockReturnThis(),
         updateDisplay: vi.fn(),
     };
     return controller;
 }
 
-/**
- * Builds a fake dat.gui root + folders. Every add()/addColor() call is recorded
- * into `registry`, tagged with the folder name it was created under, so tests
- * can look up "the controller bound to Boden/height" without caring about call
- * order.
- */
 function makeMockGui() {
     const registry = [];
 
@@ -233,6 +216,7 @@ function makeMockGui() {
         add: record('root'),
         addColor: record('root'),
         addFolder: vi.fn(name => makeFolder(name)),
+        destroy: vi.fn(),
     };
     GUI.mockImplementation(() => gui);
     return { gui, registry };
@@ -246,11 +230,9 @@ function find(registry, folder, key) {
 
 function fire(registry, folder, key, value) {
     const entry = find(registry, folder, key);
-    expect(entry.controller._on_change_callback).toBeTypeOf('function');
-    entry.controller._on_change_callback(value);
+    expect(entry.controller.on_change_callback).toBeTypeOf('function');
+    entry.controller.on_change_callback(value);
 }
-
-// ─── structure ───────────────────────────────────────────────────────────────
 
 describe('setupGui – structure', () => {
     test('creates a GUI instance', () => {
@@ -324,13 +306,11 @@ describe('setupGui – structure', () => {
         const facade = makeFacade({ getInteractionMode: vi.fn(() => true) });
         setupGui(facade);
         const entry = find(registry, 'root', 'autonomous_mode');
-        expect(entry.bound_object.autonomous_mode).toBe(false); // interaction mode is on -> not autonomous
-        fire(registry, 'root', 'autonomous_mode', true); // switching autonomous mode on...
-        expect(facade.setInteractionMode).toHaveBeenCalledWith(false); // ...turns interaction mode off
+        expect(entry.bound_object.autonomous_mode).toBe(false);
+        fire(registry, 'root', 'autonomous_mode', true);
+        expect(facade.setInteractionMode).toHaveBeenCalledWith(false);
     });
 });
-
-// ─── Metaballs folder ────────────────────────────────────────────────────────
 
 describe('setupGui – Metaballs folder', () => {
     test('height control is seeded from facade.getMetaballHeight()', () => {
@@ -348,8 +328,6 @@ describe('setupGui – Metaballs folder', () => {
     });
 });
 
-// ─── Lavafarbe folder ────────────────────────────────────────────────────────
-
 describe('setupGui – Lavafarbe folder', () => {
     test.each([
         ['color_hot', 'setColorHot', '#ff0000'],
@@ -364,8 +342,6 @@ describe('setupGui – Lavafarbe folder', () => {
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
-
-// ─── Noise folder ────────────────────────────────────────────────────────────
 
 describe('setupGui – Noise folder', () => {
     test.each([
@@ -383,8 +359,6 @@ describe('setupGui – Noise folder', () => {
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
-
-// ─── Boden folder ────────────────────────────────────────────────────────────
 
 describe('setupGui – Boden folder', () => {
     test.each([
@@ -406,8 +380,6 @@ describe('setupGui – Boden folder', () => {
     });
 });
 
-// ─── Vulkan folder ───────────────────────────────────────────────────────────
-
 describe('setupGui – Vulkan folder', () => {
     test.each([
         ['visible', 'setVolcanoVisible', false],
@@ -423,8 +395,6 @@ describe('setupGui – Vulkan folder', () => {
     });
 });
 
-// ─── Sonne folder ────────────────────────────────────────────────────────────
-
 describe('setupGui – Sonne folder', () => {
     test.each([
         ['visible', 'setSunVisible', false],
@@ -438,8 +408,6 @@ describe('setupGui – Sonne folder', () => {
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
-
-// ─── Rauch & Asche folder ────────────────────────────────────────────────────
 
 describe('setupGui – Rauch & Asche folder', () => {
     test('count control is seeded from getSmokeCount/getMaxSmokeCount and writes back via setSmokeCount', () => {
@@ -470,8 +438,6 @@ describe('setupGui – Rauch & Asche folder', () => {
     });
 });
 
-// ─── Bloom folder ────────────────────────────────────────────────────────────
-
 describe('setupGui – Bloom folder', () => {
     test.each([
         ['enabled', 'setBloomEnabled', false],
@@ -485,8 +451,6 @@ describe('setupGui – Bloom folder', () => {
     });
 });
 
-// ─── Himmel folder ───────────────────────────────────────────────────────────
-
 describe('setupGui – Himmel folder', () => {
     test('color onChange calls facade.setSkyColor', () => {
         const { registry } = makeMockGui();
@@ -496,8 +460,6 @@ describe('setupGui – Himmel folder', () => {
         expect(facade.setSkyColor).toHaveBeenCalledWith('#123456');
     });
 });
-
-// ─── Lichtstrahlen folder ────────────────────────────────────────────────────
 
 describe('setupGui – Lichtstrahlen folder', () => {
     test.each([
@@ -515,8 +477,6 @@ describe('setupGui – Lichtstrahlen folder', () => {
     });
 });
 
-// ─── Sound folder ────────────────────────────────────────────────────────────
-
 describe('setupGui – Sound folder', () => {
     test.each([
         ['enabled', false, 'setSoundEnabled'],
@@ -529,8 +489,6 @@ describe('setupGui – Sound folder', () => {
         expect(facade[setter]).toHaveBeenCalledWith(value);
     });
 });
-
-// ─── Persistenz ──────────────────────────────────────────────────────────────
 
 describe('setupGui – Zurücksetzen', () => {
     beforeEach(() => {
@@ -589,8 +547,6 @@ describe('setupGui – Zurücksetzen', () => {
     });
 });
 
-// ─── Language ────────────────────────────────────────────────────────────────
-
 describe('setupGui – language', () => {
     test('labels folders and controls in English when English is selected', () => {
         setLanguage('en');
@@ -630,7 +586,42 @@ describe('setupGui – language', () => {
     });
 });
 
-// ─── mode_controls_only ──────────────────────────────────────────────────────
+describe('setupGui – lifetime', () => {
+    beforeEach(() => {
+        saveToLocalStorage.mockClear();
+        loadFromLocalStorage.mockClear().mockReturnValue(null);
+    });
+
+    test('restore_saved: false ignores localStorage, for a scene resumed from memory', () => {
+        makeMockGui();
+        loadFromLocalStorage.mockReturnValue({ interactionMode: true, timeScale: 3 });
+        const facade = makeFacade();
+        setupGui(facade, { mode_controls_only: true, restore_saved: false });
+
+        expect(facade.applySnapshot).not.toHaveBeenCalled();
+    });
+
+    test('aborting the signal saves the settings, destroys the panel and removes its listeners', () => {
+        const { gui, registry } = makeMockGui();
+        const snapshot = { interactionMode: true };
+        const facade = makeFacade({ getSnapshot: vi.fn(() => snapshot) });
+        const lifetime = new AbortController();
+        setupGui(facade, { mode_controls_only: true, signal: lifetime.signal });
+
+        lifetime.abort();
+        expect(saveToLocalStorage).toHaveBeenCalledWith(snapshot);
+        expect(gui.destroy).toHaveBeenCalledTimes(1);
+
+        facade.getSnapshot.mockClear();
+        window.dispatchEvent(new Event('beforeunload'));
+        expect(facade.getSnapshot).not.toHaveBeenCalled();
+
+        const interaction_mode_controller = find(registry, 'root', 'interaction_mode').controller;
+        interaction_mode_controller.name.mockClear();
+        setLanguage('en');
+        expect(interaction_mode_controller.name).not.toHaveBeenCalled();
+    });
+});
 
 describe('setupGui – mode_controls_only', () => {
     beforeEach(() => {

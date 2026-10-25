@@ -51,10 +51,9 @@ describe('ballToWorldPosition', () => {
 
 describe('ballToWorldRadius', () => {
     test('matches the isosurface radius derived from the metaball field\'s own contribution formula', () => {
-        // strength / (isolation + subtract) = 0.8 / 80 = 0.01 -> field radius sqrt(0.01) = 0.1
         const effect = { isolation: 50, scale: { x: 30 }, radius_scale: 1 };
         const ball = { strength: 0.8, subtract: 30 };
-        expect(ballToWorldRadius(ball, effect)).toBeCloseTo(6.0, 9); // 2 * 30 * 0.1
+        expect(ballToWorldRadius(ball, effect)).toBeCloseTo(6.0, 9);
     });
 
     test('scales linearly with effect.scale.x', () => {
@@ -71,6 +70,6 @@ describe('ballToWorldRadius', () => {
 
     test('scales linearly with effect.radius_scale', () => {
         const ball = { strength: 0.8, subtract: 30 };
-        expect(ballToWorldRadius(ball, { isolation: 50, scale: { x: 30 }, radius_scale: 2 })).toBeCloseTo(12.0, 9); // double the 6.0 base case
+        expect(ballToWorldRadius(ball, { isolation: 50, scale: { x: 30 }, radius_scale: 2 })).toBeCloseTo(12.0, 9);
     });
 });

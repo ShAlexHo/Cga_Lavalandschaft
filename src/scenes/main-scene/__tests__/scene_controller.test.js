@@ -2,17 +2,12 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { makeColor, makeGroundMaterialUniformsMock, MockMesh, MockPlaneGeometry } from '../test-utils/three_mocks.js';
 import { METABALL_GPU_MAX_BALLS, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES } from '../config.js';
 
-// vi.mock() factories hoist above this, so vi.hoisted() is needed to seed their initial state
 const { DEFAULT_SETTINGS, DEFAULT_SMOKE_SETTINGS } = vi.hoisted(() => ({
     DEFAULT_SETTINGS: { count: 100, spread: 1.0, speed_factor: 0.003, sink_speed: 0.25, disappear_y: 0.25, paused: false, max_count: 500, flow_z_radius: 11 },
     DEFAULT_SMOKE_SETTINGS: { count: 200, max_count: 400 },
 }));
 
-// ─── Mock three (only Mesh/PlaneGeometry are used directly here) ────────────
-
 vi.mock('three', () => ({ Mesh: MockMesh, PlaneGeometry: MockPlaneGeometry }));
-
-// ─── Mock the geometry/animation/rendering layers wholesale ─────────────────
 
 vi.mock('../rendering/ground_material.js', () => ({
     createGroundMaterial: vi.fn(() => ({ uniforms: makeGroundMaterialUniformsMock() })),
@@ -124,6 +119,7 @@ vi.mock('../audio/volcano_audio.js', () => ({
         return {
             start: vi.fn(),
             stop: vi.fn(),
+            close: vi.fn(),
             update: vi.fn(),
             playMetaballSpawn: vi.fn(),
             setPressing: vi.fn(),
@@ -222,15 +218,13 @@ import { createSun } from '../objects/sun_object.js';
 import { createInteractionController } from '../objects/interaction_controller.js';
 import { createImpactSmoke } from '../objects/impact_smoke_object.js';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function makeScene() { return { add: vi.fn(), background: makeColor('6b2f1a') }; }
 function makeCamera() { return { matrixWorldInverse: {}, position: { x: 0, y: 0, z: 0 } }; }
 function makeRenderer() { return { domElement: {} }; }
 function makeBloomPass() { return { enabled: true, strength: 0.8, radius: 0.5, threshold: 0.3 }; }
 
 function makeGodRaysPass() {
-    const state = { weight: 0.25, exposure: 0.5, decay: 0.96, density: 0.93, tintColor: '#ff2211' };
+    const state = { weight: 0.25, exposure: 0.5, decay: 0.96, density: 0.93, tint_color: '#ff2211' };
     return {
         enabled: true,
         getWeight: () => state.weight,
@@ -241,8 +235,8 @@ function makeGodRaysPass() {
         setDecay: value => { state.decay = value; },
         getDensity: () => state.density,
         setDensity: value => { state.density = value; },
-        getTintColor: () => state.tintColor,
-        setTintColor: value => { state.tintColor = value; },
+        getTintColor: () => state.tint_color,
+        setTintColor: value => { state.tint_color = value; },
     };
 }
 
@@ -260,12 +254,9 @@ beforeEach(() => {
     Object.assign(mock_smoke_settings, DEFAULT_SMOKE_SETTINGS);
 });
 
-// ─── construction / positioning ──────────────────────────────────────────────
-
 describe('createSceneController – initial positioning', () => {
     test('places ground, volcano and effect exactly like the previous hand-wired setup', () => {
         const controller = makeController();
-        // ground_y=-6, position.y=0, effect_offset=(0.36 - -6)=6.36, metaball_y_offset=DEFAULT_SETTINGS.metaballHeight(2.0, per the mock below)
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
         expect(controller.getMetaballHeight()).toBeCloseTo(2.0, 9);
@@ -281,57 +272,57 @@ describe('createSceneController – time scale', () => {
     });
 
     test('a wave starting briefly boosts getTimeScale without touching the base value, then eases back', () => {
-        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        getWaveStartCount.mockReturnValueOnce(0);
         const controller = makeController();
         controller.setTimeScale(2);
 
-        getWaveStartCount.mockReturnValueOnce(1); // a new wave just started
+        getWaveStartCount.mockReturnValueOnce(1);
         controller.update(0);
         expect(controller.getTimeScale()).toBeCloseTo(2 * METABALL_WAVE_BOOST_MULTIPLIER, 1);
         expect(controller.getBaseTimeScale()).toBe(2);
 
-        getWaveStartCount.mockReturnValueOnce(1); // still the same wave, no further boost triggered
+        getWaveStartCount.mockReturnValueOnce(1);
         controller.update(1);
         expect(controller.getTimeScale()).toBeLessThanOrEqual(2 * METABALL_WAVE_BOOST_MULTIPLIER);
         expect(controller.getTimeScale()).toBeGreaterThanOrEqual(2);
     });
 
     test('the wave-start boost holds at full strength for METABALL_WAVE_BOOST_HOLD_FRAMES frames, then eases back down over METABALL_WAVE_BOOST_DECAY_FRAMES more frames', () => {
-        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        getWaveStartCount.mockReturnValueOnce(0);
         const controller = makeController();
         controller.setTimeScale(1);
-        getWaveStartCount.mockReturnValue(1); // a wave starts and keeps running for the rest of the test
+        getWaveStartCount.mockReturnValue(1);
 
         let frames_elapsed = 0;
         function advanceFrames(count) {
             for (let i = 0; i < count; i++) { controller.update(0); frames_elapsed++; }
         }
 
-        advanceFrames(1); // frames_since_wave_start = 0 -> full boost right at the wave start
+        advanceFrames(1);
         expect(controller.getTimeScale()).toBeCloseTo(METABALL_WAVE_BOOST_MULTIPLIER, 5);
 
-        advanceFrames(METABALL_WAVE_BOOST_HOLD_FRAMES - 1); // frames_since_wave_start = HOLD_FRAMES - 1, still fully held
+        advanceFrames(METABALL_WAVE_BOOST_HOLD_FRAMES - 1);
         expect(controller.getTimeScale()).toBeCloseTo(METABALL_WAVE_BOOST_MULTIPLIER, 5);
 
-        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES / 2 + 1); // now exactly at the decay's smoothstep midpoint
+        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES / 2 + 1);
         expect(controller.getTimeScale()).toBeCloseTo(1 + (METABALL_WAVE_BOOST_MULTIPLIER - 1) * 0.5, 5);
 
-        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES); // long past the full hold+decay window -> settled back to base
+        advanceFrames(METABALL_WAVE_BOOST_DECAY_FRAMES);
         expect(controller.getTimeScale()).toBeCloseTo(1, 5);
     });
 
     test('the wave-start boost stays suppressed while interaction mode is on (autonomous mode only)', () => {
-        getWaveStartCount.mockReturnValueOnce(0); // seeds the initial count read during construction
+        getWaveStartCount.mockReturnValueOnce(0);
         const controller = makeController();
         controller.setTimeScale(2);
         controller.setInteractionMode(true);
 
-        getWaveStartCount.mockReturnValueOnce(1); // a new wave starts while the user is interacting
+        getWaveStartCount.mockReturnValueOnce(1);
         controller.update(0);
-        expect(controller.getTimeScale()).toBe(2); // no boost - interaction mode is on
+        expect(controller.getTimeScale()).toBe(2);
 
-        controller.setInteractionMode(false); // back to autonomous mode
-        expect(controller.getTimeScale()).toBeCloseTo(2 * METABALL_WAVE_BOOST_MULTIPLIER, 1); // boost resumes
+        controller.setInteractionMode(false);
+        expect(controller.getTimeScale()).toBeCloseTo(2 * METABALL_WAVE_BOOST_MULTIPLIER, 1);
     });
 });
 
@@ -340,8 +331,6 @@ describe('createSceneController – setGroundHeight / setOffsetY', () => {
         const controller = makeController();
         controller.setGroundHeight(-3);
         expect(controller.getGroundHeight()).toBe(-3);
-        // volcano.y = ground_y + position.y = -3 + 0 = -3
-        // effect.y  = ground_y + position.y + effect_offset(6.36) + metaball_y_offset(2.0) = 5.36
         expect(controller.getGroundHeight()).toBeCloseTo(-3, 9);
     });
 
@@ -360,8 +349,6 @@ describe('createSceneController – setGroundHeight / setOffsetY', () => {
         expect(controller.getOffsetZ()).toBe(-4);
     });
 });
-
-// ─── metaballs ────────────────────────────────────────────────────────────────
 
 describe('createSceneController – metaballs', () => {
     test('setMetaballCount updates settings.count and rebuilds the field', () => {
@@ -390,8 +377,6 @@ describe('createSceneController – metaballs', () => {
         expect(controller.getMaxMetaballCount()).toBe(METABALL_GPU_MAX_BALLS);
     });
 });
-
-// ─── ground ───────────────────────────────────────────────────────────────────
 
 describe('createSceneController – ground', () => {
     test('color/crack color/displacement getters and setters forward to the ground object', () => {
@@ -432,8 +417,6 @@ describe('createSceneController – ground', () => {
     });
 });
 
-// ─── displacement enabled/last-value memory ──────────────────────────────────
-
 describe('createSceneController – displacement toggle', () => {
     test('getDisplacementStrength keeps the configured value regardless of the enabled toggle', () => {
         const controller = makeController();
@@ -450,8 +433,6 @@ describe('createSceneController – displacement toggle', () => {
     });
 });
 
-// ─── bloom ────────────────────────────────────────────────────────────────────
-
 describe('createSceneController – bloom', () => {
     test('getBloomX/setBloomX forward to the bloom pass, one field at a time', () => {
         const controller = makeController();
@@ -462,8 +443,6 @@ describe('createSceneController – bloom', () => {
         expect(controller.getBloomThreshold()).toBe(0.3);
     });
 });
-
-// ─── snapshot round-trip ──────────────────────────────────────────────────────
 
 describe('createSceneController – getSnapshot / applySnapshot', () => {
     test('applying a snapshot and reading it back yields the same values', () => {
@@ -495,9 +474,9 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
 
     test('applySnapshot ignores unknown keys and leaves other fields unchanged', () => {
         const controller = makeController();
-        const before = controller.getSnapshot();
+        const initial_snapshot = controller.getSnapshot();
         controller.applySnapshot({ unknown_field: 123 });
-        expect(controller.getSnapshot()).toEqual(before);
+        expect(controller.getSnapshot()).toEqual(initial_snapshot);
     });
 
     test('resetToDefaults applies the imported default_settings.json', () => {
@@ -510,8 +489,6 @@ describe('createSceneController – getSnapshot / applySnapshot', () => {
         expect(controller.getSmokeEmberCoolingTime()).toBe(1.1);
     });
 });
-
-// ─── sun ──────────────────────────────────────────────────────────────────────
 
 describe('createSceneController – sun', () => {
     test('getSunVisible/setSunVisible forward to the sun object', () => {
@@ -595,8 +572,6 @@ describe('createSceneController – sun', () => {
     });
 });
 
-// ─── smoke ────────────────────────────────────────────────────────────────────
-
 describe('createSceneController – smoke', () => {
     test('getMaxSmokeCount reflects settings.max_count', () => {
         const controller = makeController();
@@ -643,16 +618,22 @@ describe('createSceneController – smoke', () => {
     });
 });
 
-// ─── interaction mode ─────────────────────────────────────────────────────────
-
 describe('createSceneController – interaction mode', () => {
-    test('creates the interaction controller with the renderer and the volcano mesh', () => {
+    test('creates the interaction controller with the renderer, the volcano mesh and the scene’s lifetime signal', () => {
         const renderer = makeRenderer();
+        const signal = new AbortController().signal;
         createSceneController({
             scene: makeScene(), camera: makeCamera(), renderer,
-            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled: vi.fn(),
+            bloom_pass: makeBloomPass(), god_rays_pass: makeGodRaysPass(), setControlsEnabled: vi.fn(), signal,
         });
-        expect(createInteractionController).toHaveBeenCalledWith(renderer, expect.any(Object));
+        expect(createInteractionController).toHaveBeenCalledWith(renderer, expect.any(Object), { signal });
+    });
+
+    test('closeAudio closes the volcano audio for good', () => {
+        const controller = makeController();
+        const volcano_audio = createVolcanoAudio.mock.results.at(-1).value;
+        controller.closeAudio();
+        expect(volcano_audio.close).toHaveBeenCalledTimes(1);
     });
 
     test('getInteractionMode/setInteractionMode forward to the interaction controller and toggle OrbitControls', () => {
@@ -710,8 +691,6 @@ describe('createSceneController – interaction mode', () => {
     });
 });
 
-// ─── update() lifecycle ───────────────────────────────────────────────────────
-
 describe('createSceneController – update()', () => {
     test('delegates to stepMetaballAnimation, updateMetaballLight and updateVolcanoLight with the right arguments', () => {
         const scene = makeScene();
@@ -739,7 +718,7 @@ describe('createSceneController – update()', () => {
 
     test('rebuilds the metaball geometry only when the animation step returns balls (not while paused)', () => {
         const controller = makeController();
-        updateMetaballBalls.mockClear(); // drop the initial rebuild done during construction
+        updateMetaballBalls.mockClear();
 
         stepMetaballAnimation.mockReturnValueOnce(null);
         controller.update(0);

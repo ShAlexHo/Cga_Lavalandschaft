@@ -3,9 +3,9 @@ import { MockHexColor, MockShaderMaterial, MockVector3 } from '../../test-utils/
 
 vi.mock('three', () => ({ Vector3: MockVector3, Color: MockHexColor, ShaderMaterial: MockShaderMaterial }));
 
-vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
-vi.mock('../../shaders/impact_smoke.vert?raw', () => ({ default: '// vertex shader' }));
-vi.mock('../../shaders/smoke.frag?raw', () => ({ default: '// fragment shader' }));
+vi.mock('../../shaders/noise.glsl?raw', () => ({ default: 'noise glsl' }));
+vi.mock('../../shaders/impact_smoke.vert?raw', () => ({ default: 'vertex shader' }));
+vi.mock('../../shaders/smoke.frag?raw', () => ({ default: 'fragment shader' }));
 
 import { createImpactSmokeMaterial, updateImpactSmoke } from '../impact_smoke_material.js';
 import {

@@ -1,10 +1,9 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { importFreshModule } from '../../scenes/main-scene/test-utils/reimport.js';
+import { importFreshModule } from '../../scenes/main-scene/test-utils/import_fresh_module.js';
 import { MESSAGES } from '../messages.js';
 
 const STORAGE_KEY = 'lavalandschaft_language';
 
-// the environment's built-in localStorage behaves inconsistently across setups
 function makeMemoryStorage() {
     const store = new Map();
     return {

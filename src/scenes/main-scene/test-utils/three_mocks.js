@@ -1,6 +1,3 @@
-// Shared `vi.mock('three', ...)` fakes - safe to import directly despite vi.mock() hoisting,
-// since Vitest resolves imports before a mock factory runs.
-
 import { vi } from 'vitest';
 
 export function makeScene() {
@@ -9,13 +6,12 @@ export function makeScene() {
 
 export function makeColor(hex = '000000') {
     return {
-        _hex: hex,
-        set(value) { this._hex = String(value).replace('#', ''); return this; },
-        getHexString() { return this._hex; },
+        hex,
+        set(value) { this.hex = String(value).replace('#', ''); return this; },
+        getHexString() { return this.hex; },
     };
 }
 
-// Shared by ground_object.test.js and scene_controller.test.js's `vi.mock('.../ground_material.js', ...)`.
 export function makeGroundMaterialUniformsMock() {
     return {
         u_displacement_scale: { value: 0.6 },
@@ -66,8 +62,8 @@ export class MockVector3 {
         this.x = other.x; this.y = other.y; this.z = other.z;
         return this;
     }
-    applyMatrix4(_matrix) {
-        return this; // identity transform in tests
+    applyMatrix4() {
+        return this;
     }
 }
 

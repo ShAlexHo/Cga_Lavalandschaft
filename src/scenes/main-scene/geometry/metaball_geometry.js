@@ -21,7 +21,6 @@ export function createMetaballGeometry(scene, material) {
     return effect;
 }
 
-// ball.x/y/z are normalized field-space coordinates in [0, 1].
 export function ballToWorldPosition(ball, effect) {
     return {
         x: effect.position.x + effect.scale.x * (2 * ball.x - 1),
@@ -30,8 +29,6 @@ export function ballToWorldPosition(ball, effect) {
     };
 }
 
-// Isosurface radius (strength / distance^2 - subtract == effect.isolation), scaled by radius_scale
-// to match updateMetaballBalls's strength scaling.
 export function ballToWorldRadius(ball, effect) {
     const field_radius = Math.sqrt(ball.strength / (effect.isolation + ball.subtract));
     return 2 * effect.scale.x * field_radius * effect.radius_scale;

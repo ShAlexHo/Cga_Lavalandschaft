@@ -6,8 +6,7 @@ const TIME_SCALE_MIN = 1;
 const TIME_SCALE_MAX = 6;
 const TIME_SCALE_STEP = 1;
 
-// with mode_controls_only, hidden settings can't be reset, so only the visible ones are restored
-export function setupGui(facade, { mode_controls_only = false } = {}) {
+export function setupGui(facade, { mode_controls_only = false, restore_saved = true, signal } = {}) {
     const gui = new GUI({ closed: true });
     const all_controllers = [];
     const refresh_bindings = [];
@@ -33,12 +32,12 @@ export function setupGui(facade, { mode_controls_only = false } = {}) {
     function relabel() {
         GUI.TEXT_OPEN = translate('gui.open_controls');
         GUI.TEXT_CLOSED = translate('gui.close_controls');
-        gui.closed = gui.closed; // re-renders the open/close button with the new texts
+        gui.closed = gui.closed;
         relabel_callbacks.forEach(callback => callback());
     }
 
     relabel();
-    onLanguageChange(relabel);
+    const stopRelabelling = onLanguageChange(relabel);
 
     function makeParameters(getters) {
         const parameters = {};
@@ -49,13 +48,13 @@ export function setupGui(facade, { mode_controls_only = false } = {}) {
         return parameters;
     }
 
-    function defineLiveProperty(parameters, key, get, set) {
-        Object.defineProperty(parameters, key, { get, set, enumerable: true });
+    function defineLiveProperty(parameters, key, getter, setter) {
+        Object.defineProperty(parameters, key, { get: getter, set: setter, enumerable: true });
     }
 
     const root_parameters = makeParameters({
         paused: facade.isPaused,
-        time_scale: facade.getBaseTimeScale, // not getTimeScale - a boosted read-back would fight the user's drag
+        time_scale: facade.getBaseTimeScale,
     });
     defineLiveProperty(root_parameters, 'interaction_mode', () => facade.getInteractionMode(), value => facade.setInteractionMode(value));
     defineLiveProperty(root_parameters, 'autonomous_mode', () => !facade.getInteractionMode(), value => facade.setInteractionMode(!value));
@@ -77,21 +76,29 @@ export function setupGui(facade, { mode_controls_only = false } = {}) {
     }
 
     function restoreSavedSettings(keys) {
+        if (!restore_saved) return;
         const saved = loadFromLocalStorage();
         if (!saved) return;
         const restored = keys
             ? Object.fromEntries(keys.filter(key => key in saved).map(key => [key, saved[key]]))
             : { ...saved };
-        // older saves may hold values outside the slider's range
         if ('timeScale' in restored) restored.timeScale = Math.min(Math.max(restored.timeScale, TIME_SCALE_MIN), TIME_SCALE_MAX);
         facade.applySnapshot(restored);
         refreshDisplay();
     }
 
-    window.addEventListener('beforeunload', () => saveToLocalStorage(facade.getSnapshot()));
+    window.addEventListener('beforeunload', () => saveToLocalStorage(facade.getSnapshot()), { signal });
+    signal?.addEventListener('abort', () => {
+        saveToLocalStorage(facade.getSnapshot());
+        stopRelabelling();
+        gui.destroy();
+    }, { once: true });
 
     const persistence_actions = {
-        reset: () => { facade.resetToDefaults(); refreshDisplay(); },
+        reset() {
+            facade.resetToDefaults();
+            refreshDisplay();
+        },
     };
 
     if (mode_controls_only) {

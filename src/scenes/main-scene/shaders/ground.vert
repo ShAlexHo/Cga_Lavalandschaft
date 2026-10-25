@@ -17,7 +17,6 @@ void main() {
     v_view_position = view_position.xyz;
     v_normal = normalMatrix * normal;
 
-    // Names must match THREE's shadowmap_vertex chunk exactly.
     vec3 transformedNormal = v_normal;
     #include <shadowmap_vertex>
 

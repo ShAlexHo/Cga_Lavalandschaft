@@ -1,23 +1,27 @@
 import { translate } from './ui/language.js';
 
-const EXPAND_DURATION_MILLISECONDS = 900;
+const ZOOM_DURATION_MILLISECONDS = 900;
 const REVEAL_DURATION_MILLISECONDS = 500;
 const SPINNER_FADE_OUT_MILLISECONDS = 200;
 const REVEAL_FALLBACK_MILLISECONDS = 5000;
-const EXPAND_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const ZOOM_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const PREVIEW_BORDER_RADIUS = '12px';
 
 let overlay = null;
 let spinner = null;
-let fallback_timer = null;
+let hidden_frame = null;
+let reveal_fallback_timer = null;
+let returning_overlay = null;
+let returning_scene_name = null;
+let return_finished = Promise.resolve();
+let resolveReturnFinished = null;
 
 function animationDuration(milliseconds) {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : milliseconds;
 }
 
-// Grows the screenshot from its frame to the whole window. It then stays on top, hiding the scene
-// while it mounts and renders its first frames, until revealScene() fades it out.
 export async function expandIntoScene({ frame, image }) {
-    const rect = frame.getBoundingClientRect();
+    const bounds = frame.getBoundingClientRect();
     const start_filter = getComputedStyle(image).filter;
 
     overlay = document.createElement('img');
@@ -25,17 +29,16 @@ export async function expandIntoScene({ frame, image }) {
     overlay.alt = '';
     overlay.className = 'scene-transition-overlay';
     document.body.appendChild(overlay);
+    frame.style.visibility = 'hidden';
+    hidden_frame = frame;
 
-    await overlay.animate([
-        {
-            left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`,
-            borderRadius: '12px', filter: start_filter === 'none' ? 'brightness(1)' : start_filter,
-        },
-        {
-            left: '0px', top: '0px', width: `${window.innerWidth}px`, height: `${window.innerHeight}px`,
-            borderRadius: '0px', filter: 'brightness(1)',
-        },
-    ], { duration: animationDuration(EXPAND_DURATION_MILLISECONDS), easing: EXPAND_EASING, fill: 'forwards' }).finished;
+    const frame_keyframe = {
+        ...frameKeyframe(bounds), filter: start_filter === 'none' ? 'brightness(1)' : start_filter,
+    };
+
+    await overlay.animate([frame_keyframe, { ...fullWindowKeyframe(), filter: 'brightness(1)' }], {
+        duration: animationDuration(ZOOM_DURATION_MILLISECONDS), easing: ZOOM_EASING, fill: 'forwards',
+    }).finished;
 
     spinner = document.createElement('div');
     spinner.className = 'scene-transition-spinner';
@@ -43,22 +46,81 @@ export async function expandIntoScene({ frame, image }) {
     spinner.setAttribute('aria-label', translate('scene.loading'));
     document.body.appendChild(spinner);
 
-    // never leave the screenshot stuck on top if the scene doesn't report back
-    fallback_timer = setTimeout(revealScene, REVEAL_FALLBACK_MILLISECONDS);
+    reveal_fallback_timer = setTimeout(revealScene, REVEAL_FALLBACK_MILLISECONDS);
 }
 
 export async function revealScene() {
     if (!overlay && !spinner) return;
-    clearTimeout(fallback_timer);
+    clearTimeout(reveal_fallback_timer);
     const fading_overlay = overlay;
     const fading_spinner = spinner;
     overlay = null;
     spinner = null;
+    if (hidden_frame) hidden_frame.style.visibility = '';
+    hidden_frame = null;
 
     await Promise.all([
         fading_overlay && fadeOutAndRemove(fading_overlay, REVEAL_DURATION_MILLISECONDS),
         fading_spinner && fadeOutAndRemove(fading_spinner, SPINNER_FADE_OUT_MILLISECONDS),
     ]);
+}
+
+export function coverWithScreenshot(screenshot_url, scene_name) {
+    returning_overlay?.remove();
+    returning_overlay = document.createElement('img');
+    returning_overlay.src = screenshot_url;
+    returning_overlay.alt = '';
+    returning_overlay.className = 'scene-transition-overlay';
+    Object.assign(returning_overlay.style, fullWindowKeyframe());
+    document.body.appendChild(returning_overlay);
+    returning_scene_name = scene_name;
+    resolveReturnFinished?.();
+    return_finished = new Promise(resolve => { resolveReturnFinished = resolve; });
+}
+
+export function whenReturnFinished() {
+    return return_finished;
+}
+
+export async function shrinkIntoPreview() {
+    if (!returning_overlay) return;
+    const shrinking_overlay = returning_overlay;
+    const frame = document.querySelector(`[data-scene-preview="${returning_scene_name}"]`);
+    const resolveShrinkFinished = resolveReturnFinished;
+    returning_overlay = null;
+    returning_scene_name = null;
+    resolveReturnFinished = null;
+
+    if (frame) await shrinkOntoFrame(shrinking_overlay, frame);
+    else await fadeOutAndRemove(shrinking_overlay, REVEAL_DURATION_MILLISECONDS);
+    resolveShrinkFinished();
+}
+
+async function shrinkOntoFrame(shrinking_overlay, frame) {
+    frame.style.visibility = 'hidden';
+    await settlePreview(frame);
+    await shrinking_overlay.animate([fullWindowKeyframe(), frameKeyframe(frame.getBoundingClientRect())], {
+        duration: animationDuration(ZOOM_DURATION_MILLISECONDS), easing: ZOOM_EASING, fill: 'forwards',
+    }).finished;
+
+    frame.style.visibility = '';
+    shrinking_overlay.remove();
+}
+
+async function settlePreview(frame) {
+    await frame.querySelector('img')?.decode?.().catch(() => {});
+    await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function frameKeyframe(bounds) {
+    return {
+        left: `${bounds.left}px`, top: `${bounds.top}px`, width: `${bounds.width}px`, height: `${bounds.height}px`,
+        borderRadius: PREVIEW_BORDER_RADIUS,
+    };
+}
+
+function fullWindowKeyframe() {
+    return { left: '0px', top: '0px', width: `${window.innerWidth}px`, height: `${window.innerHeight}px`, borderRadius: '0px' };
 }
 
 async function fadeOutAndRemove(element, milliseconds) {

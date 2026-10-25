@@ -1,27 +1,25 @@
 import { describe, test, expect } from 'vitest';
-import { makeSeededRand, random } from '../rand.js';
+import { makeSeededRandom, random } from '../random.js';
 
-// ─── makeSeededRand ──────────────────────────────────────────────────────────
-
-describe('makeSeededRand', () => {
+describe('makeSeededRandom', () => {
     test('same seed produces identical sequence', () => {
-        const random_generator_1 = makeSeededRand(42);
-        const random_generator_2 = makeSeededRand(42);
+        const random_generator_1 = makeSeededRandom(42);
+        const random_generator_2 = makeSeededRandom(42);
         for (let i = 0; i < 100; i++) {
             expect(random_generator_1()).toBe(random_generator_2());
         }
     });
 
     test('different seeds produce different sequences', () => {
-        const random_generator_1 = makeSeededRand(1);
-        const random_generator_2 = makeSeededRand(999);
+        const random_generator_1 = makeSeededRandom(1);
+        const random_generator_2 = makeSeededRandom(999);
         const sequence_1 = Array.from({ length: 20 }, () => random_generator_1());
         const sequence_2 = Array.from({ length: 20 }, () => random_generator_2());
         expect(sequence_1).not.toEqual(sequence_2);
     });
 
     test('output is in range [0, 1)', () => {
-        const random_generator = makeSeededRand(42);
+        const random_generator = makeSeededRandom(42);
         for (let i = 0; i < 1000; i++) {
             const value = random_generator();
             expect(value).toBeGreaterThanOrEqual(0);
@@ -30,44 +28,43 @@ describe('makeSeededRand', () => {
     });
 
     test('first value for seed 42 matches the LCG formula', () => {
-        // LCG: state = (1664525 * seed + 1013904223) >>> 0
         const expected_state = (Math.imul(1664525, 42) + 1013904223) >>> 0;
-        const expected = expected_state / 4294967296;
-        const random_generator = makeSeededRand(42);
-        expect(random_generator()).toBeCloseTo(expected, 15);
+        const expected_value = expected_state / 4294967296;
+        const random_generator = makeSeededRandom(42);
+        expect(random_generator()).toBeCloseTo(expected_value, 15);
     });
 
     test('seed 0 is handled correctly (unsigned 32-bit)', () => {
-        const random_generator = makeSeededRand(0);
+        const random_generator = makeSeededRandom(0);
         const value = random_generator();
         expect(value).toBeGreaterThanOrEqual(0);
         expect(value).toBeLessThan(1);
     });
 
     test('sequence is not constant', () => {
-        const random_generator = makeSeededRand(42);
+        const random_generator = makeSeededRandom(42);
         const values = Array.from({ length: 20 }, () => random_generator());
-        const unique = new Set(values);
-        expect(unique.size).toBeGreaterThan(1);
+        const unique_values = new Set(values);
+        expect(unique_values.size).toBeGreaterThan(1);
     });
 
     test('negative seed is treated as unsigned 32-bit integer', () => {
-        const random_generator_1 = makeSeededRand(-1);
-        const random_generator_2 = makeSeededRand(0xFFFFFFFF);
+        const random_generator_1 = makeSeededRandom(-1);
+        const random_generator_2 = makeSeededRandom(0xFFFFFFFF);
         expect(random_generator_1()).toBe(random_generator_2());
     });
 
     test('each instance has independent state', () => {
-        const random_generator_1 = makeSeededRand(7);
-        const random_generator_2 = makeSeededRand(7);
-        random_generator_1(); random_generator_1(); random_generator_1(); // advance three steps
+        const random_generator_1 = makeSeededRandom(7);
+        const random_generator_2 = makeSeededRandom(7);
+        random_generator_1();
+        random_generator_1();
+        random_generator_1();
         const fourth_value = random_generator_1();
         const first_value = random_generator_2();
         expect(fourth_value).not.toBe(first_value);
     });
 });
-
-// ─── random ──────────────────────────────────────────────────────────────────
 
 describe('random (module-level instance, seed 42)', () => {
     test('return value is within [min, max)', () => {
@@ -109,7 +106,7 @@ describe('random (module-level instance, seed 42)', () => {
 
     test('produces varying values (not constant)', () => {
         const values = Array.from({ length: 20 }, () => random(0, 1000));
-        const unique = new Set(values);
-        expect(unique.size).toBeGreaterThan(1);
+        const unique_values = new Set(values);
+        expect(unique_values.size).toBeGreaterThan(1);
     });
 });

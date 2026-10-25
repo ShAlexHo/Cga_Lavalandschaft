@@ -5,10 +5,10 @@ export function saveToLocalStorage(data) {
 }
 
 export function loadFromLocalStorage() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    const serialized_settings = localStorage.getItem(STORAGE_KEY);
+    if (!serialized_settings) return null;
     try {
-        return JSON.parse(raw);
+        return JSON.parse(serialized_settings);
     } catch (error) {
         console.error('Saved settings are corrupted:', error);
         return null;

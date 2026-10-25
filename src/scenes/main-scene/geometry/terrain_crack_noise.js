@@ -1,13 +1,42 @@
-const toFloat32 = Math.fround;
-const floatAdd = (a, b) => toFloat32(a + b);
-const floatSubtract = (a, b) => toFloat32(a - b);
-const floatMultiply = (a, b) => toFloat32(a * b);
-const floatFloor = a => toFloat32(Math.floor(a));
-const floatAbs = a => toFloat32(Math.abs(a));
-const floatMin = (a, b) => toFloat32(Math.min(a, b));
-const floatMax = (a, b) => toFloat32(Math.max(a, b));
-const floatStep = (edge, x) => (x >= edge ? toFloat32(1.0) : toFloat32(0.0));
-const selfDot = (x, y, z) => floatAdd(floatAdd(floatMultiply(x, x), floatMultiply(y, y)), floatMultiply(z, z));
+function toFloat32(value) {
+    return Math.fround(value);
+}
+
+function floatAdd(left, right) {
+    return toFloat32(left + right);
+}
+
+function floatSubtract(left, right) {
+    return toFloat32(left - right);
+}
+
+function floatMultiply(left, right) {
+    return toFloat32(left * right);
+}
+
+function floatFloor(value) {
+    return toFloat32(Math.floor(value));
+}
+
+function floatAbs(value) {
+    return toFloat32(Math.abs(value));
+}
+
+function floatMin(left, right) {
+    return toFloat32(Math.min(left, right));
+}
+
+function floatMax(left, right) {
+    return toFloat32(Math.max(left, right));
+}
+
+function floatStep(edge, x) {
+    return x >= edge ? toFloat32(1.0) : toFloat32(0.0);
+}
+
+function selfDot(x, y, z) {
+    return floatAdd(floatAdd(floatMultiply(x, x), floatMultiply(y, y)), floatMultiply(z, z));
+}
 
 const SKEW_X = toFloat32(1.0 / 6.0);
 const SKEW_Y = toFloat32(1.0 / 3.0);
@@ -29,18 +58,20 @@ function gradientIndexOf(permutation, gradient_scale_z) {
     return floatSubtract(permutation, floatMultiply(toFloat32(49.0), floatFloor(floatMultiply(permutation, floatMultiply(gradient_scale_z, gradient_scale_z)))));
 }
 
-function simplexNoise(px, py, pz) {
-    px = toFloat32(px); py = toFloat32(py); pz = toFloat32(pz);
+function simplexNoise(x, y, z) {
+    x = toFloat32(x);
+    y = toFloat32(y);
+    z = toFloat32(z);
 
-    const skew_offset = floatMultiply(floatAdd(floatAdd(px, py), pz), SKEW_Y);
-    const lattice_point_x = floatFloor(floatAdd(px, skew_offset));
-    const lattice_point_y = floatFloor(floatAdd(py, skew_offset));
-    const lattice_point_z = floatFloor(floatAdd(pz, skew_offset));
+    const skew_offset = floatMultiply(floatAdd(floatAdd(x, y), z), SKEW_Y);
+    const lattice_point_x = floatFloor(floatAdd(x, skew_offset));
+    const lattice_point_y = floatFloor(floatAdd(y, skew_offset));
+    const lattice_point_z = floatFloor(floatAdd(z, skew_offset));
 
     const unskew_offset = floatMultiply(floatAdd(floatAdd(lattice_point_x, lattice_point_y), lattice_point_z), SKEW_X);
-    const offset_0_x = floatAdd(floatSubtract(px, lattice_point_x), unskew_offset);
-    const offset_0_y = floatAdd(floatSubtract(py, lattice_point_y), unskew_offset);
-    const offset_0_z = floatAdd(floatSubtract(pz, lattice_point_z), unskew_offset);
+    const offset_0_x = floatAdd(floatSubtract(x, lattice_point_x), unskew_offset);
+    const offset_0_y = floatAdd(floatSubtract(y, lattice_point_y), unskew_offset);
+    const offset_0_z = floatAdd(floatSubtract(z, lattice_point_z), unskew_offset);
 
     const greater_mask_x = floatStep(offset_0_y, offset_0_x);
     const greater_mask_y = floatStep(offset_0_z, offset_0_y);
@@ -66,24 +97,24 @@ function simplexNoise(px, py, pz) {
     const offset_3_y = floatSubtract(offset_0_y, toFloat32(0.5));
     const offset_3_z = floatSubtract(offset_0_z, toFloat32(0.5));
 
-    const lattice_point_mod_x = modulo289(lattice_point_x);
-    const lattice_point_mod_y = modulo289(lattice_point_y);
-    const lattice_point_mod_z = modulo289(lattice_point_z);
+    const lattice_point_modulo_x = modulo289(lattice_point_x);
+    const lattice_point_modulo_y = modulo289(lattice_point_y);
+    const lattice_point_modulo_z = modulo289(lattice_point_z);
 
-    let permutation_0 = permute(floatAdd(lattice_point_mod_z, toFloat32(0.0)));
-    let permutation_1 = permute(floatAdd(lattice_point_mod_z, corner_offset_1_z));
-    let permutation_2 = permute(floatAdd(lattice_point_mod_z, corner_offset_2_z));
-    let permutation_3 = permute(floatAdd(lattice_point_mod_z, toFloat32(1.0)));
+    let permutation_0 = permute(floatAdd(lattice_point_modulo_z, toFloat32(0.0)));
+    let permutation_1 = permute(floatAdd(lattice_point_modulo_z, corner_offset_1_z));
+    let permutation_2 = permute(floatAdd(lattice_point_modulo_z, corner_offset_2_z));
+    let permutation_3 = permute(floatAdd(lattice_point_modulo_z, toFloat32(1.0)));
 
-    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_mod_y), toFloat32(0.0)));
-    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_mod_y), corner_offset_1_y));
-    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_mod_y), corner_offset_2_y));
-    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_mod_y), toFloat32(1.0)));
+    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_modulo_y), toFloat32(0.0)));
+    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_modulo_y), corner_offset_1_y));
+    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_modulo_y), corner_offset_2_y));
+    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_modulo_y), toFloat32(1.0)));
 
-    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_mod_x), toFloat32(0.0)));
-    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_mod_x), corner_offset_1_x));
-    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_mod_x), corner_offset_2_x));
-    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_mod_x), toFloat32(1.0)));
+    permutation_0 = permute(floatAdd(floatAdd(permutation_0, lattice_point_modulo_x), toFloat32(0.0)));
+    permutation_1 = permute(floatAdd(floatAdd(permutation_1, lattice_point_modulo_x), corner_offset_1_x));
+    permutation_2 = permute(floatAdd(floatAdd(permutation_2, lattice_point_modulo_x), corner_offset_2_x));
+    permutation_3 = permute(floatAdd(floatAdd(permutation_3, lattice_point_modulo_x), toFloat32(1.0)));
 
     const gradient_scale_x = floatSubtract(floatMultiply(ONE_SEVENTH, toFloat32(2.0)), toFloat32(0.0));
     const gradient_scale_y = floatSubtract(floatMultiply(ONE_SEVENTH, toFloat32(0.5)), toFloat32(1.0));
@@ -190,10 +221,14 @@ function simplexNoise(px, py, pz) {
 function fractalBrownianMotion(x, y, z) {
     let value = toFloat32(0.0);
     let amplitude = toFloat32(0.5);
-    let px = x, py = y, pz = z;
+    let sample_x = x;
+    let sample_y = y;
+    let sample_z = z;
     for (let octave = 0; octave < 4; octave++) {
-        value = floatAdd(value, floatMultiply(amplitude, simplexNoise(px, py, pz)));
-        px = floatMultiply(px, toFloat32(2.1)); py = floatMultiply(py, toFloat32(2.1)); pz = floatMultiply(pz, toFloat32(2.1));
+        value = floatAdd(value, floatMultiply(amplitude, simplexNoise(sample_x, sample_y, sample_z)));
+        sample_x = floatMultiply(sample_x, toFloat32(2.1));
+        sample_y = floatMultiply(sample_y, toFloat32(2.1));
+        sample_z = floatMultiply(sample_z, toFloat32(2.1));
         amplitude = floatMultiply(amplitude, toFloat32(0.5));
     }
     return value;
@@ -204,7 +239,10 @@ function normalizedFractalBrownianMotion(x, y, z) {
 }
 
 export function warpedFractalBrownianMotion(x, y, z, warp_strength) {
-    x = toFloat32(x); y = toFloat32(y); z = toFloat32(z); warp_strength = toFloat32(warp_strength);
+    x = toFloat32(x);
+    y = toFloat32(y);
+    z = toFloat32(z);
+    warp_strength = toFloat32(warp_strength);
     const warp_x = simplexNoise(floatAdd(x, toFloat32(1.7)), floatAdd(y, toFloat32(9.2)), floatAdd(z, toFloat32(0.0)));
     const warp_y = simplexNoise(floatAdd(x, toFloat32(8.3)), floatAdd(y, toFloat32(2.8)), floatAdd(z, toFloat32(0.0)));
     const warp_z = simplexNoise(floatAdd(x, toFloat32(0.0)), floatAdd(y, toFloat32(5.1)), floatAdd(z, toFloat32(3.4)));
@@ -234,13 +272,19 @@ function crackDisplacementLayer(x, y, z, frequency) {
 }
 
 export function crackDisplacementNoise(x, y, z, frequency) {
-    let accumulated_noise = toFloat32(0.0), amplitude = toFloat32(1.0), weight_total = toFloat32(0.0);
-    let px = toFloat32(x), py = toFloat32(y), pz = toFloat32(z);
+    let accumulated_noise = toFloat32(0.0);
+    let amplitude = toFloat32(1.0);
+    let weight_total = toFloat32(0.0);
+    let sample_x = toFloat32(x);
+    let sample_y = toFloat32(y);
+    let sample_z = toFloat32(z);
     frequency = toFloat32(frequency);
     for (let i = 0; i < 3; i++) {
-        accumulated_noise = floatAdd(accumulated_noise, floatMultiply(crackDisplacementLayer(px, py, pz, frequency), amplitude));
+        accumulated_noise = floatAdd(accumulated_noise, floatMultiply(crackDisplacementLayer(sample_x, sample_y, sample_z, frequency), amplitude));
         weight_total = floatAdd(weight_total, amplitude);
-        px = floatMultiply(px, toFloat32(2.1)); py = floatMultiply(py, toFloat32(2.1)); pz = floatMultiply(pz, toFloat32(2.1));
+        sample_x = floatMultiply(sample_x, toFloat32(2.1));
+        sample_y = floatMultiply(sample_y, toFloat32(2.1));
+        sample_z = floatMultiply(sample_z, toFloat32(2.1));
         amplitude = floatMultiply(amplitude, toFloat32(0.45));
     }
     return toFloat32(accumulated_noise / weight_total);

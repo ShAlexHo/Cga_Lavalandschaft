@@ -11,7 +11,7 @@ export function createGround(scene) {
 
     let last_volcano_position = { x: 0, y: 0, z: 0 };
 
-    const rebakeDisplacement = (volcano_position = last_volcano_position) => {
+    function rebakeDisplacement(volcano_position = last_volcano_position) {
         last_volcano_position = volcano_position;
         bakeGroundDisplacement(mesh, {
             frequency: material.uniforms.u_displacement_frequency.value,
@@ -21,7 +21,7 @@ export function createGround(scene) {
             volcano_position,
             proximity_radius: material.uniforms.u_proximity_radius.value,
         });
-    };
+    }
 
     return {
         mesh,

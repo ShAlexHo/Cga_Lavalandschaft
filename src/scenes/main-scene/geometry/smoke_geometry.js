@@ -15,7 +15,6 @@ export function createSmokeGeometry(scene, material, particle_seeds) {
 
     const points = new THREE.Points(geometry, material);
     points.position.set(0, 0, 0);
-    // positions are computed in smoke.vert, so THREE can't derive a bounding sphere for culling
     points.frustumCulled = false;
     scene.add(points);
 

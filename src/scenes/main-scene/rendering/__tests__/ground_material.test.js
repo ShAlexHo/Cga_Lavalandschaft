@@ -3,9 +3,9 @@ import { MockVector3, MockRgbColor, MockShaderMaterial } from '../../test-utils/
 
 vi.mock('three', () => ({ Vector3: MockVector3, Color: MockRgbColor, ShaderMaterial: MockShaderMaterial, DoubleSide: 2 }));
 
-vi.mock('../../shaders/noise.glsl?raw', () => ({ default: '// noise glsl' }));
-vi.mock('../../shaders/ground.vert?raw', () => ({ default: '// vertex shader' }));
-vi.mock('../../shaders/ground.frag?raw', () => ({ default: '// frag shader' }));
+vi.mock('../../shaders/noise.glsl?raw', () => ({ default: 'noise glsl' }));
+vi.mock('../../shaders/ground.vert?raw', () => ({ default: 'vertex shader' }));
+vi.mock('../../shaders/ground.frag?raw', () => ({ default: 'fragment shader' }));
 
 import { createGroundMaterial, updateGroundLight } from '../ground_material.js';
 import {

@@ -1,7 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { saveToLocalStorage, loadFromLocalStorage, downloadJson, uploadJson } from '../persistence.js';
 
-// the environment's built-in localStorage behaves inconsistently across setups
 function makeMemoryStorage() {
     const store = new Map();
     return {
@@ -66,11 +65,10 @@ describe('downloadJson', () => {
 });
 
 describe('uploadJson', () => {
-    // happy-dom's real FileReader is unreliable in this environment
     function makeMockFileReader() {
         const reader = { readAsText: vi.fn(), onload: null, result: null };
         reader.readAsText.mockImplementation(() => {
-            reader.result = reader._next_result;
+            reader.result = reader.next_result;
             reader.onload();
         });
         return reader;
@@ -87,7 +85,7 @@ describe('uploadJson', () => {
         });
 
         const mock_reader = makeMockFileReader();
-        mock_reader._next_result = '{"foo":"bar"}';
+        mock_reader.next_result = '{"foo":"bar"}';
         vi.stubGlobal('FileReader', vi.fn(() => mock_reader));
 
         uploadJson(onLoaded);
@@ -113,7 +111,7 @@ describe('uploadJson', () => {
         });
 
         const mock_reader = makeMockFileReader();
-        mock_reader._next_result = 'not valid json';
+        mock_reader.next_result = 'not valid json';
         vi.stubGlobal('FileReader', vi.fn(() => mock_reader));
         const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

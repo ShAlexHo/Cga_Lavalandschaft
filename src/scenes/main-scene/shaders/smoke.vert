@@ -1,10 +1,10 @@
 attribute float a_is_ambient;
-attribute vec4  a_motion_seed;  // base_angle, base_radius, drift_angle, lifetime_multiplier
-attribute vec2  a_timing_seed;  // phase_offset, color_seed
-attribute vec3  a_appearance;   // size_multiplier, glow_multiplier, shape_seed
+attribute vec4  a_motion_seed;
+attribute vec2  a_timing_seed;
+attribute vec3  a_appearance;
 attribute float a_accent_base;
 attribute float a_ember_cooling_multiplier;
-attribute vec4  a_ambient_seed; // ambient_angle, ambient_radius_seed, ambient_height_seed, ambient_opacity_seed
+attribute vec4  a_ambient_seed;
 
 uniform float u_time;
 uniform float u_size;
@@ -44,10 +44,8 @@ void main() {
     float age_seconds = mod(u_time + phase_offset, lifetime);
     float age_fraction = age_seconds / lifetime;
 
-    // age dominates the mix (young stays close to u_color_1); color_seed adds mottling
     float color_mix = clamp(age_fraction * 0.65 + color_seed * 0.35, 0.0, 1.0);
 
-    // smoothstep's zero slope at the edges lets particles drift into invisibility instead of cutting off
     float fade_in = smoothstep(0.0, u_fade_in_end, age_fraction);
     float fade_out = 1.0 - smoothstep(u_fade_out_start, 1.0, age_fraction);
     float life_envelope = fade_in * fade_out;
@@ -75,14 +73,11 @@ void main() {
     } else {
         float rise_shape = 0.2 + 0.8 * age_fraction;
 
-        // core_radius ignores u_spread so the center stays dense; extra_reach (cubed base_radius)
-        // only pushes particles already far out
         float core_radius = base_radius * u_core_spread * rise_shape;
         float extra_reach = u_spread * pow(base_radius, 3.0) * rise_shape;
         float radius = core_radius + extra_reach;
         float angle = base_angle + drift_angle * age_fraction;
 
-        // normalized by u_core_spread so widening the core doesn't crush opacity towards zero
         float normalized_radius = radius / u_core_spread;
         float distance_falloff = 1.0 / (1.0 + normalized_radius * normalized_radius);
 

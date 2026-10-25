@@ -12,13 +12,11 @@ export function smoothstep(edge0, edge1, x) {
     return normalized * normalized * (3 - 2 * normalized);
 }
 
-// Signed difference between two angles (radians), wrapped to (-PI, PI].
 export function angleDifference(angle_a, angle_b) {
     const wrapped = (angle_a - angle_b + Math.PI) % (2 * Math.PI);
     return (wrapped < 0 ? wrapped + 2 * Math.PI : wrapped) - Math.PI;
 }
 
-// Azimuth (radians) from center toward point, in the X/Z plane.
 export function worldAzimuth(center, point) {
     return Math.atan2(point.z - center.z, point.x - center.x);
 }
@@ -31,7 +29,6 @@ export function horizontalDistance(point_a, point_b) {
     return Math.hypot(point_a.x - point_b.x, point_a.z - point_b.z);
 }
 
-// phi is the polar angle from the y (up) axis, theta the azimuthal angle around it - matches THREE.Spherical.
 export function cartesianToSpherical(point) {
     const radius = Math.sqrt(point.x ** 2 + point.y ** 2 + point.z ** 2);
     return {
@@ -50,7 +47,6 @@ export function sphericalToCartesian(spherical) {
     };
 }
 
-// 1 within CAMERA_VISIBLE_ARC_DEGREES facing the camera, smoothly fading to 0 past its edge.
 export function cameraArcVisibility(object_angle, camera_angle) {
     const angle_from_camera = Math.abs(angleDifference(object_angle, camera_angle));
     return 1 - smoothstep(CAMERA_VISIBLE_HALF_ARC - CAMERA_VISIBILITY_FADE, CAMERA_VISIBLE_HALF_ARC, angle_from_camera);

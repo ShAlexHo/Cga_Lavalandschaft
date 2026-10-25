@@ -1,4 +1,4 @@
-import { random } from '../rand.js';
+import { random } from '../random.js';
 import {
     AUDIO_LAVA_NOISE_DURATION, AUDIO_LAVA_LOWPASS_FREQUENCY, AUDIO_LAVA_FLOW_GAIN,
     AUDIO_LAVA_FLOW_LFO_FREQUENCY, AUDIO_LAVA_FLOW_LFO_DEPTH,
@@ -29,16 +29,16 @@ export function computeProximityGain(camera_distance, far_gain, near_gain) {
     return far_gain + (near_gain - far_gain) * proximity * proximity;
 }
 
-export function pickNextEventTime(current_time, min_interval, max_interval) {
-    return current_time + random(min_interval, max_interval);
+export function pickNextEventTime(current_time, minimum_interval, maximum_interval) {
+    return current_time + random(minimum_interval, maximum_interval);
 }
 
 function fillBrownNoise(data) {
-    let last = 0;
+    let previous_sample = 0;
     for (let i = 0; i < data.length; i++) {
-        const white = random(-1, 1);
-        last = (last + 0.02 * white) / 1.02;
-        data[i] = last * 3.5;
+        const white_noise_sample = random(-1, 1);
+        previous_sample = (previous_sample + 0.02 * white_noise_sample) / 1.02;
+        data[i] = previous_sample * 3.5;
     }
 }
 
@@ -60,12 +60,14 @@ function createNoiseBuffer(audio_context, duration, fillData) {
 }
 
 export function createVolcanoAudio(audio_context = new (window.AudioContext || window.webkitAudioContext)()) {
+    audio_context.suspend();
+
     const master_gain = audio_context.createGain();
     master_gain.connect(audio_context.destination);
 
     let enabled = DEFAULT_SETTINGS.soundEnabled;
     let volume = DEFAULT_SETTINGS.soundVolume;
-    master_gain.gain.value = enabled ? volume : 0;
+    master_gain.gain.value = 0;
     function applyMasterGain() {
         master_gain.gain.setTargetAtTime(enabled ? volume : 0, audio_context.currentTime, 0.2);
     }
@@ -186,8 +188,12 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
     let next_rumble_time = pickNextEventTime(0, AUDIO_RUMBLE_MIN_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL);
 
     return {
-        start: () => audio_context.resume(),
+        start() {
+            applyMasterGain();
+            return audio_context.resume();
+        },
         stop: () => audio_context.suspend(),
+        close: () => audio_context.close(),
         update(time) {
             if (time >= next_crackle_time) {
                 playCrackle();
@@ -199,10 +205,10 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
             }
         },
         playMetaballSpawn,
-        setPressing: is_pressing => {
+        setPressing(is_pressing) {
             press_gain.gain.setTargetAtTime(is_pressing ? AUDIO_PRESS_GAIN : 0, audio_context.currentTime, AUDIO_PRESS_FADE_TIME_CONSTANT);
         },
-        setCameraDistance: camera_distance => {
+        setCameraDistance(camera_distance) {
             const now = audio_context.currentTime;
             ambient_proximity_gain.gain.setTargetAtTime(
                 computeProximityGain(camera_distance, AUDIO_PROXIMITY_AMBIENT_FAR_GAIN, AUDIO_PROXIMITY_AMBIENT_NEAR_GAIN),
@@ -214,8 +220,14 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
             );
         },
         getEnabled: () => enabled,
-        setEnabled: value => { enabled = value; applyMasterGain(); },
+        setEnabled(value) {
+            enabled = value;
+            applyMasterGain();
+        },
         getVolume: () => volume,
-        setVolume: value => { volume = value; applyMasterGain(); },
+        setVolume(value) {
+            volume = value;
+            applyMasterGain();
+        },
     };
 }

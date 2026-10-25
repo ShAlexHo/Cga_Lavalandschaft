@@ -1,4 +1,4 @@
-import { random, randomGauss } from '../rand.js';
+import { random, randomGauss } from '../random.js';
 import { smoothstep } from './math_utils.js';
 import {
     METABALL_SCALE_XY, METABALL_MAX_BALLS, METABALL_STRENGTH_SCALE,
@@ -65,7 +65,6 @@ export function getWaveStartCount() {
     return wave_start_count;
 }
 
-// 1.0 while a wave spawns; eases toward 0 around a pause instead of snapping.
 export function getEruptionIntensity(time) {
     if (!pausing) return 1.0;
     const fading_out = 1 - smoothstep(pause_start, pause_start + METABALL_WAVE_TRANSITION, time);
@@ -73,7 +72,6 @@ export function getEruptionIntensity(time) {
     return Math.max(fading_out, fading_in);
 }
 
-// Advances the simulation by one frame and returns the active balls, or null while paused.
 export function stepMetaballAnimation(time) {
     if (settings.paused) return null;
 
@@ -93,7 +91,7 @@ export function stepMetaballAnimation(time) {
             if (index !== -1) {
                 spawn_times[index] = time;
                 ball_pool[index].active = true;
-                ball_pool[index].strength = ball_pool[index].base_strength; // undo any earlier squeeze from a prior life
+                ball_pool[index].strength = ball_pool[index].base_strength;
                 ball_pool[index].shrink_fraction = 0;
                 current_wave_count++;
                 if (current_wave_count === 1) wave_start_count++;

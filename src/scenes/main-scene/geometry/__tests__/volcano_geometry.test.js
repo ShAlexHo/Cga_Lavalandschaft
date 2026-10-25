@@ -7,7 +7,7 @@ vi.mock('three', () => {
     class Vector3 {
         constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
         set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
-        applyMatrix4() { return this; } // identity - no rotation/scale to model in this mock
+        applyMatrix4() { return this; }
     }
     class LatheGeometry {
         constructor(points, segments) {
@@ -54,7 +54,7 @@ describe('createVolcanoGeometry', () => {
     test('stores an unmodified copy of the initial (undisplaced) vertex positions', () => {
         const mesh = createVolcanoGeometry(mock_scene, material);
         expect(mesh.pristine_positions).toEqual(mesh.geometry.attributes.position.array);
-        expect(mesh.pristine_positions).not.toBe(mesh.geometry.attributes.position.array); // a copy, not the same buffer
+        expect(mesh.pristine_positions).not.toBe(mesh.geometry.attributes.position.array);
     });
 });
 
@@ -104,8 +104,8 @@ describe('bakeCrackDisplacement', () => {
     });
 
     test('rebuilds from pristine_positions every time, so repeated bakes do not compound', () => {
-        const pristine = new Float32Array([0, 0, 0]);
-        const mesh = makeMesh(pristine);
+        const pristine_positions = new Float32Array([0, 0, 0]);
+        const mesh = makeMesh(pristine_positions);
 
         bakeCrackDisplacement(mesh, 0.5, 2.0);
         const first_y = mesh.geometry.attributes.position.setXYZ.mock.calls[0][2];
