@@ -25,10 +25,10 @@ export const BALL_PATHS = Array.from({ length: MAX_BALL_COUNT }, (_, i) => ({
     subtract: interpolate(SUBTRACT_RANGE.min, SUBTRACT_RANGE.max, lowDiscrepancySequence(i + 1, 0.8541019662)),
 }));
 
-export function computeBalls(time, { count, spread, subtract_scale }) {
+export function computeBalls(time, { count, spread, subtract_scale }, { planar = false } = {}) {
     return BALL_PATHS.slice(0, count).map(({ frequency, phase, strength, subtract }) => ({
         x: 0.5 + 0.5 * spread * PATH_AMPLITUDE.x * Math.sin(frequency.x * time + phase.x),
-        y: 0.5 + 0.5 * spread * PATH_AMPLITUDE.y * Math.sin(frequency.y * time + phase.y),
+        y: planar ? 0.5 : 0.5 + 0.5 * spread * PATH_AMPLITUDE.y * Math.sin(frequency.y * time + phase.y),
         z: 0.5 + 0.5 * spread * PATH_AMPLITUDE.z * Math.cos(frequency.z * time + phase.z),
         strength,
         subtract: subtract * subtract_scale,

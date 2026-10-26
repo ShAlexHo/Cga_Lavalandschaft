@@ -3,9 +3,10 @@ import { createMetaballMaterial, updateMetaballBalls, updateMetaballLight } from
 import { toHexColor } from '../main-scene/rendering/color_utils.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
 import { computeBalls } from './metaballs_animation.js';
-import { EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS, SURFACE_DEFAULTS } from './config.js';
+import { createGroundPlate } from './ground_plate.js';
+import { EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS, SURFACE_DEFAULTS, GROUND_DEFAULTS } from './config.js';
 
-export function createMetaballsController(scene, { noise = false, surface = false } = {}) {
+export function createMetaballsController(scene, { noise = false, surface = false, ground = false, bloom_pass = null } = {}) {
     const material = createMetaballMaterial({ max_balls: MAX_BALL_COUNT });
 
     const geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -70,12 +71,14 @@ export function createMetaballsController(scene, { noise = false, surface = fals
         uniforms.u_displacement.value = settings.displacement_enabled ? settings.displacement_strength : 0.0;
     }
 
+    const ground_plate = ground ? createGroundPlate(scene) : null;
+
     const controller = {
         effect,
 
         update(delta_seconds, camera) {
             if (!settings.paused) elapsed_time += delta_seconds * settings.speed;
-            const balls = computeBalls(elapsed_time, settings);
+            const balls = computeBalls(elapsed_time, settings, { planar: ground });
             updateMetaballBalls(effect, balls);
             fitBoxToBalls(balls);
             updateMetaballLight(material, camera, elapsed_time);
@@ -90,7 +93,6 @@ export function createMetaballsController(scene, { noise = false, surface = fals
 
         getCount: () => settings.count,
         setCount: value => { settings.count = value; },
-        getMaxCount: () => MAX_BALL_COUNT,
         getIsolation: () => effect.isolation,
         setIsolation: value => { effect.isolation = value; },
         getRadius: () => effect.radius_scale,
@@ -135,6 +137,11 @@ export function createMetaballsController(scene, { noise = false, surface = fals
             settings.displacement_enabled = surface && SURFACE_DEFAULTS.displacement_enabled;
             settings.displacement_strength = SURFACE_DEFAULTS.displacement_strength;
             applyDisplacement();
+
+            if (bloom_pass) controller.setBloomEnabled(MAIN_SCENE_DEFAULTS.bloomEnabled);
+            if (ground) settings.count = GROUND_DEFAULTS.count;
+            ground_plate?.setVisible(GROUND_DEFAULTS.ground_visible);
+            ground_plate?.setHeight(GROUND_DEFAULTS.ground_height);
         },
     };
 
@@ -188,6 +195,27 @@ export function createMetaballsController(scene, { noise = false, surface = fals
             bump_enabled: [controller.getBumpEnabled, controller.setBumpEnabled],
             displacement_enabled: [controller.getDisplacementEnabled, controller.setDisplacementEnabled],
             displacement_strength: [controller.getDisplacementStrength, controller.setDisplacementStrength],
+        });
+    }
+
+    if (bloom_pass) {
+        Object.assign(controller, {
+            getBloomEnabled: () => bloom_pass.strength > 0,
+            setBloomEnabled: value => { bloom_pass.strength = value ? MAIN_SCENE_DEFAULTS.bloomStrength : 0; },
+        });
+        setting_accessors.bloom_enabled = [controller.getBloomEnabled, controller.setBloomEnabled];
+    }
+
+    if (ground) {
+        Object.assign(controller, {
+            getGroundVisible: ground_plate.getVisible,
+            setGroundVisible: ground_plate.setVisible,
+            getGroundHeight: ground_plate.getHeight,
+            setGroundHeight: ground_plate.setHeight,
+        });
+        Object.assign(setting_accessors, {
+            ground_visible: [controller.getGroundVisible, controller.setGroundVisible],
+            ground_height: [controller.getGroundHeight, controller.setGroundHeight],
         });
     }
 

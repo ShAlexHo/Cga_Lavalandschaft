@@ -165,3 +165,24 @@ test('surface detail opens its own scene with the bump and displacement mapping 
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
+
+test('ground detail opens its own scene with the ball count and the floor parameters', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: 'Start ground scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/ground-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    for (const label of ['Count', 'Visible', 'Height']) {
+        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
+    }
+
+    await page.getByRole('button', { name: 'About lava with bloom on the ground' }).click();
+    await expect(page.getByRole('heading', { name: 'Lava with bloom on the ground', level: 2 })).toBeInViewport({ timeout: 60_000 });
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});

@@ -32,6 +32,11 @@ export const MESSAGES = {
         'details.surface.preview_alt': 'Screenshot of the surface scene',
         'details.surface.text_1': 'The cooling crust makes the lava’s surface rough, in two different ways. Bump mapping only tilts the surface normals with noise: this changes the colour and brightness each point is shaded with, so a fine grain appears in the light and in the glowing rim, while the shape and outline stay smooth. Displacement mapping actually pushes the surface outwards, so the bumps also show along the silhouette.',
 
+        'details.ground.title': 'Lava with bloom on the ground',
+        'details.ground.start_scene': 'Start ground scene',
+        'details.ground.preview_alt': 'Screenshot of the ground scene',
+        'details.ground.text_1': 'In the landscape, the lava flows over the volcano and the ground, so the metaballs have to meet ordinary geometry correctly. Here they glide across a plane while a floor cuts through them. Because the raymarching shader writes the depth of every hit point, the usual depth test decides for each pixel whether ball or floor is in front, and the line where they meet follows the true shape of the field. Bloom doesn’t only change the metaballs: its glow spills beyond the lava and tints the floor as well. Without it, the floor beside the lava would stay dark and the lava would look paler.',
+
         'scene.home': 'Back to start page',
         'scene.loading': 'Loading scene…',
         'scene.description_in_work': 'Description in work',
@@ -42,10 +47,13 @@ export const MESSAGES = {
         'noise.description_title': 'Noise',
         'surface.scroll_hint': 'About surface irregularities',
         'surface.description_title': 'Surface irregularities',
+        'ground.scroll_hint': 'About lava with bloom on the ground',
+        'ground.description_title': 'Lava with bloom on the ground',
 
         'gui.open_controls': 'Open Controls',
         'gui.close_controls': 'Close Controls',
         'gui.paused': '⏸ Paused',
+        'gui.bloom': 'Bloom',
         'gui.time_scale': 'Time speed',
         'gui.autonomous_mode': 'Autonomous mode (time boost on wave)',
         'gui.interaction_mode': 'Interaction mode',
@@ -154,6 +162,11 @@ export const MESSAGES = {
         'details.surface.preview_alt': 'Screenshot der Oberflächen-Szene',
         'details.surface.text_1': 'Die abkühlende Kruste macht die Oberfläche der Lava rau, und zwar auf zwei Arten. Bump-Mapping kippt nur die Oberflächennormalen mit Noise: Dadurch ändern sich Farbe und Helligkeit, mit der jeder Punkt schattiert wird, sodass im Licht und im glühenden Rand eine feine Körnung entsteht, während Form und Umriss glatt bleiben. Displacement-Mapping wölbt die Oberfläche tatsächlich nach außen, sodass die Unebenheiten auch an der Silhouette sichtbar werden.',
 
+        'details.ground.title': 'Lava mit Bloom-Effekt auf dem Boden',
+        'details.ground.start_scene': 'Boden-Szene starten',
+        'details.ground.preview_alt': 'Screenshot der Boden-Szene',
+        'details.ground.text_1': 'In der Landschaft fließt die Lava über Vulkan und Boden, die Metaballs müssen also korrekt mit gewöhnlicher Geometrie zusammentreffen. Hier gleiten sie über eine Ebene, während ein Boden sie durchschneidet. Weil der Raymarching-Shader die Tiefe jedes Treffpunkts schreibt, entscheidet der übliche Tiefentest pro Pixel, ob Kugel oder Boden vorne liegt, und die Schnittlinie folgt der echten Form des Feldes. Der Bloom-Effekt verändert dabei nicht nur die Metaballs: Sein Leuchten streut über die Lava hinaus und färbt auch den Boden ein. Ohne ihn bliebe der Boden daneben dunkel und die Lava blasser.',
+
         'scene.home': 'Zur Startseite',
         'scene.loading': 'Szene wird geladen…',
         'scene.description_in_work': 'Beschreibung in Arbeit',
@@ -164,10 +177,13 @@ export const MESSAGES = {
         'noise.description_title': 'Noise',
         'surface.scroll_hint': 'Über Oberflächenunebenheiten',
         'surface.description_title': 'Oberflächenunebenheiten',
+        'ground.scroll_hint': 'Über Lava mit Bloom-Effekt auf dem Boden',
+        'ground.description_title': 'Lava mit Bloom-Effekt auf dem Boden',
 
         'gui.open_controls': 'Steuerung öffnen',
         'gui.close_controls': 'Steuerung schließen',
         'gui.paused': '⏸ Pausiert',
+        'gui.bloom': 'Bloom',
         'gui.time_scale': 'Zeitgeschwindigkeit',
         'gui.autonomous_mode': 'Autonomer Modus (Zeit-Boost bei Welle)',
         'gui.interaction_mode': 'Interaktionsmodus',

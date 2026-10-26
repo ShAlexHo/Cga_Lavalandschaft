@@ -21,6 +21,12 @@ describe('computeBalls', () => {
         });
     });
 
+    test('planar balls all share the field’s central height and still move across it', () => {
+        const planar = computeBalls(7.3, { ...SETTINGS, count: MAX_BALL_COUNT }, { planar: true });
+        planar.forEach(ball => expect(ball.y).toBe(0.5));
+        expect(planar.map(ball => ball.x)).toEqual(computeBalls(7.3, { ...SETTINGS, count: MAX_BALL_COUNT }).map(ball => ball.x));
+    });
+
     test('is deterministic and moves over time', () => {
         expect(computeBalls(12.5, SETTINGS)).toEqual(computeBalls(12.5, SETTINGS));
         expect(computeBalls(10, SETTINGS)).not.toEqual(computeBalls(0, SETTINGS));

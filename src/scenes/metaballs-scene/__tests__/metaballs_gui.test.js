@@ -13,7 +13,6 @@ function makeFacade() {
         isPaused: () => state.paused, setPaused: vi.fn(value => { state.paused = value; }),
         getSpeed: () => state.speed, setSpeed: vi.fn(value => { state.speed = value; }),
         getCount: () => state.count, setCount: vi.fn(value => { state.count = value; }),
-        getMaxCount: () => 24,
         getIsolation: () => state.isolation, setIsolation: vi.fn(value => { state.isolation = value; }),
         getRadius: () => 1.2, setRadius: vi.fn(),
         getSubtractScale: () => 1, setSubtractScale: vi.fn(),
@@ -73,7 +72,7 @@ describe('setupMetaballsGui', () => {
         expect(folders[0].open).toHaveBeenCalled();
     });
 
-    test('the count slider goes up to the facade’s maximum', () => {
+    test('the count slider keeps the metaballs scene’s range of 1 to 24', () => {
         const { registry } = makeMockGui();
         setupMetaballsGui(makeFacade());
         expect(findControl(registry, 'count').range).toEqual([1, 24, 1]);

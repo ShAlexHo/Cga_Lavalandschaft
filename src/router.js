@@ -9,6 +9,7 @@ export const router = createRouter({
         { path: '/metaballs-scene', name: 'metaballs-scene', component: () => import('./views/MetaballsSceneView.vue'), meta: { scene: true } },
         { path: '/noise-scene', name: 'noise-scene', component: () => import('./views/NoiseSceneView.vue'), meta: { scene: true } },
         { path: '/surface-scene', name: 'surface-scene', component: () => import('./views/SurfaceSceneView.vue'), meta: { scene: true } },
+        { path: '/ground-scene', name: 'ground-scene', component: () => import('./views/GroundSceneView.vue'), meta: { scene: true } },
         { path: '/:path(.*)*', redirect: { name: 'landing' } },
     ],
 });

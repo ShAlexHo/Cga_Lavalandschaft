@@ -1,4 +1,5 @@
 import { createSceneGui } from '../scene_gui.js';
+import { BALL_COUNT_RANGE } from './config.js';
 
 export function setupMetaballsGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });
@@ -16,7 +17,7 @@ export function setupMetaballsGui(facade, { signal } = {}) {
     });
 
     const field_folder = scene_gui.addFolder('gui.folder.metaballs');
-    bind(field_folder.add(parameters, 'count', 1, facade.getMaxCount(), 1), 'gui.metaballs.count');
+    bind(field_folder.add(parameters, 'count', BALL_COUNT_RANGE.min, BALL_COUNT_RANGE.max, BALL_COUNT_RANGE.step), 'gui.metaballs.count');
     bind(field_folder.add(parameters, 'isolation', 10, 150, 1), 'gui.metaballs.isolation');
     bind(field_folder.add(parameters, 'spread', 0, 2, 0.05), 'gui.metaballs.spread');
     field_folder.open();

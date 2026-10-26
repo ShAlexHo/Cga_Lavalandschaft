@@ -13,6 +13,7 @@ import main_scene_preview_url from '../assets/scene_preview.jpg';
 import metaballs_scene_preview_url from '../assets/metaballs_preview.jpg';
 import noise_scene_preview_url from '../assets/noise_preview.jpg';
 import surface_scene_preview_url from '../assets/surface_preview.jpg';
+import ground_scene_preview_url from '../assets/ground_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
@@ -33,6 +34,10 @@ const DETAILS = [
     {
         scene_name: 'surface-scene', message_key_prefix: 'details.surface', bundled_preview_url: surface_scene_preview_url,
         loadEngine: () => import('../scenes/surface-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'ground-scene', message_key_prefix: 'details.ground', bundled_preview_url: ground_scene_preview_url,
+        loadEngine: () => import('../scenes/ground-scene/scene_engine.js'),
     },
 ].map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
 
