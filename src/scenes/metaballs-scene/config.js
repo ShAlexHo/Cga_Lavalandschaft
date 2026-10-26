@@ -24,6 +24,13 @@ export const DEFAULTS = {
     raymarch_steps: METABALL_RAYMARCH_STEPS,
 };
 
+export const SURFACE_DEFAULTS = {
+    bump_enabled: true,
+    displacement_enabled: true,
+    displacement_strength: 0.005,
+};
+export const DISPLACEMENT_STRENGTH_RANGE = { min: 0, max: 0.04, step: 0.001 };
+
 export const BACKGROUND_COLOR = '#140504';
 export const CAMERA_FOV = 45;
 export const CAMERA_NEAR = 0.1;

@@ -12,6 +12,7 @@ import { LANGUAGES, setLanguage } from '../ui/language.js';
 import main_scene_preview_url from '../assets/scene_preview.jpg';
 import metaballs_scene_preview_url from '../assets/metaballs_preview.jpg';
 import noise_scene_preview_url from '../assets/noise_preview.jpg';
+import surface_scene_preview_url from '../assets/surface_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
@@ -21,8 +22,18 @@ const SEMINAR_URL = 'https://hpicgs.github.io/seminar-3d-rendering-computational
 const router = useRouter();
 
 const DETAILS = [
-    { scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', bundled_preview_url: metaballs_scene_preview_url },
-    { scene_name: 'noise-scene', message_key_prefix: 'details.noise', bundled_preview_url: noise_scene_preview_url },
+    {
+        scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', bundled_preview_url: metaballs_scene_preview_url,
+        loadEngine: () => import('../scenes/metaballs-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'noise-scene', message_key_prefix: 'details.noise', bundled_preview_url: noise_scene_preview_url,
+        loadEngine: () => import('../scenes/noise-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'surface-scene', message_key_prefix: 'details.surface', bundled_preview_url: surface_scene_preview_url,
+        loadEngine: () => import('../scenes/surface-scene/scene_engine.js'),
+    },
 ].map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
 
 const preview_url = computed(() => scene_screenshots['main-scene'] ?? main_scene_preview_url);
@@ -66,8 +77,7 @@ async function enterScene(event, { scene_name, frame, image }) {
 
 const SCENE_ENGINE_LOADERS = [
     () => import('../scenes/main-scene/scene_engine.js'),
-    () => import('../scenes/metaballs-scene/scene_engine.js'),
-    () => import('../scenes/noise-scene/scene_engine.js'),
+    ...DETAILS.map(detail => detail.loadEngine),
 ];
 
 function runWhenIdle(callback) {
@@ -511,6 +521,12 @@ onBeforeUnmount(() => {
     gap: 64px var(--detail-gap);
 }
 
+.detail:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: var(--detail-preview-width);
+}
+
 .detail {
     display: flex;
     flex-direction: column;
@@ -550,6 +566,10 @@ onBeforeUnmount(() => {
 @media (orientation: portrait) {
     .details-grid {
         grid-template-columns: var(--details-width);
+    }
+
+    .detail:last-child:nth-child(odd) {
+        width: 100%;
     }
 }
 

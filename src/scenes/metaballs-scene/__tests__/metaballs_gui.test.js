@@ -5,46 +5,7 @@ vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 import { GUI } from 'dat.gui';
 import { setupMetaballsGui } from '../metaballs_gui.js';
 import { setLanguage } from '../../../ui/language.js';
-
-function makeController() {
-    const controller = {
-        name: vi.fn().mockReturnThis(),
-        updateDisplay: vi.fn(),
-    };
-    return controller;
-}
-
-function makeMockGui() {
-    const registry = [];
-    const folders = [];
-
-    function record(folder_name) {
-        return vi.fn((bound_object, key, ...range) => {
-            const controller = makeController();
-            registry.push({ folder: folder_name, bound_object, key, range, controller });
-            return controller;
-        });
-    }
-
-    const gui = {
-        domElement: document.createElement('div'),
-        add: record('root'),
-        addColor: record('root'),
-        addFolder: vi.fn(name => {
-            const folder = { name, add: record(name), addColor: record(name), open: vi.fn() };
-            folders.push(folder);
-            return folder;
-        }),
-    };
-    GUI.mockImplementation(() => gui);
-    return { gui, registry, folders };
-}
-
-function find(registry, key) {
-    const entry = registry.find(candidate => candidate.key === key);
-    if (!entry) throw new Error(`no controller registered for ${key}`);
-    return entry;
-}
+import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
 
 function makeFacade() {
     const state = { paused: false, speed: 1, count: 7, isolation: 50, color_hot: '#a01500' };
@@ -87,7 +48,7 @@ describe('setupMetaballsGui', () => {
         const lifetime = new AbortController();
         const { container } = setupMetaballsGui(makeFacade(), { signal: lifetime.signal });
         document.body.appendChild(container);
-        const isolation = find(registry, 'isolation').controller;
+        const isolation = findControl(registry, 'isolation').controller;
 
         lifetime.abort();
         isolation.name.mockClear();
@@ -115,7 +76,7 @@ describe('setupMetaballsGui', () => {
     test('the count slider goes up to the facade’s maximum', () => {
         const { registry } = makeMockGui();
         setupMetaballsGui(makeFacade());
-        expect(find(registry, 'count').range).toEqual([1, 24, 1]);
+        expect(findControl(registry, 'count').range).toEqual([1, 24, 1]);
     });
 
     test('controls read and write the facade directly', () => {
@@ -123,13 +84,13 @@ describe('setupMetaballsGui', () => {
         const facade = makeFacade();
         setupMetaballsGui(facade);
 
-        const isolation = find(registry, 'isolation').bound_object;
+        const isolation = findControl(registry, 'isolation').bound_object;
         expect(isolation.isolation).toBe(50);
         isolation.isolation = 90;
         expect(facade.setIsolation).toHaveBeenCalledWith(90);
         expect(isolation.isolation).toBe(90);
 
-        find(registry, 'color_hot').bound_object.color_hot = '#ffffff';
+        findControl(registry, 'color_hot').bound_object.color_hot = '#ffffff';
         expect(facade.setColorHot).toHaveBeenCalledWith('#ffffff');
     });
 
@@ -138,7 +99,7 @@ describe('setupMetaballsGui', () => {
         const facade = makeFacade();
         setupMetaballsGui(facade);
 
-        find(registry, 'reset').bound_object.reset();
+        findControl(registry, 'reset').bound_object.reset();
 
         expect(facade.resetToDefaults).toHaveBeenCalledOnce();
         registry.filter(entry => entry.key !== 'reset').forEach(entry => expect(entry.controller.updateDisplay).toHaveBeenCalled());
@@ -147,12 +108,12 @@ describe('setupMetaballsGui', () => {
     test('labels follow the current language, also after switching', () => {
         const { registry, folders } = makeMockGui();
         setupMetaballsGui(makeFacade());
-        expect(find(registry, 'isolation').controller.name).toHaveBeenLastCalledWith('Threshold (isolation)');
+        expect(findControl(registry, 'isolation').controller.name).toHaveBeenLastCalledWith('Threshold (isolation)');
 
         setLanguage('de');
 
-        expect(find(registry, 'isolation').controller.name).toHaveBeenLastCalledWith('Schwellwert (Isolation)');
-        expect(find(registry, 'reset').controller.name).toHaveBeenLastCalledWith('🔄 Auf Standard zurücksetzen');
+        expect(findControl(registry, 'isolation').controller.name).toHaveBeenLastCalledWith('Schwellwert (Isolation)');
+        expect(findControl(registry, 'reset').controller.name).toHaveBeenLastCalledWith('🔄 Auf Standard zurücksetzen');
         expect(folders[1].name).toBe('Lavafarbe');
     });
 });

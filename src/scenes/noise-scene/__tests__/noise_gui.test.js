@@ -2,44 +2,9 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 
-import { GUI } from 'dat.gui';
 import { setupNoiseGui } from '../noise_gui.js';
 import { setLanguage } from '../../../ui/language.js';
-
-function makeController() {
-    return { name: vi.fn().mockReturnThis(), updateDisplay: vi.fn() };
-}
-
-function makeMockGui() {
-    const registry = [];
-    const folders = [];
-
-    function record(folder_name) {
-        return vi.fn((bound_object, key, ...range) => {
-            const controller = makeController();
-            registry.push({ folder: folder_name, bound_object, key, range, controller });
-            return controller;
-        });
-    }
-
-    const gui = {
-        domElement: document.createElement('div'),
-        add: record('root'),
-        addColor: record('root'),
-        addFolder: vi.fn(name => {
-            const folder = { name, add: record(name), addColor: record(name), open: vi.fn() };
-            folders.push(folder);
-            return folder;
-        }),
-        destroy: vi.fn(),
-    };
-    GUI.mockImplementation(() => gui);
-    return { gui, registry, folders };
-}
-
-function find(registry, key) {
-    return registry.find(entry => entry.key === key);
-}
+import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
 
 function makeFacade() {
     const state = { noise_color_1: '#7c3027' };
@@ -92,7 +57,7 @@ describe('setupNoiseGui', () => {
         setupNoiseGui(makeFacade());
         setLanguage('de');
 
-        expect(find(registry, 'noise_color_1').controller.name).toHaveBeenLastCalledWith('primäre Farbe');
+        expect(findControl(registry, 'noise_color_1').controller.name).toHaveBeenLastCalledWith('primäre Farbe');
         expect(folders[0].name).toBe('Noise');
     });
 });

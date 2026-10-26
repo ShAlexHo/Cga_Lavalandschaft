@@ -14,7 +14,7 @@ import {
 const SCREENSHOT_TYPE = 'image/jpeg';
 const SCREENSHOT_QUALITY = 0.9;
 
-export function createMetaballsEngine({ resume_state = null, noise = false, setupGui }) {
+export function createMetaballsEngine({ resume_state = null, noise = false, surface = false, setupGui }) {
     const lifetime = new AbortController();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
@@ -48,7 +48,7 @@ export function createMetaballsEngine({ resume_state = null, noise = false, setu
     composer.addPass(new RenderPass(scene, camera));
     composer.addPass(bloom_pass);
 
-    const controller = createMetaballsController(scene, { noise });
+    const controller = createMetaballsController(scene, { noise, surface });
     if (resume_state) {
         controller.applySnapshot(resume_state.snapshot);
         controller.setElapsedTime(resume_state.elapsed_time);

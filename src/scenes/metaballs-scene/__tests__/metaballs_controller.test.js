@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { createMetaballsController } from '../metaballs_controller.js';
 import { computeBalls } from '../metaballs_animation.js';
-import { EFFECT_SCALE, BOX_HALF_EXTENT, DEFAULTS, MAX_BALL_COUNT } from '../config.js';
+import { EFFECT_SCALE, BOX_HALF_EXTENT, DEFAULTS, MAX_BALL_COUNT, SURFACE_DEFAULTS } from '../config.js';
 import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
 
 let scene;
@@ -212,5 +212,70 @@ describe('createMetaballsController – with noise', () => {
 
         noisy.applySnapshot(snapshot);
         expect(noisy.getSnapshot()).toEqual(snapshot);
+    });
+});
+
+describe('createMetaballsController – with surface relief', () => {
+    let relief;
+
+    function reliefUniforms() {
+        return relief.effect.material.uniforms;
+    }
+
+    beforeEach(() => {
+        relief = createMetaballsController(new THREE.Scene(), { noise: true, surface: true });
+    });
+
+    test('starts with the main scene’s colour noise, with bump mapping and with a moderate displacement', () => {
+        expect(relief.getNoiseEnabled()).toBe(MAIN_SCENE_DEFAULTS.noiseEnabled);
+        expect(relief.getBumpEnabled()).toBe(SURFACE_DEFAULTS.bump_enabled);
+        expect(relief.getDisplacementEnabled()).toBe(SURFACE_DEFAULTS.displacement_enabled);
+        expect(reliefUniforms().u_bump_enabled.value).toBe(1.0);
+        expect(reliefUniforms().u_displacement.value).toBe(SURFACE_DEFAULTS.displacement_strength);
+    });
+
+    test('the displacement only reaches the shader while it is switched on', () => {
+        relief.setDisplacementStrength(0.03);
+        expect(reliefUniforms().u_displacement.value).toBe(0.03);
+
+        relief.setDisplacementEnabled(false);
+        expect(reliefUniforms().u_displacement.value).toBe(0.0);
+        expect(relief.getDisplacementStrength()).toBe(0.03);
+
+        relief.setDisplacementEnabled(true);
+        expect(reliefUniforms().u_displacement.value).toBe(0.03);
+    });
+
+    test('bump mapping can be switched off', () => {
+        relief.setBumpEnabled(false);
+        expect(reliefUniforms().u_bump_enabled.value).toBe(0.0);
+    });
+
+    test('the raymarch box grows with the displacement, so the pushed-out crust is never cut off', () => {
+        relief.setDisplacementEnabled(false);
+        relief.update(0, camera);
+        const flat_half_extent = reliefUniforms().u_box_half_extent.value.clone();
+
+        relief.setDisplacementEnabled(true);
+        relief.setDisplacementStrength(0.04);
+        relief.update(0, camera);
+
+        expect(reliefUniforms().u_box_half_extent.value.x).toBeCloseTo(flat_half_extent.x + 0.04, 9);
+    });
+
+    test('surface settings are part of the snapshot and of the reset', () => {
+        relief.setBumpEnabled(false);
+        relief.setDisplacementStrength(0.02);
+        relief.setNoiseEnabled(false);
+        const snapshot = relief.getSnapshot();
+        expect(snapshot).toMatchObject({ bump_enabled: false, displacement_enabled: true, displacement_strength: 0.02, noise_enabled: false });
+
+        relief.resetToDefaults();
+        expect(relief.getBumpEnabled()).toBe(SURFACE_DEFAULTS.bump_enabled);
+        expect(relief.getDisplacementStrength()).toBe(SURFACE_DEFAULTS.displacement_strength);
+        expect(relief.getNoiseEnabled()).toBe(MAIN_SCENE_DEFAULTS.noiseEnabled);
+
+        relief.applySnapshot(snapshot);
+        expect(relief.getSnapshot()).toEqual(snapshot);
     });
 });

@@ -3,6 +3,7 @@ import { translate, onLanguageChange } from '../ui/language.js';
 
 const GUI_WIDTH = 340;
 const RIGHT_ALIGNED_PANEL_CLASS = 'a';
+const PLAYBACK_SPEED_RANGE = { min: 0, max: 3, step: 0.05 };
 
 export function createSceneGui(facade, { signal } = {}) {
     const gui = new GUI({ autoPlace: false, closed: false, width: GUI_WIDTH });
@@ -28,20 +29,32 @@ export function createSceneGui(facade, { signal } = {}) {
         relabel_callbacks.forEach(callback => callback());
     }
 
+    function liveParameters(accessors) {
+        const parameters = {};
+        for (const [key, [get, set]] of Object.entries(accessors)) {
+            Object.defineProperty(parameters, key, { get, set, enumerable: true });
+        }
+        return parameters;
+    }
+
+    function bind(controller, message_key) {
+        all_controllers.push(controller);
+        return label(controller, message_key);
+    }
+
     return {
         gui,
+        liveParameters,
+        bind,
 
-        liveParameters(accessors) {
-            const parameters = {};
-            for (const [key, [get, set]] of Object.entries(accessors)) {
-                Object.defineProperty(parameters, key, { get, set, enumerable: true });
-            }
-            return parameters;
-        },
-
-        bind(controller, message_key) {
-            all_controllers.push(controller);
-            return label(controller, message_key);
+        addPlaybackControls() {
+            const parameters = liveParameters({
+                paused: [facade.isPaused, facade.setPaused],
+                speed: [facade.getSpeed, facade.setSpeed],
+            });
+            const { min, max, step } = PLAYBACK_SPEED_RANGE;
+            bind(gui.add(parameters, 'paused'), 'gui.paused');
+            bind(gui.add(parameters, 'speed', min, max, step), 'gui.metaballs.speed');
         },
 
         addFolder(message_key) {

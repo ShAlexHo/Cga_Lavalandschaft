@@ -27,6 +27,11 @@ export const MESSAGES = {
         'details.noise.preview_alt': 'Screenshot of the noise scene',
         'details.noise.text_1': 'The colour of the metaballs varies because of noise. For every point of the surface, the shader evaluates 3D simplex noise, sums four octaves of it and mixes in a domain-warped copy; the result blends between two colours, so irregular patterns drift slowly across the metaballs. A second, independent noise layer adds patches of a third colour.',
 
+        'details.surface.title': 'Surface irregularities',
+        'details.surface.start_scene': 'Start surface scene',
+        'details.surface.preview_alt': 'Screenshot of the surface scene',
+        'details.surface.text_1': 'The cooling crust makes the lava’s surface rough, in two different ways. Bump mapping only tilts the surface normals with noise: this changes the colour and brightness each point is shaded with, so a fine grain appears in the light and in the glowing rim, while the shape and outline stay smooth. Displacement mapping actually pushes the surface outwards, so the bumps also show along the silhouette.',
+
         'scene.home': 'Back to start page',
         'scene.loading': 'Loading scene…',
         'scene.description_in_work': 'Description in work',
@@ -35,6 +40,8 @@ export const MESSAGES = {
         'metaballs.description_title': 'Metaballs',
         'noise.scroll_hint': 'About noise',
         'noise.description_title': 'Noise',
+        'surface.scroll_hint': 'About surface irregularities',
+        'surface.description_title': 'Surface irregularities',
 
         'gui.open_controls': 'Open Controls',
         'gui.close_controls': 'Close Controls',
@@ -54,6 +61,7 @@ export const MESSAGES = {
         'gui.folder.metaballs': 'Metaballs',
         'gui.folder.lava_colour': 'Lava colour',
         'gui.folder.noise': 'Noise',
+        'gui.folder.surface': 'Surface',
         'gui.folder.ground': 'Ground',
         'gui.folder.volcano': 'Volcano',
         'gui.folder.sun': 'Sun',
@@ -74,6 +82,10 @@ export const MESSAGES = {
         'gui.noise.bumping': 'Bumping',
         'gui.noise.displacement': 'Displacement',
         'gui.noise.displacement_strength': 'Displacement strength',
+        'gui.surface.noise': 'Noise',
+        'gui.surface.bump_mapping': 'Bump mapping',
+        'gui.surface.displacement_mapping': 'Displacement mapping',
+        'gui.surface.displacement_strength': 'Displacement strength',
 
         'gui.ground.proximity_radius': 'Range (near volcano)',
         'gui.ground.displacement_scale': 'Roughness',
@@ -137,6 +149,11 @@ export const MESSAGES = {
         'details.noise.preview_alt': 'Screenshot der Noise-Szene',
         'details.noise.text_1': 'Die Farbe der Metaballs variiert durch Noise. Für jeden Punkt der Oberfläche wertet der Shader 3D-Simplex-Noise aus, summiert vier Oktaven davon und mischt eine domain-gewarpte Variante hinzu; das Ergebnis überblendet zwischen zwei Farben, sodass unregelmäßige Muster langsam über die Metaballs wandern. Eine zweite, unabhängige Noise-Schicht ergänzt Flecken in einer dritten Farbe.',
 
+        'details.surface.title': 'Oberflächenunebenheiten',
+        'details.surface.start_scene': 'Oberflächen-Szene starten',
+        'details.surface.preview_alt': 'Screenshot der Oberflächen-Szene',
+        'details.surface.text_1': 'Die abkühlende Kruste macht die Oberfläche der Lava rau, und zwar auf zwei Arten. Bump-Mapping kippt nur die Oberflächennormalen mit Noise: Dadurch ändern sich Farbe und Helligkeit, mit der jeder Punkt schattiert wird, sodass im Licht und im glühenden Rand eine feine Körnung entsteht, während Form und Umriss glatt bleiben. Displacement-Mapping wölbt die Oberfläche tatsächlich nach außen, sodass die Unebenheiten auch an der Silhouette sichtbar werden.',
+
         'scene.home': 'Zur Startseite',
         'scene.loading': 'Szene wird geladen…',
         'scene.description_in_work': 'Beschreibung in Arbeit',
@@ -145,6 +162,8 @@ export const MESSAGES = {
         'metaballs.description_title': 'Metaballs',
         'noise.scroll_hint': 'Über Noise',
         'noise.description_title': 'Noise',
+        'surface.scroll_hint': 'Über Oberflächenunebenheiten',
+        'surface.description_title': 'Oberflächenunebenheiten',
 
         'gui.open_controls': 'Steuerung öffnen',
         'gui.close_controls': 'Steuerung schließen',
@@ -164,6 +183,7 @@ export const MESSAGES = {
         'gui.folder.metaballs': 'Metaballs',
         'gui.folder.lava_colour': 'Lavafarbe',
         'gui.folder.noise': 'Noise',
+        'gui.folder.surface': 'Oberfläche',
         'gui.folder.ground': 'Boden',
         'gui.folder.volcano': 'Vulkan',
         'gui.folder.sun': 'Sonne',
@@ -184,6 +204,10 @@ export const MESSAGES = {
         'gui.noise.bumping': 'Bumping',
         'gui.noise.displacement': 'Displacement',
         'gui.noise.displacement_strength': 'Displacement Stärke',
+        'gui.surface.noise': 'Noise',
+        'gui.surface.bump_mapping': 'Bump-Mapping',
+        'gui.surface.displacement_mapping': 'Displacement-Mapping',
+        'gui.surface.displacement_strength': 'Displacement-Stärke',
 
         'gui.ground.proximity_radius': 'Reichweite (Vulkannähe)',
         'gui.ground.displacement_scale': 'Unebenheit',

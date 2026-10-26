@@ -3,9 +3,9 @@ import { createMetaballMaterial, updateMetaballBalls, updateMetaballLight } from
 import { toHexColor } from '../main-scene/rendering/color_utils.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
 import { computeBalls } from './metaballs_animation.js';
-import { EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS } from './config.js';
+import { EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS, SURFACE_DEFAULTS } from './config.js';
 
-export function createMetaballsController(scene, { noise = false } = {}) {
+export function createMetaballsController(scene, { noise = false, surface = false } = {}) {
     const material = createMetaballMaterial({ max_balls: MAX_BALL_COUNT });
 
     const geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -16,8 +16,6 @@ export function createMetaballsController(scene, { noise = false } = {}) {
     scene.add(effect);
 
     const uniforms = material.uniforms;
-    uniforms.u_bump_enabled.value = 0.0;
-    uniforms.u_displacement.value = 0.0;
     const box_center = uniforms.u_box_center.value;
     const box_half_extent = uniforms.u_box_half_extent.value;
     const box_minimum = new THREE.Vector3();
@@ -32,7 +30,7 @@ export function createMetaballsController(scene, { noise = false } = {}) {
                 box_maximum.setScalar(BOX_HALF_EXTENT);
                 break;
             }
-            const reach = 2 * effect.radius_scale * Math.sqrt(ball.strength / ball.subtract) + BOX_MARGIN;
+            const reach = 2 * effect.radius_scale * Math.sqrt(ball.strength / ball.subtract) + uniforms.u_displacement.value + BOX_MARGIN;
             box_minimum.min({ x: 2 * ball.x - 1 - reach, y: 2 * ball.y - 1 - reach, z: 2 * ball.z - 1 - reach });
             box_maximum.max({ x: 2 * ball.x - 1 + reach, y: 2 * ball.y - 1 + reach, z: 2 * ball.z - 1 + reach });
         }
@@ -66,6 +64,11 @@ export function createMetaballsController(scene, { noise = false } = {}) {
     const noise_color_1 = colorUniform('u_noise_color_1');
     const noise_color_2 = colorUniform('u_noise_color_2');
     const noise_enabled = flagUniform('u_noise_enabled');
+    const bump_enabled = flagUniform('u_bump_enabled');
+
+    function applyDisplacement() {
+        uniforms.u_displacement.value = settings.displacement_enabled ? settings.displacement_strength : 0.0;
+    }
 
     const controller = {
         effect,
@@ -127,6 +130,11 @@ export function createMetaballsController(scene, { noise = false } = {}) {
             noise_enabled.set(noise && MAIN_SCENE_DEFAULTS.noiseEnabled);
             noise_color_1.set(MAIN_SCENE_DEFAULTS.noiseColor1);
             noise_color_2.set(MAIN_SCENE_DEFAULTS.noiseColor2);
+
+            bump_enabled.set(surface && SURFACE_DEFAULTS.bump_enabled);
+            settings.displacement_enabled = surface && SURFACE_DEFAULTS.displacement_enabled;
+            settings.displacement_strength = SURFACE_DEFAULTS.displacement_strength;
+            applyDisplacement();
         },
     };
 
@@ -158,6 +166,28 @@ export function createMetaballsController(scene, { noise = false } = {}) {
             noise_enabled: [controller.getNoiseEnabled, controller.setNoiseEnabled],
             noise_color_1: [controller.getNoiseColor1, controller.setNoiseColor1],
             noise_color_2: [controller.getNoiseColor2, controller.setNoiseColor2],
+        });
+    }
+
+    if (surface) {
+        Object.assign(controller, {
+            getBumpEnabled: bump_enabled.get,
+            setBumpEnabled: bump_enabled.set,
+            getDisplacementEnabled: () => settings.displacement_enabled,
+            setDisplacementEnabled(value) {
+                settings.displacement_enabled = value;
+                applyDisplacement();
+            },
+            getDisplacementStrength: () => settings.displacement_strength,
+            setDisplacementStrength(value) {
+                settings.displacement_strength = value;
+                applyDisplacement();
+            },
+        });
+        Object.assign(setting_accessors, {
+            bump_enabled: [controller.getBumpEnabled, controller.setBumpEnabled],
+            displacement_enabled: [controller.getDisplacementEnabled, controller.setDisplacementEnabled],
+            displacement_strength: [controller.getDisplacementStrength, controller.setDisplacementStrength],
         });
     }
 

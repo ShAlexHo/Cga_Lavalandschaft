@@ -2,11 +2,10 @@ import { createSceneGui } from '../scene_gui.js';
 
 export function setupMetaballsGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });
-    const { gui, bind } = scene_gui;
+    const { bind } = scene_gui;
+    scene_gui.addPlaybackControls();
 
     const parameters = scene_gui.liveParameters({
-        paused: [facade.isPaused, facade.setPaused],
-        speed: [facade.getSpeed, facade.setSpeed],
         count: [facade.getCount, facade.setCount],
         isolation: [facade.getIsolation, facade.setIsolation],
         spread: [facade.getSpread, facade.setSpread],
@@ -15,9 +14,6 @@ export function setupMetaballsGui(facade, { signal } = {}) {
         glow_enabled: [facade.getGlowEnabled, facade.setGlowEnabled],
         glow_color: [facade.getGlowColor, facade.setGlowColor],
     });
-
-    bind(gui.add(parameters, 'paused'), 'gui.paused');
-    bind(gui.add(parameters, 'speed', 0, 3, 0.05), 'gui.metaballs.speed');
 
     const field_folder = scene_gui.addFolder('gui.folder.metaballs');
     bind(field_folder.add(parameters, 'count', 1, facade.getMaxCount(), 1), 'gui.metaballs.count');

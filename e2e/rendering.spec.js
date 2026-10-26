@@ -144,3 +144,24 @@ test('noise detail opens its own scene with the colour noise parameters', async 
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
+
+test('surface detail opens its own scene with the bump and displacement mapping parameters', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: 'Start surface scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/surface-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    for (const label of ['Noise', 'Bump mapping', 'Displacement mapping', 'Displacement strength']) {
+        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
+    }
+
+    await page.getByRole('button', { name: 'About surface irregularities' }).click();
+    await expect(page.getByRole('heading', { name: 'Surface irregularities', level: 2 })).toBeInViewport({ timeout: 60_000 });
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});
