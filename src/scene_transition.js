@@ -6,6 +6,11 @@ const SPINNER_FADE_OUT_MILLISECONDS = 200;
 const REVEAL_FALLBACK_MILLISECONDS = 5000;
 const ZOOM_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
 const PREVIEW_BORDER_RADIUS = '12px';
+const SHARP = 'blur(0px)';
+const LOADING_BLUR_PIXELS = 8;
+const BLUR_REACH_FACTOR = 3;
+const SHRINK_BLUR = 'blur(6px)';
+const SHRINK_BLUR_OFFSET = 0.4;
 
 let overlay = null;
 let spinner = null;
@@ -33,10 +38,13 @@ export async function expandIntoScene({ frame, image }) {
     hidden_frame = frame;
 
     const frame_keyframe = {
-        ...frameKeyframe(bounds), filter: start_filter === 'none' ? 'brightness(1)' : start_filter,
+        ...frameKeyframe(bounds), filter: `${start_filter === 'none' ? 'brightness(1)' : start_filter} ${SHARP}`, transform: 'scale(1)',
+    };
+    const loading_keyframe = {
+        ...fullWindowKeyframe(), filter: `brightness(1) blur(${LOADING_BLUR_PIXELS}px)`, transform: `scale(${edgeHidingScale()})`,
     };
 
-    await overlay.animate([frame_keyframe, { ...fullWindowKeyframe(), filter: 'brightness(1)' }], {
+    await overlay.animate([frame_keyframe, loading_keyframe], {
         duration: animationDuration(ZOOM_DURATION_MILLISECONDS), easing: ZOOM_EASING, fill: 'forwards',
     }).finished;
 
@@ -99,7 +107,11 @@ export async function shrinkIntoPreview() {
 async function shrinkOntoFrame(shrinking_overlay, frame) {
     frame.style.visibility = 'hidden';
     await settlePreview(frame);
-    await shrinking_overlay.animate([fullWindowKeyframe(), frameKeyframe(frame.getBoundingClientRect())], {
+    await shrinking_overlay.animate([
+        { ...fullWindowKeyframe(), filter: SHARP },
+        { filter: SHRINK_BLUR, offset: SHRINK_BLUR_OFFSET },
+        { ...frameKeyframe(frame.getBoundingClientRect()), filter: SHARP },
+    ], {
         duration: animationDuration(ZOOM_DURATION_MILLISECONDS), easing: ZOOM_EASING, fill: 'forwards',
     }).finished;
 
@@ -110,6 +122,10 @@ async function shrinkOntoFrame(shrinking_overlay, frame) {
 async function settlePreview(frame) {
     await frame.querySelector('img')?.decode?.().catch(() => {});
     await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function edgeHidingScale() {
+    return 1 + (2 * BLUR_REACH_FACTOR * LOADING_BLUR_PIXELS) / Math.min(window.innerWidth, window.innerHeight);
 }
 
 function frameKeyframe(bounds) {

@@ -63,6 +63,23 @@ describe('expandIntoScene', () => {
         expect(options.duration).toBeGreaterThan(0);
     });
 
+    test('blurs the screenshot while it grows, so the upscaled image never looks pixelated', async () => {
+        await expandIntoScene(makePreview());
+
+        const [keyframes] = Element.prototype.animate.mock.calls[0];
+        expect(keyframes[0].filter).toContain('blur(0px)');
+        expect(keyframes[1].filter).toContain('blur(8px)');
+    });
+
+    test('enlarges the blurred full-window screenshot just enough to push its soft edges out of the window', async () => {
+        await expandIntoScene(makePreview());
+
+        const [keyframes] = Element.prototype.animate.mock.calls[0];
+        const scale = Number(keyframes[1].transform.match(/scale\(([\d.]+)\)/)[1]);
+        expect(keyframes[0].transform).toBe('scale(1)');
+        expect((scale - 1) * Math.min(window.innerWidth, window.innerHeight) / 2).toBeGreaterThanOrEqual(3 * 8);
+    });
+
     test('moves and grows a small, off-centre preview in a single motion', async () => {
         await expandIntoScene(makePreview({ left: 100, top: 600, width: 400, height: 225 }));
 
@@ -164,8 +181,9 @@ describe('shrinkIntoPreview', () => {
         await shrinkIntoPreview();
 
         const [[keyframes, options]] = Element.prototype.animate.mock.calls;
-        expect(keyframes[0]).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px`, borderRadius: '0px' });
-        expect(keyframes[1]).toMatchObject({ left: '100px', top: '120px', width: '800px', height: '450px', borderRadius: '12px' });
+        expect(keyframes[0]).toMatchObject({ left: '0px', top: '0px', width: `${window.innerWidth}px`, borderRadius: '0px', filter: 'blur(0px)' });
+        expect(keyframes[1].filter).toBe('blur(6px)');
+        expect(keyframes.at(-1)).toMatchObject({ left: '100px', top: '120px', width: '800px', height: '450px', borderRadius: '12px', filter: 'blur(0px)' });
         expect(options.duration).toBeGreaterThan(0);
         expect(visibility_during_shrink).toBe('hidden');
         expect(preview.frame.style.visibility).toBe('');
@@ -179,7 +197,7 @@ describe('shrinkIntoPreview', () => {
         await shrinkIntoPreview();
 
         expect(Element.prototype.animate).toHaveBeenCalledTimes(1);
-        expect(Element.prototype.animate.mock.calls[0][0][1]).toMatchObject({ left: '100px', top: '600px', width: '400px', height: '225px' });
+        expect(Element.prototype.animate.mock.calls[0][0].at(-1)).toMatchObject({ left: '100px', top: '600px', width: '400px', height: '225px' });
     });
 
     test('only moves the preview of the scene that was left', async () => {
@@ -189,7 +207,7 @@ describe('shrinkIntoPreview', () => {
 
         await shrinkIntoPreview();
 
-        expect(Element.prototype.animate.mock.calls[0][0][1]).toMatchObject({ left: '30px' });
+        expect(Element.prototype.animate.mock.calls[0][0].at(-1)).toMatchObject({ left: '30px' });
         expect(other_preview.frame.style.visibility).toBe('');
     });
 

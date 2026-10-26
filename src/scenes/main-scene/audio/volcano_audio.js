@@ -67,6 +67,7 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
 
     let enabled = DEFAULT_SETTINGS.soundEnabled;
     let volume = DEFAULT_SETTINGS.soundVolume;
+    let is_playing = false;
     master_gain.gain.value = 0;
     function applyMasterGain() {
         master_gain.gain.setTargetAtTime(enabled ? volume : 0, audio_context.currentTime, 0.2);
@@ -188,11 +189,18 @@ export function createVolcanoAudio(audio_context = new (window.AudioContext || w
     let next_rumble_time = pickNextEventTime(0, AUDIO_RUMBLE_MIN_INTERVAL, AUDIO_RUMBLE_MAX_INTERVAL);
 
     return {
-        start() {
+        async start() {
+            is_playing = true;
             applyMasterGain();
-            return audio_context.resume();
+            await audio_context.resume();
+            if (!is_playing) audio_context.suspend();
         },
-        stop: () => audio_context.suspend(),
+        stop() {
+            is_playing = false;
+            master_gain.gain.cancelScheduledValues(audio_context.currentTime);
+            master_gain.gain.setValueAtTime(0, audio_context.currentTime);
+            return audio_context.suspend();
+        },
         close: () => audio_context.close(),
         update(time) {
             if (time >= next_crackle_time) {

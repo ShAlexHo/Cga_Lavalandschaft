@@ -16,6 +16,7 @@ class MockAudioParam {
     setValueAtTime(value) { this.value = value; return this; }
     exponentialRampToValueAtTime(value) { this.value = value; return this; }
     setTargetAtTime(value) { this.value = value; return this; }
+    cancelScheduledValues() { return this; }
 }
 
 function makeMockNode() {
@@ -124,11 +125,35 @@ describe('createVolcanoAudio', () => {
         expect(context.created_nodes.gains[0].gain.value).toBeCloseTo(DEFAULT_SETTINGS.soundVolume, 9);
     });
 
-    test('stop() suspends the audio context', () => {
+    test('stop() mutes the master gain at once and suspends the audio context', () => {
         const audio = createVolcanoAudio(context);
+        audio.start();
         context.suspend.mockClear();
         audio.stop();
         expect(context.suspend).toHaveBeenCalledTimes(1);
+        expect(context.created_nodes.gains[0].gain.value).toBe(0);
+    });
+
+    test('stop() wins over a start() whose resume is still pending, so leaving the scene always silences it', async () => {
+        let finishResume = null;
+        context.resume.mockImplementation(() => new Promise(resolve => { finishResume = resolve; }));
+        const audio = createVolcanoAudio(context);
+        const starting = audio.start();
+        audio.stop();
+        context.suspend.mockClear();
+
+        finishResume();
+        await starting;
+
+        expect(context.suspend).toHaveBeenCalledTimes(1);
+        expect(context.created_nodes.gains[0].gain.value).toBe(0);
+    });
+
+    test('a resume that finishes while still playing keeps the audio running', async () => {
+        const audio = createVolcanoAudio(context);
+        context.suspend.mockClear();
+        await audio.start();
+        expect(context.suspend).not.toHaveBeenCalled();
     });
 
     test('defaults to enabled at DEFAULT_SETTINGS.soundVolume', () => {
