@@ -10,9 +10,7 @@ import {
     BACKGROUND_COLOR, CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR, CAMERA_INITIAL_POSITION,
     CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE, CAMERA_AUTO_ROTATE_SPEED, MAX_PIXEL_RATIO,
 } from './config.js';
-
-const SCREENSHOT_TYPE = 'image/jpeg';
-const SCREENSHOT_QUALITY = 0.9;
+import { captureCanvas } from '../../scene_screenshot.js';
 
 export function createMetaballsEngine({ resume_state = null, noise = false, surface = false, ground = false, setupGui }) {
     const lifetime = new AbortController();
@@ -112,7 +110,7 @@ export function createMetaballsEngine({ resume_state = null, noise = false, surf
 
         captureScreenshot() {
             renderFrame(0);
-            return renderer.domElement.toDataURL(SCREENSHOT_TYPE, SCREENSHOT_QUALITY);
+            return captureCanvas(renderer.domElement);
         },
 
         getElapsedTime: () => controller.getElapsedTime(),

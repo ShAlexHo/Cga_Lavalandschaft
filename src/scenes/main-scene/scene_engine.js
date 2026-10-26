@@ -7,10 +7,9 @@ import { setupGui } from './ui/gui.js';
 import { registerOpenScene } from '../scene_registry.js';
 import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
+import { captureCanvas } from '../../scene_screenshot.js';
 
 const SCENE_NAME = 'main-scene';
-const SCREENSHOT_TYPE = 'image/jpeg';
-const SCREENSHOT_QUALITY = 0.9;
 
 export function createSceneEngine(resume_state = null) {
     const lifetime = new AbortController();
@@ -124,7 +123,7 @@ export function createSceneEngine(resume_state = null) {
 
         captureScreenshot() {
             post_processing.render();
-            return renderer.domElement.toDataURL(SCREENSHOT_TYPE, SCREENSHOT_QUALITY);
+            return captureCanvas(renderer.domElement);
         },
 
         getElapsedTime: () => elapsed_time,

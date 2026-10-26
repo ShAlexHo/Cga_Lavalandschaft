@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui';
 import { saveToLocalStorage, loadFromLocalStorage } from '../persistence/persistence.js';
-import { translate, onLanguageChange } from '../../../ui/language.js';
+import { createGuiLabels } from '../../../ui/gui_labels.js';
 
 const TIME_SCALE_MIN = 1;
 const TIME_SCALE_MAX = 6;
@@ -10,34 +10,14 @@ export function setupGui(facade, { mode_controls_only = false, restore_saved = t
     const gui = new GUI({ closed: true });
     const all_controllers = [];
     const refresh_bindings = [];
-    const relabel_callbacks = [];
-
-    function nameController(controller, message_key) {
-        controller.name(translate(message_key));
-        relabel_callbacks.push(() => controller.name(translate(message_key)));
-        return controller;
-    }
+    const { label, addFolder, followLanguage } = createGuiLabels(gui);
 
     function bind(controller, message_key) {
         all_controllers.push(controller);
-        return nameController(controller, message_key);
+        return label(controller, message_key);
     }
 
-    function addFolder(message_key) {
-        const folder = gui.addFolder(translate(message_key));
-        relabel_callbacks.push(() => { folder.name = translate(message_key); });
-        return folder;
-    }
-
-    function relabel() {
-        GUI.TEXT_OPEN = translate('gui.open_controls');
-        GUI.TEXT_CLOSED = translate('gui.close_controls');
-        gui.closed = gui.closed;
-        relabel_callbacks.forEach(callback => callback());
-    }
-
-    relabel();
-    const stopRelabelling = onLanguageChange(relabel);
+    const stopRelabelling = followLanguage();
 
     function makeParameters(getters) {
         const parameters = {};
@@ -102,7 +82,7 @@ export function setupGui(facade, { mode_controls_only = false, restore_saved = t
     };
 
     if (mode_controls_only) {
-        nameController(gui.add(persistence_actions, 'reset'), 'gui.reset.all');
+        label(gui.add(persistence_actions, 'reset'), 'gui.reset.all');
         restoreSavedSettings(['interactionMode', 'timeScale']);
         return gui;
     }
@@ -291,7 +271,7 @@ export function setupGui(facade, { mode_controls_only = false, restore_saved = t
         .onChange(value => facade.setSoundVolume(value));
 
     const persistence_folder = addFolder('gui.folder.reset');
-    nameController(persistence_folder.add(persistence_actions, 'reset'), 'gui.reset.defaults');
+    label(persistence_folder.add(persistence_actions, 'reset'), 'gui.reset.defaults');
 
     restoreSavedSettings();
 

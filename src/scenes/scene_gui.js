@@ -1,5 +1,5 @@
 import { GUI } from 'dat.gui';
-import { translate, onLanguageChange } from '../ui/language.js';
+import { createGuiLabels } from '../ui/gui_labels.js';
 
 const GUI_WIDTH = 340;
 const RIGHT_ALIGNED_PANEL_CLASS = 'a';
@@ -14,20 +14,7 @@ export function createSceneGui(facade, { signal } = {}) {
     container.appendChild(gui.domElement);
 
     const all_controllers = [];
-    const relabel_callbacks = [];
-
-    function label(controller, message_key) {
-        controller.name(translate(message_key));
-        relabel_callbacks.push(() => controller.name(translate(message_key)));
-        return controller;
-    }
-
-    function relabel() {
-        GUI.TEXT_OPEN = translate('gui.open_controls');
-        GUI.TEXT_CLOSED = translate('gui.close_controls');
-        gui.closed = gui.closed;
-        relabel_callbacks.forEach(callback => callback());
-    }
+    const { label, addFolder, followLanguage } = createGuiLabels(gui);
 
     function liveParameters(accessors) {
         const parameters = {};
@@ -57,11 +44,7 @@ export function createSceneGui(facade, { signal } = {}) {
             bind(gui.add(parameters, 'speed', min, max, step), 'gui.metaballs.speed');
         },
 
-        addFolder(message_key) {
-            const folder = gui.addFolder(translate(message_key));
-            relabel_callbacks.push(() => { folder.name = translate(message_key); });
-            return folder;
-        },
+        addFolder,
 
         finish() {
             const reset_actions = {
@@ -72,8 +55,7 @@ export function createSceneGui(facade, { signal } = {}) {
             };
             label(gui.add(reset_actions, 'reset'), 'gui.reset.all');
 
-            relabel();
-            const stopRelabelling = onLanguageChange(relabel);
+            const stopRelabelling = followLanguage();
             signal?.addEventListener('abort', () => {
                 stopRelabelling();
                 gui.destroy();
