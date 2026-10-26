@@ -8,9 +8,11 @@ import {
     METABALL_PROXY_HALF_EXTENT_X, METABALL_PROXY_HALF_EXTENT_Y, METABALL_PROXY_HALF_EXTENT_Z,
     METABALL_PROXY_CENTER_X, METABALL_PROXY_CENTER_Y, METABALL_PROXY_CENTER_Z,
     METABALL_BACKGROUND_FADE_NEAR, METABALL_BACKGROUND_FADE_FAR, METABALL_DISPLACEMENT_MAX_CAMERA_DISTANCE,
+    METABALL_FIELD_FINE_STEP_VOXELS, METABALL_FIELD_EMPTY_STEP_VOXELS, METABALL_FIELD_MAX_STEPS, METABALL_FIELD_DISPLACEMENT_SHELL,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 import { computeLightViewPosition } from './light_utils.js';
+import { toGlslFloat } from './glsl_utils.js';
 import { cameraArcVisibility, worldAzimuth, horizontalDistance } from '../animation/math_utils.js';
 
 const LIGHT_WORLD_POSITION = new THREE.Vector3(METABALL_LIGHT_POSITION.x, METABALL_LIGHT_POSITION.y, METABALL_LIGHT_POSITION.z);
@@ -22,12 +24,34 @@ function resolveFragmentShader(max_balls) {
         .replaceAll('METABALL_RAYMARCH_MAX_STEPS', METABALL_RAYMARCH_MAX_STEPS);
 }
 
-export function createMetaballMaterial({ max_balls = METABALL_GPU_MAX_BALLS } = {}) {
+function fieldTextureOptions(field_texture) {
+    if (!field_texture) return { defines: {}, uniforms: {} };
+    return {
+        defines: {
+            METABALL_FIELD_TEXTURE: '',
+            METABALL_FIELD_FINE_STEP_VOXELS: toGlslFloat(METABALL_FIELD_FINE_STEP_VOXELS),
+            METABALL_FIELD_EMPTY_STEP_VOXELS: toGlslFloat(METABALL_FIELD_EMPTY_STEP_VOXELS),
+            METABALL_FIELD_MAX_STEPS,
+            METABALL_FIELD_DISPLACEMENT_SHELL: toGlslFloat(METABALL_FIELD_DISPLACEMENT_SHELL),
+        },
+        uniforms: {
+            u_field_texture: { value: field_texture.texture },
+            u_field_minimum: { value: field_texture.minimum },
+            u_field_size: { value: field_texture.size },
+            u_field_voxel_size: { value: field_texture.voxel_size },
+        },
+    };
+}
+
+export function createMetaballMaterial({ max_balls = METABALL_GPU_MAX_BALLS, field_texture = null } = {}) {
+    const field_texture_options = fieldTextureOptions(field_texture);
     return new THREE.ShaderMaterial({
         vertexShader: noise_glsl + vertex_glsl,
         fragmentShader: noise_glsl + resolveFragmentShader(max_balls),
         glslVersion: THREE.GLSL3,
+        defines: field_texture_options.defines,
         uniforms: {
+            ...field_texture_options.uniforms,
             u_light_position: { value: new THREE.Vector3() },
             u_time: { value: 0.0 },
             u_glow_enabled: { value: DEFAULT_SETTINGS.glowEnabled ? 1.0 : 0.0 },

@@ -1,15 +1,24 @@
 import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../rendering/metaball_material.js';
+import { createMetaballFieldTexture } from '../rendering/metaball_field_texture.js';
 import { toHexColor } from '../rendering/color_utils.js';
 import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } from '../animation/metaball_animation.js';
 import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createMetaballField(scene) {
-    const material = createMetaballMaterial();
+    const field_texture = createMetaballFieldTexture({ max_balls: METABALL_GPU_MAX_BALLS });
+    const material = createMetaballMaterial({ field_texture });
     const effect = createMetaballGeometry(scene, material);
     let last_camera = null;
-    updateMetaballBalls(effect, getActiveBalls(), last_camera);
+    let is_field_texture_outdated = true;
+
+    function uploadBalls(balls) {
+        updateMetaballBalls(effect, balls, last_camera);
+        is_field_texture_outdated = true;
+    }
+
+    uploadBalls(getActiveBalls());
 
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_strength = DEFAULT_SETTINGS.displacementStrength;
@@ -19,9 +28,15 @@ export function createMetaballField(scene) {
         update(time, camera, volcano_position) {
             last_camera = camera;
             const balls = stepMetaballAnimation(time);
-            if (balls) updateMetaballBalls(effect, balls, camera);
+            if (balls) uploadBalls(balls);
             updateMetaballLight(material, camera, time);
             updateMetaballDisplacement(material, { enabled: displacement_enabled, strength: displacement_strength, camera, volcano_position });
+        },
+
+        renderFieldTexture(renderer) {
+            if (!is_field_texture_outdated) return;
+            field_texture.render(renderer, material.uniforms);
+            is_field_texture_outdated = false;
         },
 
         isPaused: () => settings.paused,
@@ -57,12 +72,12 @@ export function createMetaballField(scene) {
         },
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
+        setCount: value => { settings.count = value; uploadBalls(getActiveBalls()); },
         getMaxCount: () => Math.min(settings.max_count, METABALL_GPU_MAX_BALLS),
         getIsolation: () => effect.isolation,
-        setIsolation: value => { effect.isolation = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
+        setIsolation: value => { effect.isolation = value; uploadBalls(getActiveBalls()); },
         getRadius: () => effect.radius_scale,
-        setRadius: value => { effect.radius_scale = value; updateMetaballBalls(effect, getActiveBalls(), last_camera); },
+        setRadius: value => { effect.radius_scale = value; uploadBalls(getActiveBalls()); },
         getSpread: () => settings.spread,
         setSpread: value => { settings.spread = value; },
         getSpeed: () => settings.speed_factor,

@@ -15,6 +15,10 @@ vi.mock('../../geometry/metaball_geometry.js', () => ({
     ballToWorldRadius: vi.fn(() => 1.5),
 }));
 
+vi.mock('../../rendering/metaball_field_texture.js', () => ({
+    createMetaballFieldTexture: vi.fn(() => ({ texture: {}, render: vi.fn() })),
+}));
+
 vi.mock('../../rendering/metaball_material.js', () => ({
     createMetaballMaterial: vi.fn(() => ({
         uniforms: {
@@ -47,6 +51,7 @@ vi.mock('../../animation/metaball_animation.js', () => {
 });
 
 import { createMetaballField } from '../metaball_field_object.js';
+import { createMetaballFieldTexture } from '../../rendering/metaball_field_texture.js';
 import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '../../geometry/metaball_geometry.js';
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../../rendering/metaball_material.js';
 import { settings as mock_settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } from '../../animation/metaball_animation.js';
@@ -59,6 +64,31 @@ const DEFAULT_SETTINGS = { count: 100, spread: 1.0, speed_factor: 0.003, sink_sp
 beforeEach(() => {
     vi.clearAllMocks();
     Object.assign(mock_settings, DEFAULT_SETTINGS);
+});
+
+describe('createMetaballField – field texture', () => {
+    function fieldTexture() {
+        return createMetaballFieldTexture.mock.results.at(-1).value;
+    }
+
+    test('hands its field texture to the material', () => {
+        createMetaballField(makeScene());
+        expect(createMetaballMaterial).toHaveBeenCalledWith({ field_texture: fieldTexture() });
+    });
+
+    test('renders the field texture once after the balls changed, and not again until they change', () => {
+        const field = createMetaballField(makeScene());
+        const renderer = {};
+
+        field.renderFieldTexture(renderer);
+        field.renderFieldTexture(renderer);
+        expect(fieldTexture().render).toHaveBeenCalledTimes(1);
+        expect(fieldTexture().render).toHaveBeenCalledWith(renderer, field.effect.material.uniforms);
+
+        field.setCount(3);
+        field.renderFieldTexture(renderer);
+        expect(fieldTexture().render).toHaveBeenCalledTimes(2);
+    });
 });
 
 describe('createMetaballField', () => {

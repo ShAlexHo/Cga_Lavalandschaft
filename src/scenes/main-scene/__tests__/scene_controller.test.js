@@ -45,6 +45,10 @@ vi.mock('../animation/metaball_animation.js', () => {
     };
 });
 
+vi.mock('../rendering/metaball_field_texture.js', () => ({
+    createMetaballFieldTexture: vi.fn(() => ({ texture: {}, render: vi.fn() })),
+}));
+
 vi.mock('../rendering/metaball_material.js', () => ({
     createMetaballMaterial: vi.fn(() => ({
         uniforms: {

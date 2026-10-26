@@ -75,6 +75,7 @@ export class MockMatrix4 {
 export class MockShaderMaterial {
     constructor(parameters = {}) {
         this.uniforms = parameters.uniforms ?? {};
+        this.defines = parameters.defines ?? {};
         this.vertexShader = parameters.vertexShader ?? '';
         this.fragmentShader = parameters.fragmentShader ?? '';
         this.side = parameters.side ?? 0;

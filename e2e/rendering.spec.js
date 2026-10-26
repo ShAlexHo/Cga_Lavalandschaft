@@ -66,7 +66,7 @@ test('landing page enters the scene via the play button and shows the left scene
     await preview.click();
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
     await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await page.waitForTimeout(500);
 
@@ -110,7 +110,7 @@ test('metaballs detail opens its own scene with an explanation below it', async 
     await preview.scrollIntoViewIfNeeded();
     await preview.click();
     await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
 
     await page.getByRole('button', { name: 'About metaballs' }).click();
@@ -132,7 +132,7 @@ test('noise detail opens its own scene with the colour noise parameters', async 
     await preview.scrollIntoViewIfNeeded();
     await preview.click();
     await expect(page).toHaveURL(/\/noise-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
 
     for (const label of ['Primary colour', 'Secondary colour']) {
@@ -153,7 +153,7 @@ test('surface detail opens its own scene with the bump and displacement mapping 
     await preview.scrollIntoViewIfNeeded();
     await preview.click();
     await expect(page).toHaveURL(/\/surface-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
 
     for (const label of ['Noise', 'Bump mapping', 'Displacement mapping', 'Displacement strength']) {

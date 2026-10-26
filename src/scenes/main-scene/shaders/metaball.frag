@@ -23,6 +23,15 @@ uniform int   u_raymarch_steps;
 uniform float u_normal_epsilon;
 uniform mat4  u_projection_matrix;
 
+#ifdef METABALL_FIELD_TEXTURE
+uniform highp sampler3D u_field_texture;
+uniform vec3  u_field_minimum;
+uniform vec3  u_field_size;
+uniform vec3  u_field_voxel_size;
+#endif
+
+const int BISECTION_STEPS = 6;
+
 in vec3 v_local_position;
 
 out vec4 out_color;
@@ -49,13 +58,85 @@ float safeStepDistance(vec3 march_position) {
 }
 
 vec3 heatCoordinate(vec3 world_position) {
-    return world_position * 0.7 + vec3(0.0, -u_time * 0.012, u_time * 0.005);
+    return world_position * 0.7 + vec3(0.0, u_time * 0.012, u_time * 0.005);
 }
 
 float crustColdness(vec3 world_position) {
     float heat_proxy = normalizedFractalBrownianMotion(heatCoordinate(world_position));
     return 1.0 - smoothstep(0.15, 0.65, heat_proxy);
 }
+
+#ifdef METABALL_FIELD_TEXTURE
+float sampledField(vec3 local_position) {
+    vec3 texture_coordinate = (local_position - u_field_minimum) / u_field_size;
+    return texture(u_field_texture, texture_coordinate.xzy).r;
+}
+
+vec3 sampledFieldGradient(vec3 local_position) {
+    vec3 x_offset = vec3(u_field_voxel_size.x, 0.0, 0.0);
+    vec3 y_offset = vec3(0.0, u_field_voxel_size.y, 0.0);
+    vec3 z_offset = vec3(0.0, 0.0, u_field_voxel_size.z);
+    return vec3(
+        sampledField(local_position + x_offset) - sampledField(local_position - x_offset),
+        sampledField(local_position + y_offset) - sampledField(local_position - y_offset),
+        sampledField(local_position + z_offset) - sampledField(local_position - z_offset)
+    ) / (2.0 * u_field_voxel_size);
+}
+
+vec3 analyticFieldGradient(vec3 local_position) {
+    vec3 gradient = vec3(0.0);
+    for (int i = 0; i < u_ball_count; i++) {
+        float strength = u_ball_strength[i];
+        if (strength <= 0.0) continue;
+        vec3 offset = local_position - u_ball_center[i];
+        float distance_squared = max(dot(offset, offset), 0.0001);
+        if (4.0 * strength / distance_squared <= u_ball_subtract[i]) continue;
+        gradient -= 8.0 * strength * offset / (distance_squared * distance_squared);
+    }
+    return gradient;
+}
+
+float displacedField(vec3 local_position, float field) {
+    if (u_displacement <= 0.0 || field <= u_isolation * METABALL_FIELD_DISPLACEMENT_SHELL) return field;
+    vec3 world_position = u_effect_position + u_effect_scale * local_position;
+    return field + length(sampledFieldGradient(local_position)) * crustColdness(world_position) * u_displacement;
+}
+
+float surfaceField(vec3 local_position) {
+    return displacedField(local_position, sampledField(local_position));
+}
+
+bool marchFieldTexture(vec3 origin, vec3 direction, float entry_distance, float exit_distance, out float hit_distance) {
+    float smallest_voxel = min(u_field_voxel_size.x, min(u_field_voxel_size.y, u_field_voxel_size.z));
+    float fine_step = METABALL_FIELD_FINE_STEP_VOXELS * smallest_voxel;
+    float empty_step = METABALL_FIELD_EMPTY_STEP_VOXELS * smallest_voxel;
+
+    float ray_distance = entry_distance;
+    float previous_ray_distance = entry_distance;
+    hit_distance = entry_distance;
+
+    for (int i = 0; i < METABALL_FIELD_MAX_STEPS; i++) {
+        if (ray_distance > exit_distance) break;
+        vec3 march_position = origin + direction * ray_distance;
+        float field = sampledField(march_position);
+
+        if (displacedField(march_position, field) >= u_isolation) {
+            float outside_distance = previous_ray_distance;
+            float inside_distance = ray_distance;
+            for (int j = 0; j < BISECTION_STEPS; j++) {
+                float middle_distance = 0.5 * (outside_distance + inside_distance);
+                if (surfaceField(origin + direction * middle_distance) >= u_isolation) inside_distance = middle_distance; else outside_distance = middle_distance;
+            }
+            hit_distance = inside_distance;
+            return true;
+        }
+
+        previous_ray_distance = ray_distance;
+        ray_distance += field > 0.0 ? fine_step : empty_step;
+    }
+    return false;
+}
+#endif
 
 void main() {
     vec3 local_camera_position = (cameraPosition - u_effect_position) / u_effect_scale;
@@ -72,10 +153,13 @@ void main() {
     float box_exit_distance = min(min(far_slab_distances.x, far_slab_distances.y), far_slab_distances.z);
     if (box_exit_distance < box_entry_distance) discard;
 
+#ifdef METABALL_FIELD_TEXTURE
+    float ray_distance;
+    if (!marchFieldTexture(local_camera_position, ray_direction, box_entry_distance, box_exit_distance, ray_distance)) discard;
+#else
     const float SURFACE_EPSILON = 0.0005;
     const float STEP_SAFETY = 0.8;
     const float MINIMUM_STEP = 0.001;
-    const int BISECTION_STEPS = 6;
 
     float ray_distance = box_entry_distance;
     bool did_hit = false;
@@ -112,14 +196,20 @@ void main() {
     }
 
     if (!did_hit) discard;
+#endif
 
     vec3 hit_local_position = local_camera_position + ray_direction * ray_distance;
 
+#ifdef METABALL_FIELD_TEXTURE
+    vec3 gradient = analyticFieldGradient(hit_local_position);
+    if (dot(gradient, gradient) < 1.0e-12) gradient = sampledFieldGradient(hit_local_position);
+#else
     vec3 gradient = vec3(
         metaballField(hit_local_position + vec3(u_normal_epsilon, 0.0, 0.0)) - metaballField(hit_local_position - vec3(u_normal_epsilon, 0.0, 0.0)),
         metaballField(hit_local_position + vec3(0.0, u_normal_epsilon, 0.0)) - metaballField(hit_local_position - vec3(0.0, u_normal_epsilon, 0.0)),
         metaballField(hit_local_position + vec3(0.0, 0.0, u_normal_epsilon)) - metaballField(hit_local_position - vec3(0.0, 0.0, u_normal_epsilon))
     );
+#endif
     vec3 local_normal = normalize(-gradient);
 
     vec3 world_position = u_effect_position + u_effect_scale * hit_local_position;
@@ -163,7 +253,7 @@ void main() {
     vec3 color = mix(base_dark, u_color_hot, heat);
 
     if (u_noise_enabled > 0.5) {
-        vec3 orange_coordinate = world_position * 1.2 + vec3(u_time * 0.007, -u_time * 0.018, 0.0);
+        vec3 orange_coordinate = world_position * 1.2 + vec3(u_time * 0.007, u_time * 0.018, 0.0);
         float orange_noise = normalizedFractalBrownianMotion(orange_coordinate);
         float orange_mask = smoothstep(0.6, 0.85, orange_noise);
         color = mix(color, u_noise_color_2, orange_mask * 0.40);

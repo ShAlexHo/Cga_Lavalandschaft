@@ -118,6 +118,35 @@ describe('createMetaballMaterial', () => {
     });
 });
 
+describe('createMetaballMaterial – with a field texture', () => {
+    const field_texture = {
+        texture: { name: 'field' },
+        minimum: new MockVector3(-1, -0.8, -1),
+        size: new MockVector3(2, 0.8, 2),
+        voxel_size: new MockVector3(0.01, 0.0125, 0.01),
+    };
+
+    test('without a field texture, the shader evaluates every ball directly', () => {
+        expect(createMetaballMaterial().defines).not.toHaveProperty('METABALL_FIELD_TEXTURE');
+        expect(createMetaballMaterial().uniforms).not.toHaveProperty('u_field_texture');
+    });
+
+    test('with a field texture, the shader samples the field from it, within the texture’s bounds', () => {
+        const material = createMetaballMaterial({ field_texture });
+
+        expect(material.defines).toHaveProperty('METABALL_FIELD_TEXTURE');
+        expect(material.uniforms.u_field_texture.value).toBe(field_texture.texture);
+        expect(material.uniforms.u_field_minimum.value).toBe(field_texture.minimum);
+        expect(material.uniforms.u_field_size.value).toBe(field_texture.size);
+        expect(material.uniforms.u_field_voxel_size.value).toBe(field_texture.voxel_size);
+    });
+
+    test('keeps the ball uniforms, which the shader still needs for exact normals', () => {
+        const material = createMetaballMaterial({ field_texture });
+        expect(material.uniforms.u_ball_strength.value).toHaveLength(METABALL_GPU_MAX_BALLS);
+    });
+});
+
 describe('updateMetaballLight', () => {
     function makeMaterial() {
         return {
