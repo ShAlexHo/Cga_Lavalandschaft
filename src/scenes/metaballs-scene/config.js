@@ -37,8 +37,9 @@ export const GROUND_DEFAULTS = {
     ground_visible: true,
     ground_height: 0.68,
 };
-export const GROUND_HEIGHT_RANGE = { min: -3, max: 1.5, step: 0.05 };
+export const GROUND_HEIGHT_RANGE = { min: -3, max: 3, step: 0.05 };
 export const GROUND_BALL_COUNT_RANGE = { min: 10, max: 30, step: 1 };
+export const GROUND_PATH_SPEED_SCALE = 0.5;
 export const GROUND_PLATE_SIZE = { width: 20, depth: 16, thickness: 1.2 };
 export const GROUND_COLOR = '#4a2216';
 export const GROUND_AMBIENT_LIGHT = { color: '#ffd9c7', intensity: 0.35 };

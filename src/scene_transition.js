@@ -107,6 +107,7 @@ export async function shrinkIntoPreview() {
 async function shrinkOntoFrame(shrinking_overlay, frame) {
     frame.style.visibility = 'hidden';
     await settlePreview(frame);
+    bringIntoView(frame);
     await shrinking_overlay.animate([
         { ...fullWindowKeyframe(), filter: SHARP },
         { filter: SHRINK_BLUR, offset: SHRINK_BLUR_OFFSET },
@@ -117,6 +118,11 @@ async function shrinkOntoFrame(shrinking_overlay, frame) {
 
     frame.style.visibility = '';
     shrinking_overlay.remove();
+}
+
+function bringIntoView(frame) {
+    const bounds = frame.getBoundingClientRect();
+    if (bounds.top < 0 || bounds.bottom > window.innerHeight) frame.scrollIntoView({ block: 'center' });
 }
 
 async function settlePreview(frame) {

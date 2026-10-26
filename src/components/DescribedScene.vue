@@ -1,12 +1,16 @@
 <script setup>
 import { ref } from 'vue';
 import SceneStage from './SceneStage.vue';
+import { findDetailScene, numberedTitle } from '../scenes/detail_scenes.js';
 
 const properties = defineProps({
     engine: { type: Object, required: true },
     scene_name: { type: String, required: true },
+    title: { type: String, required: true },
     scroll_hint: { type: String, required: true },
 });
+
+const detail = findDetailScene(properties.scene_name);
 
 const description = ref(null);
 
@@ -25,6 +29,7 @@ function scrollToDescription() {
         </SceneStage>
 
         <article ref="description" class="scene-description">
+            <h2 class="scene-description-title">{{ numberedTitle(detail, properties.title) }}</h2>
             <slot />
         </article>
     </main>
@@ -80,7 +85,7 @@ function scrollToDescription() {
     line-height: 1.65;
 }
 
-.scene-description :slotted(.scene-description-title) {
+.scene-description-title {
     margin-bottom: 16px;
     font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
     font-size: 1.6rem;
@@ -92,11 +97,15 @@ function scrollToDescription() {
     margin-top: 1em;
 }
 
-.scene-description :slotted(.scene-description-title + p) {
+.scene-description :slotted(p:first-of-type) {
     margin-top: 0;
 }
 
 @media (max-width: 600px) {
+    .scroll-hint {
+        bottom: 84px;
+    }
+
     .scene-description {
         padding: 40px 16px 96px;
     }

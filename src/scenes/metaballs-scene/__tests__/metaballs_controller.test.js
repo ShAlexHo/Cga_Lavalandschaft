@@ -2,7 +2,9 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { createMetaballsController } from '../metaballs_controller.js';
 import { computeBalls } from '../metaballs_animation.js';
-import { EFFECT_SCALE, BOX_HALF_EXTENT, DEFAULTS, MAX_BALL_COUNT, SURFACE_DEFAULTS, GROUND_DEFAULTS, GROUND_PLATE_SIZE } from '../config.js';
+import {
+    EFFECT_SCALE, BOX_HALF_EXTENT, DEFAULTS, MAX_BALL_COUNT, SURFACE_DEFAULTS, GROUND_DEFAULTS, GROUND_PLATE_SIZE, GROUND_PATH_SPEED_SCALE,
+} from '../config.js';
 import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
 
 let scene;
@@ -321,6 +323,17 @@ describe('createMetaballsController – on the ground', () => {
     test('the other scenes get no ground and no ground parameters', () => {
         expect(scene.children.filter(child => child.isMesh)).toEqual([controller.effect]);
         expect(controller.setGroundHeight).toBeUndefined();
+    });
+
+    test('moves the balls along their paths more slowly, while the shown speed stays 1', () => {
+        on_ground.update(10, camera);
+        const expected = computeBalls(10 * GROUND_PATH_SPEED_SCALE, { ...DEFAULTS, count: GROUND_DEFAULTS.count }, { planar: true });
+        const center = on_ground.effect.material.uniforms.u_ball_center.value[0];
+
+        expect(on_ground.getSpeed()).toBe(DEFAULTS.speed);
+        expect(on_ground.getElapsedTime()).toBe(10);
+        expect(center.x).toBeCloseTo(2 * expected[0].x - 1, 9);
+        expect(center.z).toBeCloseTo(2 * expected[0].z - 1, 9);
     });
 
     test('starts with its own, larger number of balls', () => {

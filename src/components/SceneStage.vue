@@ -5,13 +5,27 @@ import { scene_screenshots } from '../scene_screenshot.js';
 import { localize } from '../language_state.js';
 import { closeOtherScenes } from '../scenes/scene_registry.js';
 import { coverWithScreenshot } from '../scene_transition.js';
+import { neighbouringDetailScenes, numberedTitle } from '../scenes/detail_scenes.js';
 
 const properties = defineProps({
     engine: { type: Object, required: true },
     scene_name: { type: String, required: true },
 });
 
+const ARROW_PATHS = {
+    previous: 'M19 11H8.8l4.6-4.6L12 5l-7 7 7 7 1.4-1.4L8.8 13H19z',
+    next: 'M5 11h10.2l-4.6-4.6L12 5l7 7-7 7-1.4-1.4 4.6-4.6H5z',
+};
+
 const stage = ref(null);
+const { previous, next } = neighbouringDetailScenes(properties.scene_name);
+const NAVIGATION = previous || next
+    ? [{ direction: 'previous', target: previous }, { direction: 'next', target: next }]
+    : [];
+
+function navigationLabel({ direction, target }) {
+    return `${localize(`scene.${direction}`)}: ${numberedTitle(target, localize(`${target.message_key_prefix}.title`))}`;
+}
 
 let is_mounted = false;
 
@@ -39,9 +53,25 @@ onBeforeUnmount(leaveScene);
 
 <template>
     <div ref="stage" class="scene-stage">
-        <RouterLink :to="{ name: 'landing' }" class="home-button" :aria-label="localize('scene.home')" :title="localize('scene.home')">
+        <RouterLink :to="{ name: 'landing' }" class="scene-button home-button" :aria-label="localize('scene.home')" :title="localize('scene.home')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z" /></svg>
         </RouterLink>
+        <nav v-if="NAVIGATION.length" class="scene-navigation" :aria-label="localize('scene.navigation')">
+            <template v-for="entry in NAVIGATION" :key="entry.direction">
+                <RouterLink
+                    v-if="entry.target"
+                    :to="{ name: entry.target.scene_name }"
+                    class="scene-button"
+                    :aria-label="navigationLabel(entry)"
+                    :title="navigationLabel(entry)"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="ARROW_PATHS[entry.direction]" /></svg>
+                </RouterLink>
+                <span v-else class="scene-button scene-button-disabled" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path :d="ARROW_PATHS[entry.direction]" /></svg>
+                </span>
+            </template>
+        </nav>
         <slot />
     </div>
 </template>
@@ -65,6 +95,18 @@ onBeforeUnmount(leaveScene);
     bottom: 20px;
     left: 20px;
     z-index: 1;
+}
+
+.scene-navigation {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+}
+
+.scene-button {
     display: grid;
     place-items: center;
     width: 48px;
@@ -77,17 +119,21 @@ onBeforeUnmount(leaveScene);
     transition: background 200ms ease, border-color 200ms ease;
 }
 
-.home-button:hover {
+.scene-button:not(.scene-button-disabled):hover {
     border-color: rgba(255, 255, 255, 0.7);
     background: rgba(255, 91, 0, 0.7);
 }
 
-.home-button:focus-visible {
+.scene-button:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
 }
 
-.home-button svg {
+.scene-button-disabled {
+    opacity: 0.35;
+}
+
+.scene-button svg {
     width: 22px;
     height: 22px;
     fill: currentColor;

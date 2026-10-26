@@ -35,9 +35,12 @@ export const MESSAGES = {
         'details.ground.title': 'Lava with bloom on the ground',
         'details.ground.start_scene': 'Start ground scene',
         'details.ground.preview_alt': 'Screenshot of the ground scene',
-        'details.ground.text_1': 'In the landscape, the lava flows over the volcano and the ground, so the metaballs have to meet ordinary geometry correctly. Here they glide across a plane while a floor cuts through them. Because the raymarching shader writes the depth of every hit point, the usual depth test decides for each pixel whether ball or floor is in front, and the line where they meet follows the true shape of the field. Bloom doesn’t only change the metaballs: its glow spills beyond the lava and tints the floor as well. Without it, the floor beside the lava would stay dark and the lava would look paler.',
+        'details.ground.text_1': 'In the landscape, the lava rests on solid ground. Here the metaballs glide across a plate that cuts through them, and they meet it seamlessly because the shader writes the depth of every hit. Bloom doesn’t only change the metaballs: its glow spills beyond the lava and tints the floor as well. Without it, the floor beside the lava would stay dark and the lava would look paler.',
 
         'scene.home': 'Back to start page',
+        'scene.navigation': 'Scene navigation',
+        'scene.previous': 'Previous scene',
+        'scene.next': 'Next scene',
         'scene.loading': 'Loading scene…',
         'scene.description_in_work': 'Description in work',
 
@@ -165,9 +168,12 @@ export const MESSAGES = {
         'details.ground.title': 'Lava mit Bloom-Effekt auf dem Boden',
         'details.ground.start_scene': 'Boden-Szene starten',
         'details.ground.preview_alt': 'Screenshot der Boden-Szene',
-        'details.ground.text_1': 'In der Landschaft fließt die Lava über Vulkan und Boden, die Metaballs müssen also korrekt mit gewöhnlicher Geometrie zusammentreffen. Hier gleiten sie über eine Ebene, während ein Boden sie durchschneidet. Weil der Raymarching-Shader die Tiefe jedes Treffpunkts schreibt, entscheidet der übliche Tiefentest pro Pixel, ob Kugel oder Boden vorne liegt, und die Schnittlinie folgt der echten Form des Feldes. Der Bloom-Effekt verändert dabei nicht nur die Metaballs: Sein Leuchten streut über die Lava hinaus und färbt auch den Boden ein. Ohne ihn bliebe der Boden daneben dunkel und die Lava blasser.',
+        'details.ground.text_1': 'In der Landschaft liegt die Lava auf festem Boden. Hier gleiten die Metaballs über eine Platte, die sie durchschneidet, und treffen nahtlos auf sie, weil der Shader die Tiefe jedes Treffpunkts schreibt. Der Bloom-Effekt verändert dabei nicht nur die Metaballs: Sein Leuchten streut über die Lava hinaus und färbt auch den Boden ein. Ohne ihn bliebe der Boden daneben dunkel und die Lava blasser.',
 
         'scene.home': 'Zur Startseite',
+        'scene.navigation': 'Szenennavigation',
+        'scene.previous': 'Vorherige Szene',
+        'scene.next': 'Nächste Szene',
         'scene.loading': 'Szene wird geladen…',
         'scene.description_in_work': 'Beschreibung in Arbeit',
 

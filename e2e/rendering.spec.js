@@ -186,3 +186,34 @@ test('ground detail opens its own scene with the ball count and the floor parame
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
+
+test('arrow buttons move between the numbered detail scenes directly, and the start page shows the last one on return', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: '1. Metaballs', level: 3 })).toBeAttached();
+    await expect(page.getByRole('heading', { name: '4. Lava with bloom on the ground', level: 3 })).toBeAttached();
+
+    const metaballs_preview = page.getByRole('link', { name: 'Start metaballs scene' });
+    await metaballs_preview.scrollIntoViewIfNeeded();
+    await metaballs_preview.click();
+    await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+    await expect(page.locator('.scene-button-disabled')).toHaveCount(1);
+
+    await page.getByRole('link', { name: 'Next scene: 2. Noise' }).click();
+    await expect(page).toHaveURL(/\/noise-scene$/, { timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0);
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole('heading', { name: '2. Noise', level: 2 })).toBeAttached();
+    await expect(page.getByRole('link', { name: 'Previous scene: 1. Metaballs' })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Back to start page' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+    await expect(page.getByRole('link', { name: 'Start metaballs scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.getByRole('link', { name: 'Start noise scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.getByRole('link', { name: 'Start noise scene' })).toBeInViewport();
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});

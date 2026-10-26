@@ -7,8 +7,12 @@ const engine = getSceneEngine();
 </script>
 
 <template>
-    <DescribedScene :engine="engine" scene_name="noise-scene" :scroll_hint="localize('noise.scroll_hint')">
-        <h2 class="scene-description-title">{{ localize('noise.description_title') }}</h2>
+    <DescribedScene
+        :engine="engine"
+        scene_name="noise-scene"
+        :title="localize('noise.description_title')"
+        :scroll_hint="localize('noise.scroll_hint')"
+    >
         <p>{{ localize('scene.description_in_work') }}</p>
     </DescribedScene>
 </template>

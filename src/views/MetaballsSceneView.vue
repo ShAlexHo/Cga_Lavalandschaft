@@ -7,8 +7,12 @@ const engine = getSceneEngine();
 </script>
 
 <template>
-    <DescribedScene :engine="engine" scene_name="metaballs-scene" :scroll_hint="localize('metaballs.scroll_hint')">
-        <h2 class="scene-description-title">{{ localize('metaballs.description_title') }}</h2>
+    <DescribedScene
+        :engine="engine"
+        scene_name="metaballs-scene"
+        :title="localize('metaballs.description_title')"
+        :scroll_hint="localize('metaballs.scroll_hint')"
+    >
         <p>{{ localize('scene.description_in_work') }}</p>
     </DescribedScene>
 </template>

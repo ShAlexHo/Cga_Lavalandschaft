@@ -10,7 +10,7 @@ function makeAnimationMock() {
 
 function makePreview({ left = 100, top = 120, width = 800, height = 450 } = {}) {
     const frame = document.createElement('a');
-    frame.getBoundingClientRect = () => ({ left, top, width, height });
+    frame.getBoundingClientRect = () => ({ left, top, width, height, bottom: top + height });
     const image = document.createElement('img');
     image.src = 'data:image/jpeg;base64,AAAA';
     frame.appendChild(image);
@@ -209,6 +209,29 @@ describe('shrinkIntoPreview', () => {
 
         expect(Element.prototype.animate.mock.calls[0][0].at(-1)).toMatchObject({ left: '30px' });
         expect(other_preview.frame.style.visibility).toBe('');
+    });
+
+    test('first scrolls a preview that lies outside the window into view, so the screenshot lands where it can be seen', async () => {
+        const preview = makeReturnPreview('ground-scene', { top: window.innerHeight + 400 });
+        preview.frame.scrollIntoView = vi.fn(() => {
+            preview.frame.getBoundingClientRect = () => ({ left: 100, top: 200, width: 800, height: 450, bottom: 650 });
+        });
+        coverWithScreenshot(SCREENSHOT_URL, 'ground-scene');
+
+        await shrinkIntoPreview();
+
+        expect(preview.frame.scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
+        expect(Element.prototype.animate.mock.calls[0][0].at(-1)).toMatchObject({ top: '200px' });
+    });
+
+    test('leaves the page where it is when the preview is already visible', async () => {
+        const preview = makeReturnPreview('ground-scene');
+        preview.frame.scrollIntoView = vi.fn();
+        coverWithScreenshot(SCREENSHOT_URL, 'ground-scene');
+
+        await shrinkIntoPreview();
+
+        expect(preview.frame.scrollIntoView).not.toHaveBeenCalled();
     });
 
     test('fades the screenshot out when the preview cannot be found', async () => {

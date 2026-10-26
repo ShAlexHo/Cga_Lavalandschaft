@@ -4,7 +4,9 @@ import { toHexColor } from '../main-scene/rendering/color_utils.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
 import { computeBalls } from './metaballs_animation.js';
 import { createGroundPlate } from './ground_plate.js';
-import { EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS, SURFACE_DEFAULTS, GROUND_DEFAULTS } from './config.js';
+import {
+    EFFECT_SCALE, BOX_HALF_EXTENT, BOX_MARGIN, MAX_BALL_COUNT, DEFAULTS, SURFACE_DEFAULTS, GROUND_DEFAULTS, GROUND_PATH_SPEED_SCALE,
+} from './config.js';
 
 export function createMetaballsController(scene, { noise = false, surface = false, ground = false, bloom_pass = null } = {}) {
     const material = createMetaballMaterial({ max_balls: MAX_BALL_COUNT });
@@ -72,13 +74,14 @@ export function createMetaballsController(scene, { noise = false, surface = fals
     }
 
     const ground_plate = ground ? createGroundPlate(scene) : null;
+    const path_speed_scale = ground ? GROUND_PATH_SPEED_SCALE : 1;
 
     const controller = {
         effect,
 
         update(delta_seconds, camera) {
             if (!settings.paused) elapsed_time += delta_seconds * settings.speed;
-            const balls = computeBalls(elapsed_time, settings, { planar: ground });
+            const balls = computeBalls(elapsed_time * path_speed_scale, settings, { planar: ground });
             updateMetaballBalls(effect, balls);
             fitBoxToBalls(balls);
             updateMetaballLight(material, camera, elapsed_time);

@@ -15,6 +15,7 @@ import noise_scene_preview_url from '../assets/noise_preview.jpg';
 import surface_scene_preview_url from '../assets/surface_preview.jpg';
 import ground_scene_preview_url from '../assets/ground_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
+import { DETAIL_SCENES, numberedTitle } from '../scenes/detail_scenes.js';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
 const AUTHOR_URL = 'https://github.com/ShAlexHo';
@@ -22,24 +23,30 @@ const SEMINAR_URL = 'https://hpicgs.github.io/seminar-3d-rendering-computational
 
 const router = useRouter();
 
-const DETAILS = [
-    {
-        scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', bundled_preview_url: metaballs_scene_preview_url,
+const DETAIL_RESOURCES = {
+    'metaballs-scene': {
+        bundled_preview_url: metaballs_scene_preview_url,
         loadEngine: () => import('../scenes/metaballs-scene/scene_engine.js'),
     },
-    {
-        scene_name: 'noise-scene', message_key_prefix: 'details.noise', bundled_preview_url: noise_scene_preview_url,
+    'noise-scene': {
+        bundled_preview_url: noise_scene_preview_url,
         loadEngine: () => import('../scenes/noise-scene/scene_engine.js'),
     },
-    {
-        scene_name: 'surface-scene', message_key_prefix: 'details.surface', bundled_preview_url: surface_scene_preview_url,
+    'surface-scene': {
+        bundled_preview_url: surface_scene_preview_url,
         loadEngine: () => import('../scenes/surface-scene/scene_engine.js'),
     },
-    {
-        scene_name: 'ground-scene', message_key_prefix: 'details.ground', bundled_preview_url: ground_scene_preview_url,
+    'ground-scene': {
+        bundled_preview_url: ground_scene_preview_url,
         loadEngine: () => import('../scenes/ground-scene/scene_engine.js'),
     },
-].map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
+};
+
+const DETAILS = DETAIL_SCENES.map(detail => ({
+    ...detail,
+    ...DETAIL_RESOURCES[detail.scene_name],
+    href: router.resolve({ name: detail.scene_name }).href,
+}));
 
 const preview_url = computed(() => scene_screenshots['main-scene'] ?? main_scene_preview_url);
 
@@ -207,7 +214,7 @@ onBeforeUnmount(() => {
             <div class="details-grid">
                 <article v-for="detail in DETAILS" :key="detail.scene_name" class="detail">
                     <div class="detail-column">
-                        <h3 class="detail-title">{{ localize(`${detail.message_key_prefix}.title`) }}</h3>
+                        <h3 class="detail-title">{{ numberedTitle(detail, localize(`${detail.message_key_prefix}.title`)) }}</h3>
                     </div>
                     <a
                         :ref="element => setDetailPreviewElement(detail.scene_name, 'frame', element)"
