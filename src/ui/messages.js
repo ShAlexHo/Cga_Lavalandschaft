@@ -37,6 +37,11 @@ export const MESSAGES = {
         'details.ground.preview_alt': 'Screenshot of the ground scene',
         'details.ground.text_1': 'In the landscape, the lava rests on solid ground. Here the metaballs glide across a plate that cuts through them, and they meet it seamlessly because the shader writes the depth of every hit. Bloom doesn’t only change the metaballs: its glow spills beyond the lava and tints the floor as well. Without it, the floor beside the lava would stay dark and the lava would look paler.',
 
+        'details.volcano.title': 'Volcano as a lathe, lava flow along a straight line',
+        'details.volcano.start_scene': 'Start volcano scene',
+        'details.volcano.preview_alt': 'Screenshot of the volcano scene',
+        'details.volcano.text_1': 'The volcano is modelled in simplified form as a lathe, a profile rotated around its axis. The lava, in the form of metaballs, flows down a slightly inclined straight line.',
+
         'scene.home': 'Back to start page',
         'scene.navigation': 'Scene navigation',
         'scene.previous': 'Previous scene',
@@ -52,6 +57,8 @@ export const MESSAGES = {
         'surface.description_title': 'Surface irregularities',
         'ground.scroll_hint': 'About lava with bloom on the ground',
         'ground.description_title': 'Lava with bloom on the ground',
+        'volcano.scroll_hint': 'About the volcano as a lathe and the lava flow along a straight line',
+        'volcano.description_title': 'Volcano as a lathe, lava flow along a straight line',
 
         'gui.open_controls': 'Open Controls',
         'gui.close_controls': 'Close Controls',
@@ -131,6 +138,8 @@ export const MESSAGES = {
         'gui.metaballs.count': 'Count',
         'gui.metaballs.isolation': 'Threshold (isolation)',
         'gui.metaballs.spread': 'Spread',
+        'gui.metaballs.spawn_height': 'Spawn height',
+        'gui.metaballs.flow_slope': 'Flow slope',
     },
     de: {
         'app.title': 'Unstill Life: Lavalandschaft',
@@ -170,6 +179,11 @@ export const MESSAGES = {
         'details.ground.preview_alt': 'Screenshot der Boden-Szene',
         'details.ground.text_1': 'In der Landschaft liegt die Lava auf festem Boden. Hier gleiten die Metaballs über eine Platte, die sie durchschneidet, und treffen nahtlos auf sie, weil der Shader die Tiefe jedes Treffpunkts schreibt. Der Bloom-Effekt verändert dabei nicht nur die Metaballs: Sein Leuchten streut über die Lava hinaus und färbt auch den Boden ein. Ohne ihn bliebe der Boden daneben dunkel und die Lava blasser.',
 
+        'details.volcano.title': 'Vulkan als Lathe, Lavafluss auf einer Geraden',
+        'details.volcano.start_scene': 'Vulkan-Szene starten',
+        'details.volcano.preview_alt': 'Screenshot der Vulkan-Szene',
+        'details.volcano.text_1': 'Der Vulkan wird vereinfacht als Rotationskörper (Lathe) modelliert. Die Lava fließt in Form von Metaballs eine leicht geneigte Gerade hinab.',
+
         'scene.home': 'Zur Startseite',
         'scene.navigation': 'Szenennavigation',
         'scene.previous': 'Vorherige Szene',
@@ -185,6 +199,8 @@ export const MESSAGES = {
         'surface.description_title': 'Oberflächenunebenheiten',
         'ground.scroll_hint': 'Über Lava mit Bloom-Effekt auf dem Boden',
         'ground.description_title': 'Lava mit Bloom-Effekt auf dem Boden',
+        'volcano.scroll_hint': 'Über den Vulkan als Lathe und den Lavafluss auf einer Geraden',
+        'volcano.description_title': 'Vulkan als Lathe, Lavafluss auf einer Geraden',
 
         'gui.open_controls': 'Steuerung öffnen',
         'gui.close_controls': 'Steuerung schließen',
@@ -264,5 +280,7 @@ export const MESSAGES = {
         'gui.metaballs.count': 'Anzahl',
         'gui.metaballs.isolation': 'Schwellwert (Isolation)',
         'gui.metaballs.spread': 'Streuung',
+        'gui.metaballs.spawn_height': 'Entstehungshöhe',
+        'gui.metaballs.flow_slope': 'Gefälle der Fließrichtung',
     },
 };

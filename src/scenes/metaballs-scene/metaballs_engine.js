@@ -7,12 +7,14 @@ import { BLOOM_TINT_COLOR } from '../main-scene/config.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
 import { createMetaballsController } from './metaballs_controller.js';
 import {
-    BACKGROUND_COLOR, CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR, CAMERA_INITIAL_POSITION,
+    BACKGROUND_COLOR, CAMERA_SETUP, CAMERA_NEAR, CAMERA_FAR,
     CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE, CAMERA_AUTO_ROTATE_SPEED, MAX_PIXEL_RATIO,
 } from './config.js';
 import { captureCanvas } from '../../scene_screenshot.js';
 
-export function createMetaballsEngine({ resume_state = null, noise = false, surface = false, ground = false, setupGui }) {
+export function createMetaballsEngine({
+    resume_state = null, noise = false, surface = false, createScenery, camera_setup = CAMERA_SETUP, setupGui,
+}) {
     const lifetime = new AbortController();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
@@ -22,8 +24,8 @@ export function createMetaballsEngine({ resume_state = null, noise = false, surf
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(BACKGROUND_COLOR);
 
-    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / window.innerHeight, CAMERA_NEAR, CAMERA_FAR);
-    camera.position.set(CAMERA_INITIAL_POSITION.x, CAMERA_INITIAL_POSITION.y, CAMERA_INITIAL_POSITION.z);
+    const camera = new THREE.PerspectiveCamera(camera_setup.fov, window.innerWidth / window.innerHeight, CAMERA_NEAR, CAMERA_FAR);
+    camera.position.set(camera_setup.position.x, camera_setup.position.y, camera_setup.position.z);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -46,7 +48,7 @@ export function createMetaballsEngine({ resume_state = null, noise = false, surf
     composer.addPass(new RenderPass(scene, camera));
     composer.addPass(bloom_pass);
 
-    const controller = createMetaballsController(scene, { noise, surface, ground, bloom_pass });
+    const controller = createMetaballsController(scene, { noise, surface, createScenery, bloom_pass });
     if (resume_state) {
         controller.applySnapshot(resume_state.snapshot);
         controller.setElapsedTime(resume_state.elapsed_time);

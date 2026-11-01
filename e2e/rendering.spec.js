@@ -187,6 +187,28 @@ test('ground detail opens its own scene with the ball count and the floor parame
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
 
+test('volcano detail opens its own scene with the spawn height, the flow slope and the ground switch', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: 'Start volcano scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/volcano-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    for (const label of ['Speed', 'Spawn height', 'Flow slope', 'Visible']) {
+        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
+    }
+    await expect(page.getByRole('link', { name: 'Previous scene: 4. Lava with bloom on the ground' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'About the volcano as a lathe and the lava flow along a straight line' }).click();
+    await expect(page.getByRole('heading', { name: 'Volcano as a lathe, lava flow along a straight line', level: 2 })).toBeInViewport({ timeout: 60_000 });
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});
+
 test('arrow buttons move between the numbered detail scenes directly, and the start page shows the last one on return', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 

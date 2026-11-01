@@ -3,6 +3,7 @@ export const DETAIL_SCENES = [
     { scene_name: 'noise-scene', message_key_prefix: 'details.noise' },
     { scene_name: 'surface-scene', message_key_prefix: 'details.surface' },
     { scene_name: 'ground-scene', message_key_prefix: 'details.ground' },
+    { scene_name: 'volcano-scene', message_key_prefix: 'details.volcano' },
 ].map((detail, index) => ({ ...detail, number: index + 1 }));
 
 export function findDetailScene(scene_name) {

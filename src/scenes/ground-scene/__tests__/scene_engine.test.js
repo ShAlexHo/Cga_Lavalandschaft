@@ -11,6 +11,7 @@ vi.mock('../../metaballs-scene/metaballs_engine.js', () => ({
 import { createSceneEngine, getSceneEngine, closeSceneEngine } from '../scene_engine.js';
 import { createMetaballsEngine } from '../../metaballs-scene/metaballs_engine.js';
 import { setupGroundGui } from '../ground_gui.js';
+import { createGroundScenery } from '../ground_scenery.js';
 import { closeOtherScenes } from '../../scene_registry.js';
 
 beforeEach(() => {
@@ -20,7 +21,7 @@ beforeEach(() => {
 describe('ground scene engine', () => {
     test('is the metaballs engine with the full lava surface on a floor, and the ground panel', () => {
         createSceneEngine();
-        expect(createMetaballsEngine).toHaveBeenCalledWith({ resume_state: null, noise: true, surface: true, ground: true, setupGui: setupGroundGui });
+        expect(createMetaballsEngine).toHaveBeenCalledWith({ resume_state: null, noise: true, surface: true, createScenery: createGroundScenery, setupGui: setupGroundGui });
     });
 
     test('closing it keeps a resume state for the next engine', () => {

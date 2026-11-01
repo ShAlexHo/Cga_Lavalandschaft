@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const clock_state = vi.hoisted(() => ({ deltas: [] }));
-const renderer_state = vi.hoisted(() => ({ last: null, composer: null }));
+const renderer_state = vi.hoisted(() => ({ last: null, composer: null, camera: null }));
 
 vi.mock('three', () => ({
     Scene: class { add() {} },
@@ -9,10 +9,12 @@ vi.mock('three', () => ({
     Vector2: class {},
     Vector3: class {},
     PerspectiveCamera: class {
-        constructor() {
+        constructor(fov) {
+            this.fov = fov;
             this.position = { set: vi.fn(), copy: vi.fn(), clone: vi.fn(() => ({ x: 1, y: 2, z: 3 })) };
             this.updateMatrixWorld = vi.fn();
             this.updateProjectionMatrix = vi.fn();
+            renderer_state.camera = this;
         }
     },
     WebGLRenderer: class {
@@ -72,6 +74,8 @@ vi.mock('../metaballs_gui.js', () => ({
 }));
 
 import { createSceneEngine, getSceneEngine, closeSceneEngine } from '../scene_engine.js';
+import { createMetaballsEngine } from '../metaballs_engine.js';
+import { CAMERA_FOV, CAMERA_INITIAL_POSITION } from '../config.js';
 import { closeOtherScenes } from '../../scene_registry.js';
 import { createMetaballsController } from '../metaballs_controller.js';
 import { setupMetaballsGui } from '../metaballs_gui.js';
@@ -113,6 +117,22 @@ describe('metaballs createSceneEngine', () => {
     test('builds the metaballs on its scene and hands every parameter to the GUI', () => {
         createSceneEngine();
         expect(setupMetaballsGui).toHaveBeenCalledWith(lastController(), { signal: expect.any(AbortSignal) });
+    });
+
+    test('starts the camera at the demo position, unless a scene brings its own camera setup', () => {
+        createSceneEngine();
+        expect(renderer_state.camera.fov).toBe(CAMERA_FOV);
+        expect(renderer_state.camera.position.set).toHaveBeenCalledWith(CAMERA_INITIAL_POSITION.x, CAMERA_INITIAL_POSITION.y, CAMERA_INITIAL_POSITION.z);
+
+        createMetaballsEngine({ camera_setup: { fov: 60, position: { x: 1, y: 2, z: 3 } }, setupGui: setupMetaballsGui });
+        expect(renderer_state.camera.fov).toBe(60);
+        expect(renderer_state.camera.position.set).toHaveBeenLastCalledWith(1, 2, 3);
+    });
+
+    test('hands the scene’s scenery to the metaballs', () => {
+        const createScenery = () => ({});
+        createMetaballsEngine({ createScenery, setupGui: setupMetaballsGui });
+        expect(createMetaballsController).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ createScenery }));
     });
 
     test('mount() moves canvas and GUI into the container, sizes them and renders a frame', () => {
