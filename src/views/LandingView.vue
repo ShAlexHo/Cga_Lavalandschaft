@@ -10,12 +10,6 @@ import { expandIntoScene, whenReturnFinished } from '../scene_transition.js';
 import { current_language, localize } from '../language_state.js';
 import { LANGUAGES, setLanguage } from '../ui/language.js';
 import main_scene_preview_url from '../assets/scene_preview.jpg';
-import metaballs_scene_preview_url from '../assets/metaballs_preview.jpg';
-import noise_scene_preview_url from '../assets/noise_preview.jpg';
-import surface_scene_preview_url from '../assets/surface_preview.jpg';
-import ground_scene_preview_url from '../assets/ground_preview.jpg';
-import volcano_scene_preview_url from '../assets/volcano_preview.jpg';
-import radial_flow_scene_preview_url from '../assets/radial_flow_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 import { DETAIL_SCENES, numberedTitle } from '../scenes/detail_scenes.js';
 
@@ -25,43 +19,12 @@ const SEMINAR_URL = 'https://hpicgs.github.io/seminar-3d-rendering-computational
 
 const router = useRouter();
 
-const DETAIL_RESOURCES = {
-    'metaballs-scene': {
-        bundled_preview_url: metaballs_scene_preview_url,
-        loadEngine: () => import('../scenes/metaballs-scene/scene_engine.js'),
-    },
-    'noise-scene': {
-        bundled_preview_url: noise_scene_preview_url,
-        loadEngine: () => import('../scenes/noise-scene/scene_engine.js'),
-    },
-    'surface-scene': {
-        bundled_preview_url: surface_scene_preview_url,
-        loadEngine: () => import('../scenes/surface-scene/scene_engine.js'),
-    },
-    'ground-scene': {
-        bundled_preview_url: ground_scene_preview_url,
-        loadEngine: () => import('../scenes/ground-scene/scene_engine.js'),
-    },
-    'volcano-scene': {
-        bundled_preview_url: volcano_scene_preview_url,
-        loadEngine: () => import('../scenes/volcano-scene/scene_engine.js'),
-    },
-    'radial-flow-scene': {
-        bundled_preview_url: radial_flow_scene_preview_url,
-        loadEngine: () => import('../scenes/radial-flow-scene/scene_engine.js'),
-    },
-};
-
-const DETAILS = DETAIL_SCENES.map(detail => ({
-    ...detail,
-    ...DETAIL_RESOURCES[detail.scene_name],
-    href: router.resolve({ name: detail.scene_name }).href,
-}));
+const DETAILS = DETAIL_SCENES.map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
 
 const preview_url = computed(() => scene_screenshots['main-scene'] ?? main_scene_preview_url);
 
 function detailPreviewUrl(detail) {
-    return scene_screenshots[detail.scene_name] ?? detail.bundled_preview_url;
+    return scene_screenshots[detail.scene_name] ?? detail.preview_url;
 }
 
 const preview_ratios = reactive(Object.fromEntries(['main-scene', ...DETAILS.map(detail => detail.scene_name)].map(scene_name => [scene_name, 16 / 9])));

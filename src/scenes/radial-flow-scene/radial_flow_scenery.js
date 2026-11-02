@@ -1,4 +1,4 @@
-import { computeFlowBalls } from '../metaballs-scene/metaballs_animation.js';
+import { computeFlowBalls } from '../metaballs-scene/flow_animation.js';
 import { createVolcanoLandscape } from '../metaballs-scene/volcano_landscape.js';
 import { GROUND_DEFAULTS, RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, SECTOR_COUNT_MINIMUM } from '../metaballs-scene/config.js';
 

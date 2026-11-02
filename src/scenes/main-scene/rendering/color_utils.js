@@ -1,3 +1,3 @@
 export function toHexColor(color) {
-    return '#' + color.getHexString();
+    return `#${color.getHexString()}`;
 }

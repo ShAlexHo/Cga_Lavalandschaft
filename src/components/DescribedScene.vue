@@ -2,12 +2,11 @@
 import { ref } from 'vue';
 import SceneStage from './SceneStage.vue';
 import { findDetailScene, numberedTitle } from '../scenes/detail_scenes.js';
+import { localize } from '../language_state.js';
 
 const properties = defineProps({
     engine: { type: Object, required: true },
     scene_name: { type: String, required: true },
-    title: { type: String, required: true },
-    scroll_hint: { type: String, required: true },
 });
 
 const detail = findDetailScene(properties.scene_name);
@@ -23,14 +22,14 @@ function scrollToDescription() {
     <main class="described-scene">
         <SceneStage :engine="properties.engine" :scene_name="properties.scene_name">
             <button type="button" class="scroll-hint" @click="scrollToDescription">
-                {{ properties.scroll_hint }}
+                {{ localize(`${detail.message_key_prefix}.scroll_hint`) }}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
         </SceneStage>
 
         <article ref="description" class="scene-description">
-            <h2 class="scene-description-title">{{ numberedTitle(detail, properties.title) }}</h2>
-            <slot />
+            <h2 class="scene-description-title">{{ numberedTitle(detail, localize(`${detail.message_key_prefix}.title`)) }}</h2>
+            <p>{{ localize('scene.description_in_work') }}</p>
         </article>
     </main>
 </template>

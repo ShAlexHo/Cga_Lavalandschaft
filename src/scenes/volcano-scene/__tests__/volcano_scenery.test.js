@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { createMetaballsController } from '../../metaballs-scene/metaballs_controller.js';
-import { computeFlowBalls } from '../../metaballs-scene/metaballs_animation.js';
+import { computeFlowBalls } from '../../metaballs-scene/flow_animation.js';
 import { createVolcanoScenery } from '../volcano_scenery.js';
 import { DEFAULTS, VOLCANO_DEFAULTS, VOLCANO_GROUND_PLATE_SIZE } from '../../metaballs-scene/config.js';
 import { VOLCANO_PROFILE, GROUND_SIZE as MAIN_SCENE_GROUND_SIZE } from '../../main-scene/config.js';

@@ -3,7 +3,7 @@ import { MESSAGES } from './messages.js';
 const STORAGE_KEY = 'lavalandschaft_language';
 
 export const LANGUAGES = Object.keys(MESSAGES);
-export const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_LANGUAGE = 'en';
 
 function loadSavedLanguage() {
     try {

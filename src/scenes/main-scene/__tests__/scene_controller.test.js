@@ -190,8 +190,9 @@ vi.mock('../animation/smoke_particles.js', () => {
     };
 });
 
-vi.mock('../default_settings.json', () => ({
+vi.mock('../default_settings.json', async importOriginal => ({
     default: {
+        ...(await importOriginal()).default,
         paused: true, timeScale: 1, metaballCount: 10, metaballIsolation: 60, metaballSpread: 1.2, metaballSpeed: 0.005,
         metaballHeight: 2.0, flowRadius: 5,
         colorHot: '#111111', colorCool: '#222222', glowEnabled: false, glowColor: '#333333',

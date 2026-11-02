@@ -12,7 +12,7 @@ export function smoothstep(edge0, edge1, x) {
     return normalized * normalized * (3 - 2 * normalized);
 }
 
-export function angleDifference(angle_a, angle_b) {
+function angleDifference(angle_a, angle_b) {
     const wrapped = (angle_a - angle_b + Math.PI) % (2 * Math.PI);
     return (wrapped < 0 ? wrapped + 2 * Math.PI : wrapped) - Math.PI;
 }

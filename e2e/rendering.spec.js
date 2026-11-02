@@ -100,18 +100,26 @@ test('language switch translates the landing page and the scene GUI, and is reme
     await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
 });
 
+async function openDetailScene(page, { start_link, scene_name }) {
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: start_link });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(new RegExp(`/${scene_name}$`), { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+}
+
+function guiRow(page, label) {
+    return page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) });
+}
+
 test('metaballs detail opens its own scene with an explanation below it', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Implementation details' })).toBeAttached();
-
-    const preview = page.getByRole('link', { name: 'Start metaballs scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+    await openDetailScene(page, { start_link: 'Start metaballs scene', scene_name: 'metaballs-scene' });
 
     await page.getByRole('button', { name: 'About metaballs' }).click();
     await expect(page.getByRole('heading', { name: 'Metaballs', level: 2 })).toBeInViewport({ timeout: 60_000 });
@@ -124,116 +132,51 @@ test('metaballs detail opens its own scene with an explanation below it', async 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
 
-test('noise detail opens its own scene with the colour noise parameters', async ({ page }) => {
-    const console_errors = collectConsoleErrors(page);
+const DETAIL_SCENE_CASES = [
+    {
+        scene_name: 'noise-scene', start_link: 'Start noise scene', labels: ['Primary colour', 'Secondary colour'],
+        scroll_hint: 'About noise', title: 'Noise',
+    },
+    {
+        scene_name: 'surface-scene', start_link: 'Start surface scene', labels: ['Noise', 'Bump mapping', 'Displacement mapping', 'Displacement strength'],
+        scroll_hint: 'About surface irregularities', title: 'Surface irregularities',
+    },
+    {
+        scene_name: 'ground-scene', start_link: 'Start ground scene', labels: ['Count', 'Visible', 'Height'],
+        scroll_hint: 'About lava with bloom on the ground', title: 'Lava with bloom on the ground',
+    },
+    {
+        scene_name: 'volcano-scene', start_link: 'Start volcano scene', labels: ['Speed', 'Spawn height', 'Flow slope', 'Visible'],
+        previous_link: 'Previous scene: 4. Lava with bloom on the ground',
+        scroll_hint: 'About the volcano as a lathe and the lava flow along a straight line', title: 'Volcano as a lathe, lava flow along a straight line',
+    },
+    {
+        scene_name: 'radial-flow-scene', start_link: 'Start radial flow scene',
+        labels: ['Speed', 'Decreasing, no longer constant', 'Split into sectors', 'Sector count', 'Visible'],
+        absent_labels: ['Flow slope'], folders: ['Flow speed', 'Distribution', 'Ground'],
+        previous_link: 'Previous scene: 5. Volcano as a lathe, lava flow along a straight line',
+        scroll_hint: 'About the way from single metaballs to a lava flow', title: 'From single metaballs to a lava flow',
+    },
+];
 
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: 'Start noise scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/noise-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+for (const detail of DETAIL_SCENE_CASES) {
+    test(`${detail.scene_name} opens with its own controls and its explanation`, async ({ page }) => {
+        const console_errors = collectConsoleErrors(page);
+        await openDetailScene(page, detail);
 
-    for (const label of ['Primary colour', 'Secondary colour']) {
-        await expect(page.locator('.dg li.cr .property-name', { hasText: label })).toHaveCount(1);
-    }
+        for (const label of detail.labels) await expect(guiRow(page, label)).toHaveCount(1);
+        for (const label of detail.absent_labels ?? []) await expect(guiRow(page, label)).toHaveCount(0);
+        for (const folder of detail.folders ?? []) {
+            await expect(page.locator('.dg li.title', { hasText: new RegExp(`^${folder}$`) })).toHaveCount(1);
+        }
+        if (detail.previous_link) await expect(page.getByRole('link', { name: detail.previous_link })).toBeVisible();
 
-    await page.getByRole('button', { name: 'About noise' }).click();
-    await expect(page.getByRole('heading', { name: 'Noise', level: 2 })).toBeInViewport({ timeout: 60_000 });
+        await page.getByRole('button', { name: detail.scroll_hint }).click();
+        await expect(page.getByRole('heading', { name: detail.title, level: 2 })).toBeInViewport({ timeout: 60_000 });
 
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
-});
-
-test('surface detail opens its own scene with the bump and displacement mapping parameters', async ({ page }) => {
-    const console_errors = collectConsoleErrors(page);
-
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: 'Start surface scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/surface-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-
-    for (const label of ['Noise', 'Bump mapping', 'Displacement mapping', 'Displacement strength']) {
-        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
-    }
-
-    await page.getByRole('button', { name: 'About surface irregularities' }).click();
-    await expect(page.getByRole('heading', { name: 'Surface irregularities', level: 2 })).toBeInViewport({ timeout: 60_000 });
-
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
-});
-
-test('ground detail opens its own scene with the ball count and the floor parameters', async ({ page }) => {
-    const console_errors = collectConsoleErrors(page);
-
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: 'Start ground scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/ground-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-
-    for (const label of ['Count', 'Visible', 'Height']) {
-        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
-    }
-
-    await page.getByRole('button', { name: 'About lava with bloom on the ground' }).click();
-    await expect(page.getByRole('heading', { name: 'Lava with bloom on the ground', level: 2 })).toBeInViewport({ timeout: 60_000 });
-
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
-});
-
-test('volcano detail opens its own scene with the spawn height, the flow slope and the ground switch', async ({ page }) => {
-    const console_errors = collectConsoleErrors(page);
-
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: 'Start volcano scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/volcano-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-
-    for (const label of ['Speed', 'Spawn height', 'Flow slope', 'Visible']) {
-        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
-    }
-    await expect(page.getByRole('link', { name: 'Previous scene: 4. Lava with bloom on the ground' })).toBeVisible();
-
-    await page.getByRole('button', { name: 'About the volcano as a lathe and the lava flow along a straight line' }).click();
-    await expect(page.getByRole('heading', { name: 'Volcano as a lathe, lava flow along a straight line', level: 2 })).toBeInViewport({ timeout: 60_000 });
-
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
-});
-
-test('radial flow detail opens its own scene with flow speed and distribution in separate folders, and the ground switch', async ({ page }) => {
-    const console_errors = collectConsoleErrors(page);
-
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: 'Start radial flow scene' });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(/\/radial-flow-scene$/, { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-
-    for (const label of ['Speed', 'Decreasing, no longer constant', 'Split into sectors', 'Sector count', 'Visible']) {
-        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
-    }
-    for (const folder of ['Flow speed', 'Distribution', 'Ground']) {
-        await expect(page.locator('.dg li.title', { hasText: new RegExp(`^${folder}$`) })).toHaveCount(1);
-    }
-    await expect(page.locator('.dg li.cr .property-name', { hasText: /^Flow slope$/ })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Previous scene: 5. Volcano as a lathe, lava flow along a straight line' })).toBeVisible();
-
-    await page.getByRole('button', { name: 'About lava flowing in all directions' }).click();
-    await expect(page.getByRole('heading', { name: 'Lava flowing in all directions', level: 2 })).toBeInViewport({ timeout: 60_000 });
-
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
-});
+        expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+    });
+}
 
 test('arrow buttons move between the numbered detail scenes directly, and the start page shows the last one on return', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);

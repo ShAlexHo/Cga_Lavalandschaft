@@ -8,7 +8,7 @@ import {
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-export const MAX_BALLS = METABALL_MAX_BALLS;
+const MAX_BALLS = METABALL_MAX_BALLS;
 
 const BALL_STRENGTH = (METABALL_STRENGTH_SCALE / METABALL_SCALE_XY) ** 2;
 

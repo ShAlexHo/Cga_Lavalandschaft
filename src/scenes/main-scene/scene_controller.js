@@ -11,6 +11,16 @@ import { SMOKE_SPAWN_HEIGHT, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST
 import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 
+const IRREGULAR_SETTING_ACCESSOR_NAMES = {
+    paused: ['isPaused', 'setPaused'],
+    timeScale: ['getBaseTimeScale', 'setTimeScale'],
+};
+
+function settingAccessorNames(key) {
+    const name = key[0].toUpperCase() + key.slice(1);
+    return IRREGULAR_SETTING_ACCESSOR_NAMES[key] ?? [`get${name}`, `set${name}`];
+}
+
 export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled, signal }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
@@ -314,80 +324,10 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
     };
 
-    const setting_bindings = [
-        { key: 'paused', get: () => controller.isPaused(), set: value => controller.setPaused(value) },
-        { key: 'timeScale', get: () => controller.getBaseTimeScale(), set: value => controller.setTimeScale(value) },
-        { key: 'interactionMode', get: () => controller.getInteractionMode(), set: value => controller.setInteractionMode(value) },
-        { key: 'interactionSmokeVisible', get: () => controller.getInteractionSmokeVisible(), set: value => controller.setInteractionSmokeVisible(value) },
-        { key: 'metaballCount', get: () => controller.getMetaballCount(), set: value => controller.setMetaballCount(value) },
-        { key: 'metaballIsolation', get: () => controller.getMetaballIsolation(), set: value => controller.setMetaballIsolation(value) },
-        { key: 'metaballRadius', get: () => controller.getMetaballRadius(), set: value => controller.setMetaballRadius(value) },
-        { key: 'metaballSpread', get: () => controller.getMetaballSpread(), set: value => controller.setMetaballSpread(value) },
-        { key: 'metaballSpeed', get: () => controller.getMetaballSpeed(), set: value => controller.setMetaballSpeed(value) },
-        { key: 'metaballSinkSpeed', get: () => controller.getMetaballSinkSpeed(), set: value => controller.setMetaballSinkSpeed(value) },
-        { key: 'metaballDisappearY', get: () => controller.getMetaballDisappearY(), set: value => controller.setMetaballDisappearY(value) },
-        { key: 'metaballHeight', get: () => controller.getMetaballHeight(), set: value => controller.setMetaballHeight(value) },
-        { key: 'flowRadius', get: () => controller.getFlowRadius(), set: value => controller.setFlowRadius(value) },
-        { key: 'colorHot', get: () => controller.getColorHot(), set: value => controller.setColorHot(value) },
-        { key: 'colorCool', get: () => controller.getColorCool(), set: value => controller.setColorCool(value) },
-        { key: 'glowEnabled', get: () => controller.getGlowEnabled(), set: value => controller.setGlowEnabled(value) },
-        { key: 'glowColor', get: () => controller.getGlowColor(), set: value => controller.setGlowColor(value) },
-        { key: 'noiseEnabled', get: () => controller.getNoiseEnabled(), set: value => controller.setNoiseEnabled(value) },
-        { key: 'noiseColor1', get: () => controller.getNoiseColor1(), set: value => controller.setNoiseColor1(value) },
-        { key: 'noiseColor2', get: () => controller.getNoiseColor2(), set: value => controller.setNoiseColor2(value) },
-        { key: 'bumpEnabled', get: () => controller.getBumpEnabled(), set: value => controller.setBumpEnabled(value) },
-        { key: 'displacementEnabled', get: () => controller.getDisplacementEnabled(), set: value => controller.setDisplacementEnabled(value) },
-        { key: 'displacementStrength', get: () => controller.getDisplacementStrength(), set: value => controller.setDisplacementStrength(value) },
-        { key: 'groundVisible', get: () => controller.getGroundVisible(), set: value => controller.setGroundVisible(value) },
-        { key: 'groundColor', get: () => controller.getGroundColor(), set: value => controller.setGroundColor(value) },
-        { key: 'groundColor2', get: () => controller.getGroundColor2(), set: value => controller.setGroundColor2(value) },
-        { key: 'groundColor3', get: () => controller.getGroundColor3(), set: value => controller.setGroundColor3(value) },
-        { key: 'groundColor4', get: () => controller.getGroundColor4(), set: value => controller.setGroundColor4(value) },
-        { key: 'groundCrackColor', get: () => controller.getGroundCrackColor(), set: value => controller.setGroundCrackColor(value) },
-        { key: 'groundCrackColor2', get: () => controller.getGroundCrackColor2(), set: value => controller.setGroundCrackColor2(value) },
-        { key: 'groundCrackColor3', get: () => controller.getGroundCrackColor3(), set: value => controller.setGroundCrackColor3(value) },
-        { key: 'groundCrackColor4', get: () => controller.getGroundCrackColor4(), set: value => controller.setGroundCrackColor4(value) },
-        { key: 'groundCrackSoftness', get: () => controller.getGroundCrackSoftness(), set: value => controller.setGroundCrackSoftness(value) },
-        { key: 'groundProximityColor', get: () => controller.getGroundProximityColor(), set: value => controller.setGroundProximityColor(value) },
-        { key: 'groundProximityNoiseColor', get: () => controller.getGroundProximityNoiseColor(), set: value => controller.setGroundProximityNoiseColor(value) },
-        { key: 'groundProximityRadius', get: () => controller.getGroundProximityRadius(), set: value => controller.setGroundProximityRadius(value) },
-        { key: 'groundSunFocusRadius', get: () => controller.getGroundSunFocusRadius(), set: value => controller.setGroundSunFocusRadius(value) },
-        { key: 'groundRockVarianceRadius', get: () => controller.getGroundRockVarianceRadius(), set: value => controller.setGroundRockVarianceRadius(value) },
-        { key: 'groundDisplacementScale', get: () => controller.getGroundDisplacementScale(), set: value => controller.setGroundDisplacementScale(value) },
-        { key: 'groundDisplacementFrequency', get: () => controller.getGroundDisplacementFrequency(), set: value => controller.setGroundDisplacementFrequency(value) },
-        { key: 'groundHeight', get: () => controller.getGroundHeight(), set: value => controller.setGroundHeight(value) },
-        { key: 'volcanoVisible', get: () => controller.getVolcanoVisible(), set: value => controller.setVolcanoVisible(value) },
-        { key: 'volcanoDisplacementScale', get: () => controller.getVolcanoDisplacementScale(), set: value => controller.setVolcanoDisplacementScale(value) },
-        { key: 'volcanoDisplacementFrequency', get: () => controller.getVolcanoDisplacementFrequency(), set: value => controller.setVolcanoDisplacementFrequency(value) },
-        { key: 'volcanoRockColor', get: () => controller.getVolcanoRockColor(), set: value => controller.setVolcanoRockColor(value) },
-        { key: 'sunVisible', get: () => controller.getSunVisible(), set: value => controller.setSunVisible(value) },
-        { key: 'sunStrength', get: () => controller.getSunStrength(), set: value => controller.setSunStrength(value) },
-        { key: 'sunFocus', get: () => controller.getSunFocus(), set: value => controller.setSunFocus(value) },
-        { key: 'smokeVisible', get: () => controller.getSmokeVisible(), set: value => controller.setSmokeVisible(value) },
-        { key: 'smokeCount', get: () => controller.getSmokeCount(), set: value => controller.setSmokeCount(value) },
-        { key: 'smokeSpread', get: () => controller.getSmokeSpread(), set: value => controller.setSmokeSpread(value) },
-        { key: 'smokeRiseSpeed', get: () => controller.getSmokeRiseSpeed(), set: value => controller.setSmokeRiseSpeed(value) },
-        { key: 'smokeColor1', get: () => controller.getSmokeColor1(), set: value => controller.setSmokeColor1(value) },
-        { key: 'smokeColor2', get: () => controller.getSmokeColor2(), set: value => controller.setSmokeColor2(value) },
-        { key: 'smokeColor3', get: () => controller.getSmokeColor3(), set: value => controller.setSmokeColor3(value) },
-        { key: 'smokeParticleSize', get: () => controller.getSmokeParticleSize(), set: value => controller.setSmokeParticleSize(value) },
-        { key: 'smokeEmberCoolingTime', get: () => controller.getSmokeEmberCoolingTime(), set: value => controller.setSmokeEmberCoolingTime(value) },
-        { key: 'offsetX', get: () => controller.getOffsetX(), set: value => controller.setOffsetX(value) },
-        { key: 'offsetY', get: () => controller.getOffsetY(), set: value => controller.setOffsetY(value) },
-        { key: 'offsetZ', get: () => controller.getOffsetZ(), set: value => controller.setOffsetZ(value) },
-        { key: 'bloomEnabled', get: () => controller.getBloomEnabled(), set: value => controller.setBloomEnabled(value) },
-        { key: 'bloomStrength', get: () => controller.getBloomStrength(), set: value => controller.setBloomStrength(value) },
-        { key: 'bloomRadius', get: () => controller.getBloomRadius(), set: value => controller.setBloomRadius(value) },
-        { key: 'bloomThreshold', get: () => controller.getBloomThreshold(), set: value => controller.setBloomThreshold(value) },
-        { key: 'skyColor', get: () => controller.getSkyColor(), set: value => controller.setSkyColor(value) },
-        { key: 'godRaysWeight', get: () => controller.getGodRaysWeight(), set: value => controller.setGodRaysWeight(value) },
-        { key: 'godRaysExposure', get: () => controller.getGodRaysExposure(), set: value => controller.setGodRaysExposure(value) },
-        { key: 'godRaysDecay', get: () => controller.getGodRaysDecay(), set: value => controller.setGodRaysDecay(value) },
-        { key: 'godRaysDensity', get: () => controller.getGodRaysDensity(), set: value => controller.setGodRaysDensity(value) },
-        { key: 'godRaysTintColor', get: () => controller.getGodRaysTintColor(), set: value => controller.setGodRaysTintColor(value) },
-        { key: 'soundEnabled', get: () => controller.getSoundEnabled(), set: value => controller.setSoundEnabled(value) },
-        { key: 'soundVolume', get: () => controller.getSoundVolume(), set: value => controller.setSoundVolume(value) },
-    ];
+    const setting_bindings = Object.keys(DEFAULT_SETTINGS).map(key => {
+        const [getter_name, setter_name] = settingAccessorNames(key);
+        return { key, get: () => controller[getter_name](), set: value => controller[setter_name](value) };
+    });
 
     const setters_by_key = Object.fromEntries(setting_bindings.map(({ key, set }) => [key, set]));
 

@@ -10,9 +10,19 @@ describe('DETAIL_SCENES', () => {
         expect(findDetailScene('main-scene')).toBeNull();
     });
 
-    test('every detail scene has a title in every language', () => {
+    test('every detail scene has all its texts in every language', () => {
         for (const messages of Object.values(MESSAGES)) {
-            for (const { message_key_prefix } of DETAIL_SCENES) expect(messages[`${message_key_prefix}.title`]).toBeTruthy();
+            for (const { message_key_prefix } of DETAIL_SCENES) {
+                for (const text of ['title', 'start_scene', 'preview_alt', 'text_1', 'scroll_hint']) expect(messages[`${message_key_prefix}.${text}`]).toBeTruthy();
+            }
+        }
+    });
+
+    test('every detail scene brings its preview image and its lazily loaded engine', async () => {
+        for (const detail of DETAIL_SCENES) {
+            expect(detail.preview_url).toMatch(/_preview\.jpg$/);
+            const scene_module = await detail.loadEngine();
+            expect(scene_module.getSceneEngine).toBeTypeOf('function');
         }
     });
 });

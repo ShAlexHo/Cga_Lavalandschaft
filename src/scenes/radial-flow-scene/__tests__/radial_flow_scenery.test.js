@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { createMetaballsController } from '../../metaballs-scene/metaballs_controller.js';
-import { computeFlowBalls } from '../../metaballs-scene/metaballs_animation.js';
+import { computeFlowBalls } from '../../metaballs-scene/flow_animation.js';
 import { createRadialFlowScenery } from '../radial_flow_scenery.js';
 import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, VOLCANO_DEFAULTS } from '../../metaballs-scene/config.js';
 import { METABALL_SECTORS as MAIN_SCENE_SECTOR_COUNT } from '../../main-scene/config.js';

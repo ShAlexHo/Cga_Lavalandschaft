@@ -3,8 +3,8 @@ import { GUI } from 'dat.gui';
 
 function makeController() {
     const row = document.createElement('li');
-    const domElement = row.appendChild(document.createElement('div'));
-    return { name: vi.fn().mockReturnThis(), updateDisplay: vi.fn(), domElement };
+    const dom_element = row.appendChild(document.createElement('div'));
+    return { name: vi.fn().mockReturnThis(), updateDisplay: vi.fn(), domElement: dom_element };
 }
 
 export function makeMockGui() {

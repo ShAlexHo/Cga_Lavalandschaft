@@ -10,7 +10,7 @@ import {
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-export const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
+const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
 
 export const settings = { count: DEFAULT_SETTINGS.smokeCount, max_count: MAX_PARTICLES };
 
