@@ -12,7 +12,11 @@ import DEFAULT_SETTINGS from '../default_settings.json';
 
 const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
 
-export const settings = { count: DEFAULT_SETTINGS.smokeCount, max_count: MAX_PARTICLES };
+export function createSmokeSettings() {
+    return { count: DEFAULT_SETTINGS.smokeCount, max_count: MAX_PARTICLES };
+}
+
+export const settings = createSmokeSettings();
 
 function meanAndStandardDeviation(min, max) {
     return { mean: (min + max) / 2, standard_deviation: (max - min) / 4 };

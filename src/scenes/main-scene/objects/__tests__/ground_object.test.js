@@ -77,6 +77,10 @@ describe('createGround', () => {
         ground.setCrackSoftness(0.6);
         expect(ground.getCrackSoftness()).toBe(0.6);
 
+        expect(ground.getEdgeFadeEnabled()).toBe(true);
+        ground.setEdgeFadeEnabled(false);
+        expect(ground.getEdgeFadeEnabled()).toBe(false);
+
         ground.setProximityColor('#444444');
         expect(ground.getProximityColor()).toBe('#444444');
 

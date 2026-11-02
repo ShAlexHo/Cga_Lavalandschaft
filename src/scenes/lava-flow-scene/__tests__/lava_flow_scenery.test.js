@@ -2,8 +2,8 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { createMetaballsController } from '../../metaballs-scene/metaballs_controller.js';
 import { computeFlowBalls } from '../../metaballs-scene/flow_animation.js';
-import { createRadialFlowScenery } from '../radial_flow_scenery.js';
-import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS } from '../config.js';
+import { createLavaFlowScenery } from '../lava_flow_scenery.js';
+import { LAVA_FLOW_DEFAULTS, LAVA_FLOW_BALL_RADIUS } from '../config.js';
 import { VOLCANO_DEFAULTS } from '../../volcano-scene/config.js';
 import { METABALL_SECTORS as MAIN_SCENE_SECTOR_COUNT } from '../../main-scene/config.js';
 import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
@@ -21,10 +21,10 @@ beforeEach(() => {
     camera.position.set(0, 7, 24);
     camera.updateMatrixWorld();
     radial_scene = new THREE.Scene();
-    radial = createMetaballsController(radial_scene, { createScenery: createRadialFlowScenery });
+    radial = createMetaballsController(radial_scene, { createScenery: createLavaFlowScenery });
 });
 
-describe('createRadialFlowScenery', () => {
+describe('createLavaFlowScenery', () => {
     test('stands on the same lathe volcano and ground as the straight-line scene, lit the same', () => {
         expect(sceneMesh('LatheGeometry')).toBeDefined();
         expect(sceneMesh('BoxGeometry').position.y).toBeLessThan(0);
@@ -32,11 +32,11 @@ describe('createRadialFlowScenery', () => {
     });
 
     test('starts with all balls at constant speed, flowing slower and from higher up than in the straight-line scene, on its slope', () => {
-        expect(radial.getCount()).toBe(RADIAL_FLOW_DEFAULTS.count);
-        expect(radial.getSpeed()).toBe(RADIAL_FLOW_DEFAULTS.speed);
-        expect(RADIAL_FLOW_DEFAULTS.speed).toBeLessThan(VOLCANO_DEFAULTS.speed);
-        expect(RADIAL_FLOW_DEFAULTS.spawn_height).toBeGreaterThan(VOLCANO_DEFAULTS.spawn_height);
-        expect(RADIAL_FLOW_DEFAULTS.flow_slope).toBe(VOLCANO_DEFAULTS.flow_slope);
+        expect(radial.getCount()).toBe(LAVA_FLOW_DEFAULTS.count);
+        expect(radial.getSpeed()).toBe(LAVA_FLOW_DEFAULTS.speed);
+        expect(LAVA_FLOW_DEFAULTS.speed).toBeLessThan(VOLCANO_DEFAULTS.speed);
+        expect(LAVA_FLOW_DEFAULTS.spawn_height).toBeGreaterThan(VOLCANO_DEFAULTS.spawn_height);
+        expect(LAVA_FLOW_DEFAULTS.flow_slope).toBe(VOLCANO_DEFAULTS.flow_slope);
         expect(radial.getSlowDown()).toBe(false);
         expect(radial.getGroundVisible()).toBe(true);
         expect(radial.setSpawnHeight).toBeUndefined();
@@ -44,20 +44,20 @@ describe('createRadialFlowScenery', () => {
     });
 
     test('makes the balls somewhat smaller than in the landscape, also after a reset', () => {
-        expect(radial.getRadius()).toBe(RADIAL_FLOW_BALL_RADIUS);
-        expect(RADIAL_FLOW_BALL_RADIUS).toBeLessThan(MAIN_SCENE_DEFAULTS.metaballRadius);
+        expect(radial.getRadius()).toBe(LAVA_FLOW_BALL_RADIUS);
+        expect(LAVA_FLOW_BALL_RADIUS).toBeLessThan(MAIN_SCENE_DEFAULTS.metaballRadius);
 
         radial.setRadius(2);
         expect(radial.getSnapshot()).toMatchObject({ radius: 2 });
         radial.resetToDefaults();
-        expect(radial.getRadius()).toBe(RADIAL_FLOW_BALL_RADIUS);
+        expect(radial.getRadius()).toBe(LAVA_FLOW_BALL_RADIUS);
     });
 
     test('update() lets the balls flow out in all directions, slowing down or not', () => {
         for (const slow_down of [false, true]) {
             radial.setSlowDown(slow_down);
             radial.update(0.75, camera);
-            const expected = computeFlowBalls(radial.getElapsedTime(), { ...RADIAL_FLOW_DEFAULTS, slow_down }, { radial: true });
+            const expected = computeFlowBalls(radial.getElapsedTime(), { ...LAVA_FLOW_DEFAULTS, slow_down }, { radial: true });
             const centers = radial.effect.material.uniforms.u_ball_center.value;
             expected.forEach((ball, i) => {
                 expect(centers[i].x).toBeCloseTo(2 * ball.x - 1, 9);
@@ -90,7 +90,7 @@ describe('createRadialFlowScenery', () => {
         radial.setSectorsEnabled(true);
         radial.setSectorCount(3);
         radial.update(0.5, camera);
-        const expected = computeFlowBalls(radial.getElapsedTime(), { ...RADIAL_FLOW_DEFAULTS, sectors_enabled: true, sector_count: 3 }, { radial: true });
+        const expected = computeFlowBalls(radial.getElapsedTime(), { ...LAVA_FLOW_DEFAULTS, sectors_enabled: true, sector_count: 3 }, { radial: true });
         const centers = radial.effect.material.uniforms.u_ball_center.value;
         expected.forEach((ball, i) => expect(centers[i].z).toBeCloseTo(2 * ball.z - 1, 9));
 

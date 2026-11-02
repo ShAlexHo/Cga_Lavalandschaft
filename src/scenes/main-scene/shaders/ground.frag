@@ -34,6 +34,7 @@ uniform float u_crack_density_fade_end;
 uniform vec3  u_sky_color;
 uniform float u_edge_fade_start;
 uniform float u_edge_fade_end;
+uniform float u_edge_fade_strength;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -104,7 +105,7 @@ void main() {
 
     float edge_distance = length(v_world_position.xz);
     float edge_fade = smoothstep(u_edge_fade_start, u_edge_fade_end, edge_distance);
-    color = mix(color, u_sky_color, edge_fade);
+    color = mix(color, u_sky_color, edge_fade * u_edge_fade_strength);
 
     gl_FragColor = vec4(color, 1.0);
 }

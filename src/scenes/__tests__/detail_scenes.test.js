@@ -5,7 +5,7 @@ import { MESSAGES } from '../../ui/messages.js';
 describe('DETAIL_SCENES', () => {
     test('numbers the detail scenes from 1 in their order, without the main scene', () => {
         expect(DETAIL_SCENES.map(detail => `${detail.number} ${detail.scene_name}`)).toEqual([
-            '1 metaballs-scene', '2 noise-scene', '3 surface-scene', '4 ground-scene', '5 volcano-scene', '6 radial-flow-scene', '7 landscape-volcano-scene',
+            '1 metaballs-scene', '2 noise-scene', '3 surface-scene', '4 ground-scene', '5 volcano-scene', '6 lava-flow-scene', '7 volcano-irregularities-scene', '8 smoke-ash-scene', '9 lava-landscape-scene',
         ]);
         expect(findDetailScene('main-scene')).toBeNull();
     });
@@ -32,9 +32,11 @@ describe('neighbouringDetailScenes', () => {
         expect(neighbouringDetailScenes('noise-scene')).toEqual({ previous: findDetailScene('metaballs-scene'), next: findDetailScene('surface-scene') });
         expect(neighbouringDetailScenes('metaballs-scene').previous).toBeNull();
         expect(neighbouringDetailScenes('ground-scene').next).toBe(findDetailScene('volcano-scene'));
-        expect(neighbouringDetailScenes('volcano-scene').next).toBe(findDetailScene('radial-flow-scene'));
-        expect(neighbouringDetailScenes('radial-flow-scene').next).toBe(findDetailScene('landscape-volcano-scene'));
-        expect(neighbouringDetailScenes('landscape-volcano-scene').next).toBeNull();
+        expect(neighbouringDetailScenes('volcano-scene').next).toBe(findDetailScene('lava-flow-scene'));
+        expect(neighbouringDetailScenes('lava-flow-scene').next).toBe(findDetailScene('volcano-irregularities-scene'));
+        expect(neighbouringDetailScenes('volcano-irregularities-scene').next).toBe(findDetailScene('smoke-ash-scene'));
+        expect(neighbouringDetailScenes('smoke-ash-scene').next).toBe(findDetailScene('lava-landscape-scene'));
+        expect(neighbouringDetailScenes('lava-landscape-scene').next).toBeNull();
     });
 
     test('the main scene has no neighbours', () => {

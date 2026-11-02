@@ -1,7 +1,7 @@
 import { createSceneGui } from '../scene_gui.js';
 import { SECTOR_COUNT_MINIMUM } from './config.js';
 
-export function setupRadialFlowGui(facade, { signal } = {}) {
+export function setupLavaFlowGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });
     const { bind, widenLabel } = scene_gui;
     scene_gui.addPlaybackControls();

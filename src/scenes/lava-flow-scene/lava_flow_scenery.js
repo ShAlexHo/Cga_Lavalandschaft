@@ -1,9 +1,9 @@
 import { computeFlowBalls } from '../metaballs-scene/flow_animation.js';
 import { createVolcanoLandscape } from '../metaballs-scene/volcano_landscape.js';
 import { GROUND_DEFAULTS } from '../metaballs-scene/config.js';
-import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, SECTOR_COUNT_MINIMUM } from './config.js';
+import { LAVA_FLOW_DEFAULTS, LAVA_FLOW_BALL_RADIUS, SECTOR_COUNT_MINIMUM } from './config.js';
 
-export function createRadialFlowScenery(scene, settings) {
+export function createLavaFlowScenery(scene, settings) {
     const { ground_plate } = createVolcanoLandscape(scene);
 
     const methods = {
@@ -20,8 +20,8 @@ export function createRadialFlowScenery(scene, settings) {
     return {
         computeBalls: elapsed_time => computeFlowBalls(elapsed_time, settings, { radial: true }),
         resetToDefaults(controller) {
-            Object.assign(settings, RADIAL_FLOW_DEFAULTS);
-            controller.setRadius(RADIAL_FLOW_BALL_RADIUS);
+            Object.assign(settings, LAVA_FLOW_DEFAULTS);
+            controller.setRadius(LAVA_FLOW_BALL_RADIUS);
             ground_plate.setVisible(GROUND_DEFAULTS.ground_visible);
         },
         methods,

@@ -50,6 +50,7 @@ describe('createGroundMaterial', () => {
             'u_sky_color',
             'u_edge_fade_start',
             'u_edge_fade_end',
+            'u_edge_fade_strength',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
@@ -114,6 +115,7 @@ describe('createGroundMaterial', () => {
         const material = createGroundMaterial();
         expect(material.uniforms.u_edge_fade_start.value).toBe(GROUND_EDGE_FADE_START);
         expect(material.uniforms.u_edge_fade_end.value).toBe(GROUND_EDGE_FADE_END);
+        expect(material.uniforms.u_edge_fade_strength.value).toBe(1.0);
     });
 });
 

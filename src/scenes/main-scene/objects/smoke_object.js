@@ -1,11 +1,11 @@
 import { createSmokeGeometry, setSmokeDrawRange } from '../geometry/smoke_geometry.js';
 import { createSmokeMaterial, updateSmokeMaterial } from '../rendering/smoke_material.js';
 import { toHexColor } from '../rendering/color_utils.js';
-import { settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
+import { settings as main_scene_settings, particle_seeds, computePlumeOpacityFactor } from '../animation/smoke_particles.js';
 import { bindSunUniforms } from './sun_uniform_utils.js';
 import { bindVisibility } from './visibility_utils.js';
 
-export function createSmoke(scene) {
+export function createSmoke(scene, { settings = main_scene_settings } = {}) {
     const material = createSmokeMaterial();
     const effect = createSmokeGeometry(scene, material, particle_seeds);
     setSmokeDrawRange(effect, settings.count);

@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 
-import { setupRadialFlowGui } from '../radial_flow_gui.js';
+import { setupLavaFlowGui } from '../lava_flow_gui.js';
 import { setLanguage } from '../../../ui/language.js';
 import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
 import { SECTOR_COUNT_MINIMUM } from '../config.js';
@@ -24,10 +24,10 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
-describe('setupRadialFlowGui', () => {
+describe('setupLavaFlowGui', () => {
     test('keeps the flow speed and the distribution in separate folders, next to the playback controls and the ground’s visibility', () => {
         const { registry, folders } = makeMockGui();
-        setupRadialFlowGui(makeFacade());
+        setupLavaFlowGui(makeFacade());
 
         expect(registry.map(entry => `${entry.folder}/${entry.key}`)).toEqual([
             'root/paused', 'root/speed',
@@ -42,7 +42,7 @@ describe('setupRadialFlowGui', () => {
     test('the slowing switch writes through to the facade', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
-        setupRadialFlowGui(facade);
+        setupLavaFlowGui(facade);
 
         findControl(registry, 'slow_down').bound_object.slow_down = true;
         expect(facade.setSlowDown).toHaveBeenCalledWith(true);
@@ -50,7 +50,7 @@ describe('setupRadialFlowGui', () => {
 
     test('only the decreasing-speed switch gets a wide label, so its long name is shown in full', () => {
         const { registry } = makeMockGui();
-        setupRadialFlowGui(makeFacade());
+        setupLavaFlowGui(makeFacade());
 
         const wide_rows = registry.filter(entry => entry.controller.domElement.closest('li').classList.contains('wide-label'));
         expect(wide_rows.map(entry => entry.key)).toEqual(['slow_down']);
@@ -59,7 +59,7 @@ describe('setupRadialFlowGui', () => {
     test('the sector count is an open number field of whole numbers, starting at one sector', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
-        setupRadialFlowGui(facade);
+        setupLavaFlowGui(facade);
 
         const sector_count = findControl(registry, 'sector_count');
         expect(sector_count.range).toEqual([SECTOR_COUNT_MINIMUM, undefined, 1]);
@@ -71,7 +71,7 @@ describe('setupRadialFlowGui', () => {
 
     test('labels follow the language', () => {
         const { registry, folders } = makeMockGui();
-        setupRadialFlowGui(makeFacade());
+        setupLavaFlowGui(makeFacade());
         setLanguage('de');
 
         expect(findControl(registry, 'slow_down').controller.name).toHaveBeenLastCalledWith('Abnehmend, nicht mehr konstant');

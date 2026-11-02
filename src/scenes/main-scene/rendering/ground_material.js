@@ -46,6 +46,7 @@ export function createGroundMaterial() {
             u_sky_color: { value: new THREE.Color(DEFAULT_SETTINGS.skyColor) },
             u_edge_fade_start: { value: GROUND_EDGE_FADE_START },
             u_edge_fade_end: { value: GROUND_EDGE_FADE_END },
+            u_edge_fade_strength: { value: 1.0 },
         },
         side: THREE.DoubleSide,
         precision: 'highp',

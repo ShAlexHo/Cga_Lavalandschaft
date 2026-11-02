@@ -3,8 +3,10 @@ import noise_preview_url from '../assets/noise_preview.jpg';
 import surface_preview_url from '../assets/surface_preview.jpg';
 import ground_preview_url from '../assets/ground_preview.jpg';
 import volcano_preview_url from '../assets/volcano_preview.jpg';
-import radial_flow_preview_url from '../assets/radial_flow_preview.jpg';
-import landscape_volcano_preview_url from '../assets/landscape_volcano_preview.jpg';
+import lava_flow_preview_url from '../assets/lava_flow_preview.jpg';
+import volcano_irregularities_preview_url from '../assets/volcano_irregularities_preview.jpg';
+import smoke_ash_preview_url from '../assets/smoke_ash_preview.jpg';
+import lava_landscape_preview_url from '../assets/lava_landscape_preview.jpg';
 
 export const DETAIL_SCENES = [
     {
@@ -28,12 +30,20 @@ export const DETAIL_SCENES = [
         loadEngine: () => import('./volcano-scene/scene_engine.js'),
     },
     {
-        scene_name: 'radial-flow-scene', message_key_prefix: 'details.radial_flow', preview_url: radial_flow_preview_url,
-        loadEngine: () => import('./radial-flow-scene/scene_engine.js'),
+        scene_name: 'lava-flow-scene', message_key_prefix: 'details.lava_flow', preview_url: lava_flow_preview_url,
+        loadEngine: () => import('./lava-flow-scene/scene_engine.js'),
     },
     {
-        scene_name: 'landscape-volcano-scene', message_key_prefix: 'details.landscape_volcano', preview_url: landscape_volcano_preview_url,
-        loadEngine: () => import('./landscape-volcano-scene/scene_engine.js'),
+        scene_name: 'volcano-irregularities-scene', message_key_prefix: 'details.volcano_irregularities', preview_url: volcano_irregularities_preview_url,
+        loadEngine: () => import('./volcano-irregularities-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'smoke-ash-scene', message_key_prefix: 'details.smoke_ash', preview_url: smoke_ash_preview_url,
+        loadEngine: () => import('./smoke-ash-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'lava-landscape-scene', message_key_prefix: 'details.lava_landscape', preview_url: lava_landscape_preview_url,
+        loadEngine: () => import('./lava-landscape-scene/scene_engine.js'),
     },
 ].map((detail, index) => ({ ...detail, number: index + 1 }));
 

@@ -33,6 +33,8 @@ export function createDetailSceneEngine({
     controls.enableZoom = Boolean(camera_setup.zoom_distance);
     controls.minDistance = camera_setup.zoom_distance?.min ?? CAMERA_MIN_DISTANCE;
     controls.maxDistance = camera_setup.zoom_distance?.max ?? CAMERA_MAX_DISTANCE;
+    controls.minPolarAngle = camera_setup.polar_angle?.min ?? 0;
+    controls.maxPolarAngle = camera_setup.polar_angle?.max ?? Math.PI;
     controls.autoRotate = camera_setup.auto_rotate;
     controls.autoRotateSpeed = CAMERA_AUTO_ROTATE_SPEED;
     renderer.domElement.style.touchAction = 'pan-y';

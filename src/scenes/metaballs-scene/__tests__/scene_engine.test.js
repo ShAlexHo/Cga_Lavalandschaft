@@ -136,7 +136,10 @@ describe('metaballs createSceneEngine', () => {
         expect(renderer_state.camera.fov).toBe(60);
         expect(renderer_state.camera.position.set).toHaveBeenLastCalledWith(1, 2, 3);
         expect(renderer_state.controls.autoRotate).toBe(false);
-        expect(renderer_state.controls).toMatchObject({ enableZoom: true, minDistance: 16, maxDistance: 36 });
+        expect(renderer_state.controls).toMatchObject({ enableZoom: true, minDistance: 16, maxDistance: 36, minPolarAngle: 0, maxPolarAngle: Math.PI });
+
+        createDetailSceneEngine({ camera_setup: { fov: 60, position: { x: 1, y: 2, z: 3 }, polar_angle: { min: 1, max: 1.4 } }, setupGui: setupMetaballsGui });
+        expect(renderer_state.controls).toMatchObject({ minPolarAngle: 1, maxPolarAngle: 1.4 });
     });
 
     test('a scene can bring its own controller, which gets the renderer for its own render passes', () => {

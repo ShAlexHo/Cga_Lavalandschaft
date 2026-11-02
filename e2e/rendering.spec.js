@@ -102,7 +102,7 @@ test('language switch translates the landing page and the scene GUI, and is reme
 });
 
 const TEXT = MESSAGES.en;
-const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'radial_flow', 'landscape_volcano'];
+const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'lava_flow', 'volcano_irregularities', 'smoke_ash', 'lava_landscape'];
 
 function detailText(detail_key, text) {
     return TEXT[`details.${detail_key}.${text}`];
@@ -164,13 +164,23 @@ const DETAIL_SCENE_CASES = [
         labels: ['gui.metaballs.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
     },
     {
-        detail_key: 'radial_flow', scene_name: 'radial-flow-scene',
+        detail_key: 'lava_flow', scene_name: 'lava-flow-scene',
         labels: ['gui.metaballs.speed', 'gui.metaballs.slow_down', 'gui.metaballs.sectors_enabled', 'gui.metaballs.sector_count', 'gui.visible'],
         absent_labels: ['gui.metaballs.flow_slope'], folders: ['gui.folder.flow_speed', 'gui.folder.distribution', 'gui.folder.ground'],
     },
     {
-        detail_key: 'landscape_volcano', scene_name: 'landscape-volcano-scene',
+        detail_key: 'volcano_irregularities', scene_name: 'volcano-irregularities-scene',
         labels: ['gui.metaballs.speed', 'gui.volcano.surface_irregularities'], absent_labels: ['gui.visible'], folders: ['gui.folder.volcano'],
+    },
+    {
+        detail_key: 'smoke_ash', scene_name: 'smoke-ash-scene',
+        labels: ['gui.metaballs.speed', 'gui.smoke.count', 'gui.smoke.rise_speed', 'gui.smoke.ember_cooling_time'],
+        absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.smoke'],
+    },
+    {
+        detail_key: 'lava_landscape', scene_name: 'lava-landscape-scene',
+        labels: ['gui.metaballs.speed', 'gui.fog', 'gui.ground.rock_colour_1', 'gui.ground.crack_colour_4', 'gui.ground.crack_softness'],
+        absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.ground', 'gui.folder.cracks'],
     },
 ];
 
@@ -199,7 +209,7 @@ test('arrow buttons move between the numbered detail scenes directly, and the st
 
     await page.goto('/');
     await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 3 })).toBeAttached();
-    await expect(page.getByRole('heading', { name: numberedTitle('landscape_volcano'), level: 3 })).toBeAttached();
+    await expect(page.getByRole('heading', { name: numberedTitle('lava_landscape'), level: 3 })).toBeAttached();
 
     const metaballs_preview = page.getByRole('link', { name: detailText('metaballs', 'start_scene') });
     await metaballs_preview.scrollIntoViewIfNeeded();
