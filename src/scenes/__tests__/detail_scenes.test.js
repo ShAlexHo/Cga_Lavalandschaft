@@ -6,6 +6,7 @@ describe('DETAIL_SCENES', () => {
     test('numbers the detail scenes from 1 in their order, without the main scene', () => {
         expect(DETAIL_SCENES.map(detail => `${detail.number} ${detail.scene_name}`)).toEqual([
             '1 metaballs-scene', '2 noise-scene', '3 surface-scene', '4 ground-scene', '5 volcano-scene', '6 lava-flow-scene', '7 volcano-irregularities-scene', '8 smoke-ash-scene', '9 lava-landscape-scene',
+            '10 sun-god-rays-scene',
         ]);
         expect(findDetailScene('main-scene')).toBeNull();
     });
@@ -36,7 +37,8 @@ describe('neighbouringDetailScenes', () => {
         expect(neighbouringDetailScenes('lava-flow-scene').next).toBe(findDetailScene('volcano-irregularities-scene'));
         expect(neighbouringDetailScenes('volcano-irregularities-scene').next).toBe(findDetailScene('smoke-ash-scene'));
         expect(neighbouringDetailScenes('smoke-ash-scene').next).toBe(findDetailScene('lava-landscape-scene'));
-        expect(neighbouringDetailScenes('lava-landscape-scene').next).toBeNull();
+        expect(neighbouringDetailScenes('lava-landscape-scene').next).toBe(findDetailScene('sun-god-rays-scene'));
+        expect(neighbouringDetailScenes('sun-god-rays-scene').next).toBeNull();
     });
 
     test('the main scene has no neighbours', () => {

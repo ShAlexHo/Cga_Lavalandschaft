@@ -7,6 +7,7 @@ import lava_flow_preview_url from '../assets/lava_flow_preview.jpg';
 import volcano_irregularities_preview_url from '../assets/volcano_irregularities_preview.jpg';
 import smoke_ash_preview_url from '../assets/smoke_ash_preview.jpg';
 import lava_landscape_preview_url from '../assets/lava_landscape_preview.jpg';
+import sun_god_rays_preview_url from '../assets/sun_god_rays_preview.jpg';
 
 export const DETAIL_SCENES = [
     {
@@ -44,6 +45,10 @@ export const DETAIL_SCENES = [
     {
         scene_name: 'lava-landscape-scene', message_key_prefix: 'details.lava_landscape', preview_url: lava_landscape_preview_url,
         loadEngine: () => import('./lava-landscape-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'sun-god-rays-scene', message_key_prefix: 'details.sun_god_rays', preview_url: sun_god_rays_preview_url,
+        loadEngine: () => import('./sun-god-rays-scene/scene_engine.js'),
     },
 ].map((detail, index) => ({ ...detail, number: index + 1 }));
 

@@ -9,8 +9,9 @@ vi.mock('three', () => ({
     Vector2: class {},
     Vector3: class {},
     PerspectiveCamera: class {
-        constructor(fov) {
+        constructor(fov, aspect, near, far) {
             this.fov = fov;
+            this.far = far;
             this.position = { set: vi.fn(), copy: vi.fn(), clone: vi.fn(() => ({ x: 1, y: 2, z: 3 })) };
             this.updateMatrixWorld = vi.fn();
             this.updateProjectionMatrix = vi.fn();
@@ -54,6 +55,10 @@ vi.mock('three/addons/postprocessing/EffectComposer.js', () => ({
     },
 }));
 
+vi.mock('../../main-scene/rendering/god_rays_pass.js', () => ({
+    createGodRaysPass: vi.fn(() => ({ dispose: vi.fn() })),
+}));
+
 vi.mock('../metaballs_controller.js', () => ({
     createMetaballsController: vi.fn(() => {
         let elapsed_time = 0;
@@ -77,7 +82,8 @@ vi.mock('../metaballs_gui.js', () => ({
 
 import { createSceneEngine, getSceneEngine, closeSceneEngine } from '../scene_engine.js';
 import { createDetailSceneEngine } from '../detail_scene_engine.js';
-import { CAMERA_FOV, CAMERA_INITIAL_POSITION } from '../config.js';
+import { CAMERA_FOV, CAMERA_INITIAL_POSITION, CAMERA_FAR } from '../config.js';
+import { createGodRaysPass } from '../../main-scene/rendering/god_rays_pass.js';
 import { closeOtherScenes } from '../../scene_registry.js';
 import { createMetaballsController } from '../metaballs_controller.js';
 import { setupMetaballsGui } from '../metaballs_gui.js';
@@ -150,6 +156,30 @@ describe('metaballs createSceneEngine', () => {
         expect(createController).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ renderer: renderer_state.last }));
         expect(createMetaballsController).not.toHaveBeenCalled();
         expect(setupMetaballsGui).toHaveBeenLastCalledWith(controller, { signal: expect.any(AbortSignal) });
+    });
+
+    test('sees as far as a scene’s camera setup asks for', () => {
+        createSceneEngine();
+        expect(renderer_state.camera.far).toBe(CAMERA_FAR);
+        createDetailSceneEngine({ camera_setup: { fov: 60, position: { x: 1, y: 2, z: 3 }, far: 2000 }, setupGui: setupMetaballsGui });
+        expect(renderer_state.camera.far).toBe(2000);
+    });
+
+    test('only a scene with god rays gets the god rays pass, between the rendered image and the bloom, and hands it to its controller', () => {
+        createSceneEngine();
+        expect(createGodRaysPass).not.toHaveBeenCalled();
+        expect(createMetaballsController).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ god_rays_pass: null }));
+
+        const engine = createDetailSceneEngine({ with_god_rays: true, setupGui: setupMetaballsGui });
+        const god_rays_pass = createGodRaysPass.mock.results.at(-1).value;
+        expect(createGodRaysPass).toHaveBeenCalledWith({ scene: expect.anything(), camera: renderer_state.camera });
+        const passes = renderer_state.composer.addPass.mock.calls.map(([pass]) => pass);
+        expect(passes).toHaveLength(3);
+        expect(passes[1]).toBe(god_rays_pass);
+        expect(createMetaballsController).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ god_rays_pass }));
+
+        engine.dispose();
+        expect(god_rays_pass.dispose).toHaveBeenCalled();
     });
 
     test('hands the scene’s controller options, together with the renderer, to the metaballs controller', () => {

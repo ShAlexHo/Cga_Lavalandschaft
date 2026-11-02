@@ -15,6 +15,7 @@ export function defineLandscapeSceneEngine(scene_name, { controller_options = {}
             createController: createLandscapeVolcanoController,
             controller_options: { ...controller_options, metaball_animation },
             camera_setup,
+            with_god_rays: Boolean(controller_options.with_sun),
             setupGui,
         });
     }

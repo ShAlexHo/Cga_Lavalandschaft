@@ -16,6 +16,8 @@ import {
     CAMERA_FOV as MAIN_SCENE_CAMERA_FOV, CAMERA_INITIAL_DISTANCE as MAIN_SCENE_CAMERA_DISTANCE,
     CAMERA_MIN_DISTANCE as MAIN_SCENE_CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE as MAIN_SCENE_CAMERA_MAX_DISTANCE,
     CAMERA_MIN_POLAR_ANGLE as MAIN_SCENE_CAMERA_MIN_POLAR_ANGLE, CAMERA_MAX_POLAR_ANGLE as MAIN_SCENE_CAMERA_MAX_POLAR_ANGLE,
+    CAMERA_FAR as MAIN_SCENE_CAMERA_FAR, CAMERA_INITIAL_POSITION as MAIN_SCENE_CAMERA_INITIAL_POSITION,
+    SUN_ORBIT_START_ANGLE, SUN_ORBIT_SPEED, SCENE_WARM_UP_SECONDS,
 } from '../main-scene/config.js';
 import * as noise_scene from '../noise-scene/scene_engine.js';
 import * as surface_scene from '../surface-scene/scene_engine.js';
@@ -38,6 +40,9 @@ import { setupSmokeAshGui } from '../smoke-ash-scene/smoke_ash_gui.js';
 import * as lava_landscape_scene from '../lava-landscape-scene/scene_engine.js';
 import { setupLavaLandscapeGui } from '../lava-landscape-scene/lava_landscape_gui.js';
 import { LAVA_LANDSCAPE_CAMERA_SETUP } from '../lava-landscape-scene/config.js';
+import * as sun_god_rays_scene from '../sun-god-rays-scene/scene_engine.js';
+import { setupSunGodRaysGui } from '../sun-god-rays-scene/sun_god_rays_gui.js';
+import { SUN_GOD_RAYS_CAMERA_SETUP } from '../sun-god-rays-scene/config.js';
 
 const DETAIL_SCENE_ENGINES = [
     { scene_name: 'noise-scene', scene_module: noise_scene, options: { controller_options: { noise: true }, setupGui: setupNoiseGui } },
@@ -66,6 +71,7 @@ const DETAIL_SCENE_ENGINES = [
             createController: createLandscapeVolcanoController,
             controller_options: { metaball_animation: expect.any(Object) },
             camera_setup: LANDSCAPE_VOLCANO_CAMERA_SETUP,
+            with_god_rays: false,
             setupGui: setupVolcanoIrregularitiesGui,
         },
     },
@@ -75,6 +81,7 @@ const DETAIL_SCENE_ENGINES = [
             createController: createLandscapeVolcanoController,
             controller_options: { metaball_animation: expect.any(Object), with_smoke: true },
             camera_setup: LANDSCAPE_VOLCANO_CAMERA_SETUP,
+            with_god_rays: false,
             setupGui: setupSmokeAshGui,
         },
     },
@@ -84,7 +91,18 @@ const DETAIL_SCENE_ENGINES = [
             createController: createLandscapeVolcanoController,
             controller_options: { metaball_animation: expect.any(Object), with_smoke: true, with_crack_ground: true },
             camera_setup: LAVA_LANDSCAPE_CAMERA_SETUP,
+            with_god_rays: false,
             setupGui: setupLavaLandscapeGui,
+        },
+    },
+    {
+        scene_name: 'sun-god-rays-scene', scene_module: sun_god_rays_scene,
+        options: {
+            createController: createLandscapeVolcanoController,
+            controller_options: { metaball_animation: expect.any(Object), with_smoke: true, with_crack_ground: true, with_sun: true, like_main_scene: true },
+            camera_setup: SUN_GOD_RAYS_CAMERA_SETUP,
+            with_god_rays: true,
+            setupGui: setupSunGodRaysGui,
         },
     },
 ];
@@ -120,8 +138,9 @@ describe('metaball animations of the landscape-like scenes', () => {
         volcano_irregularities_scene.createSceneEngine();
         smoke_ash_scene.createSceneEngine();
         lava_landscape_scene.createSceneEngine();
-        const animations = createDetailSceneEngine.mock.calls.slice(-3).map(([options]) => options.controller_options.metaball_animation);
-        expect(new Set(animations).size).toBe(3);
+        sun_god_rays_scene.createSceneEngine();
+        const animations = createDetailSceneEngine.mock.calls.slice(-4).map(([options]) => options.controller_options.metaball_animation);
+        expect(new Set(animations).size).toBe(4);
     });
 });
 
@@ -135,6 +154,19 @@ describe('volcano camera setup', () => {
         const starting_polar_angle = Math.atan2(z, y);
         expect(starting_polar_angle).toBeGreaterThan(MAIN_SCENE_CAMERA_MIN_POLAR_ANGLE);
         expect(starting_polar_angle).toBeLessThan(MAIN_SCENE_CAMERA_MAX_POLAR_ANGLE);
+    });
+
+    test('the sun scene sees as far as the main scene and starts, like the main scene, looking towards the sun', () => {
+        const { far, position, ...rest } = SUN_GOD_RAYS_CAMERA_SETUP;
+        const { position: landscape_position, ...landscape_rest } = LAVA_LANDSCAPE_CAMERA_SETUP;
+        expect(rest).toEqual(landscape_rest);
+        expect(far).toBe(MAIN_SCENE_CAMERA_FAR);
+        expect(position).toEqual({ x: MAIN_SCENE_CAMERA_INITIAL_POSITION.x, y: landscape_position.y, z: MAIN_SCENE_CAMERA_INITIAL_POSITION.z });
+        expect(Math.hypot(position.x, position.y, position.z)).toBeCloseTo(MAIN_SCENE_CAMERA_DISTANCE, 9);
+
+        const sun_angle = SUN_ORBIT_START_ANGLE + SCENE_WARM_UP_SECONDS * SUN_ORBIT_SPEED;
+        const looking_towards_sun = -(position.x * Math.cos(sun_angle) + position.z * Math.sin(sun_angle)) / Math.hypot(position.x, position.z);
+        expect(looking_towards_sun).toBeGreaterThan(0.9);
     });
 
     test('frames the volcano exactly like the main scene does', () => {

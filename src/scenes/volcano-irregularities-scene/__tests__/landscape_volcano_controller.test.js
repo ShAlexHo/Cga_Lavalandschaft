@@ -139,7 +139,7 @@ describe('createLandscapeVolcanoController', () => {
         controller.setSurfaceIrregularities(false);
         controller.setSpeed(2.5);
         const snapshot = controller.getSnapshot();
-        expect(snapshot).toEqual({ paused: false, speed: 2.5, surface_irregularities: false });
+        expect(snapshot).toEqual({ paused: false, speed: 2.5, surface_irregularities: false, metaballs_visible: true });
         expect(controller.setGroundVisible).toBeUndefined();
 
         controller.resetToDefaults();
@@ -150,6 +150,25 @@ describe('createLandscapeVolcanoController', () => {
         controller.applySnapshot(snapshot);
         expect(controller.getSnapshot()).toEqual(snapshot);
         expect(simplifiedVolcano().visible).toBe(true);
+    });
+
+    test('hides all metaballs, while the lava keeps flowing underneath, and the reset shows them again', () => {
+        const field = metaballField();
+        expect(controller.getMetaballsVisible()).toBe(true);
+        expect(field.effect.visible).toBe(true);
+        controller.update(0, camera);
+
+        controller.setMetaballsVisible(false);
+        expect(field.effect.visible).toBe(false);
+        expect(controller.getSnapshot()).toMatchObject({ metaballs_visible: false });
+        field.update.mockClear();
+        field.renderFieldTexture.mockClear();
+        controller.update(1, camera);
+        expect(field.update).toHaveBeenCalledWith(controller.getElapsedTime(), camera, expect.anything());
+        expect(field.renderFieldTexture).not.toHaveBeenCalled();
+
+        controller.resetToDefaults();
+        expect(field.effect.visible).toBe(true);
     });
 
     test('without the crack ground, keeps the simple ground and offers no fog and no ground settings', () => {
@@ -304,5 +323,152 @@ describe('createLandscapeVolcanoController – with smoke and ash', () => {
 
         with_smoke.applySnapshot(snapshot);
         expect(with_smoke.getSnapshot()).toEqual(snapshot);
+    });
+});
+
+describe('createLandscapeVolcanoController – with the sun and its god rays', () => {
+    let sun_scene;
+    let with_sun;
+    let god_rays_pass;
+
+    function makeGodRaysPass() {
+        const values = {};
+        const pass = { enabled: true, setTargets: vi.fn() };
+        for (const name of ['Weight', 'Exposure', 'Decay', 'Density', 'TintColor']) {
+            pass[`get${name}`] = () => values[name];
+            pass[`set${name}`] = vi.fn(value => { values[name] = value; });
+        }
+        return pass;
+    }
+
+    function sunMesh() {
+        return sun_scene.children.find(child => child.isMesh && child.geometry.type === 'SphereGeometry');
+    }
+
+    function sunLitMaterials() {
+        return [landscapeVolcanoOf(sun_scene), crackGroundOf(sun_scene), smokePointsOf(sun_scene)].map(object => object.material);
+    }
+
+    function landscapeVolcanoOf(target_scene) {
+        return target_scene.children.find(child => child.isMesh && child.material.isShaderMaterial && child.geometry.type === 'LatheGeometry');
+    }
+
+    function crackGroundOf(target_scene) {
+        return target_scene.children.find(child => child.isMesh && child.geometry.type === 'PlaneGeometry');
+    }
+
+    function smokePointsOf(target_scene) {
+        return target_scene.children.find(child => child.isPoints);
+    }
+
+    beforeEach(() => {
+        sun_scene = new THREE.Scene();
+        sun_scene.background = new THREE.Color('#140504');
+        god_rays_pass = makeGodRaysPass();
+        with_sun = createLandscapeVolcanoController(sun_scene, {
+            renderer, god_rays_pass, with_smoke: true, with_crack_ground: true, with_sun: true,
+            metaball_animation: main_scene_animation.createMetaballAnimation(createRandom(RANDOM_SEED)),
+        });
+    });
+
+    test('brings the landscape’s sun, which lights the volcano, the ground and the smoke', () => {
+        expect(sunMesh()).toBeDefined();
+        expect(sun_scene.children.some(child => child.isPointLight)).toBe(true);
+        for (const material of sunLitMaterials()) {
+            expect(material.uniforms.u_sun_enabled.value).toBe(1.0);
+            expect(material.uniforms.u_sun_strength.value).toBe(MAIN_SCENE_DEFAULTS.sunStrength);
+        }
+    });
+
+    test('the god rays start at the sun and are blocked by the ground and the volcano', () => {
+        expect(god_rays_pass.setTargets).toHaveBeenCalledWith({
+            sun_mesh: sunMesh(), occluder_meshes: [crackGroundOf(sun_scene), landscapeVolcanoOf(sun_scene)],
+        });
+        expect(with_sun.getGodRaysWeight()).toBe(MAIN_SCENE_DEFAULTS.godRaysWeight);
+        expect(with_sun.getGodRaysTintColor()).toBe(MAIN_SCENE_DEFAULTS.godRaysTintColor);
+    });
+
+    test('the sun moves along its orbit with the scene time, and its light follows it', () => {
+        with_sun.update(0, camera);
+        const start = sunMesh().position.clone();
+        with_sun.update(100, camera);
+        expect(sunMesh().position.distanceTo(start)).toBeGreaterThan(1);
+
+        const expected_view_position = sunMesh().position.clone().applyMatrix4(camera.matrixWorldInverse);
+        const uniform = landscapeVolcanoOf(sun_scene).material.uniforms.u_sun_position.value;
+        expect(uniform.distanceTo(expected_view_position)).toBeLessThan(1e-6);
+    });
+
+    test('hiding the sun also switches off its god rays and its light on every object', () => {
+        with_sun.setSunVisible(false);
+        expect(sunMesh().visible).toBe(false);
+        expect(god_rays_pass.enabled).toBe(false);
+        for (const material of sunLitMaterials()) expect(material.uniforms.u_sun_enabled.value).toBe(0.0);
+
+        with_sun.setSunVisible(true);
+        expect(god_rays_pass.enabled).toBe(true);
+    });
+
+    test('the sun’s strength reaches every lit object, its focus the volcano and the ground', () => {
+        with_sun.setSunStrength(0.2);
+        with_sun.setSunFocus(9);
+        for (const material of sunLitMaterials()) expect(material.uniforms.u_sun_strength.value).toBe(0.2);
+        expect(landscapeVolcanoOf(sun_scene).material.uniforms.u_sun_focus.value).toBe(9);
+        expect(crackGroundOf(sun_scene).material.uniforms.u_sun_focus.value).toBe(9);
+    });
+
+    test('the sun and god ray settings are part of the snapshot and of the reset', () => {
+        with_sun.setSunVisible(false);
+        with_sun.setSunStrength(0.05);
+        with_sun.setGodRaysExposure(1.1);
+        with_sun.setGodRaysTintColor('#ffaa00');
+        const snapshot = with_sun.getSnapshot();
+        expect(snapshot).toMatchObject({ sun_visible: false, sun_strength: 0.05, god_rays_exposure: 1.1, god_rays_tint_color: '#ffaa00' });
+
+        with_sun.resetToDefaults();
+        expect(with_sun.getSunVisible()).toBe(MAIN_SCENE_DEFAULTS.sunVisible);
+        expect(with_sun.getSunStrength()).toBe(MAIN_SCENE_DEFAULTS.sunStrength);
+        expect(with_sun.getGodRaysExposure()).toBe(MAIN_SCENE_DEFAULTS.godRaysExposure);
+
+        with_sun.applySnapshot(snapshot);
+        expect(with_sun.getSnapshot()).toEqual(snapshot);
+    });
+
+    test('without the sun, there are no sun settings', () => {
+        expect(controller.setSunVisible).toBeUndefined();
+        expect(controller.getSnapshot()).not.toHaveProperty('sun_strength');
+    });
+});
+
+describe('createLandscapeVolcanoController – like the main scene', () => {
+    let main_like_scene;
+    let main_like;
+    let animation;
+
+    beforeEach(() => {
+        main_like_scene = new THREE.Scene();
+        main_like_scene.background = new THREE.Color('#140504');
+        animation = main_scene_animation.createMetaballAnimation(createRandom(RANDOM_SEED));
+        main_like = createLandscapeVolcanoController(main_like_scene, {
+            renderer, metaball_animation: animation, with_smoke: true, with_crack_ground: true, like_main_scene: true,
+        });
+    });
+
+    test('lights the volcano and hides the metaballs out of the camera’s view exactly like the main scene', () => {
+        const volcano = main_like_scene.children.find(child => child.isMesh && child.material.isShaderMaterial && child.geometry.type === 'LatheGeometry');
+        expect(volcano.material.uniforms.u_ambient_strength.value).toBe(VOLCANO_AMBIENT_STRENGTH);
+        expect(metaballField().camera_arc_culling).toBe(true);
+    });
+
+    test('keeps the chosen speed when a new lava wave starts, without the main scene’s boost', () => {
+        main_like.update(0, camera);
+        const before = main_like.getElapsedTime();
+        main_like.update(1, camera);
+        main_like.update(1, camera);
+        expect(main_like.getElapsedTime() - before).toBe(2 * LANDSCAPE_VOLCANO_DEFAULTS.speed);
+    });
+
+    test('the other landscape scenes keep their brighter volcano', () => {
+        expect(landscapeVolcano().material.uniforms.u_ambient_strength.value).toBe(LANDSCAPE_VOLCANO_AMBIENT_STRENGTH);
     });
 });

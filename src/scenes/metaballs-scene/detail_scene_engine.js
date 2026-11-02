@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { BLOOM_TINT_COLOR } from '../main-scene/config.js';
+import { createGodRaysPass } from '../main-scene/rendering/god_rays_pass.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
 import { createMetaballsController } from './metaballs_controller.js';
 import {
@@ -13,7 +14,7 @@ import {
 import { captureCanvas } from '../../scene_screenshot.js';
 
 export function createDetailSceneEngine({
-    resume_state = null, createController = createMetaballsController, controller_options = {}, camera_setup = CAMERA_SETUP, setupGui,
+    resume_state = null, createController = createMetaballsController, controller_options = {}, camera_setup = CAMERA_SETUP, with_god_rays = false, setupGui,
 }) {
     const lifetime = new AbortController();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -24,7 +25,7 @@ export function createDetailSceneEngine({
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(BACKGROUND_COLOR);
 
-    const camera = new THREE.PerspectiveCamera(camera_setup.fov, window.innerWidth / window.innerHeight, CAMERA_NEAR, CAMERA_FAR);
+    const camera = new THREE.PerspectiveCamera(camera_setup.fov, window.innerWidth / window.innerHeight, CAMERA_NEAR, camera_setup.far ?? CAMERA_FAR);
     camera.position.set(camera_setup.position.x, camera_setup.position.y, camera_setup.position.z);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -46,11 +47,13 @@ export function createDetailSceneEngine({
         MAIN_SCENE_DEFAULTS.bloomThreshold,
     );
     bloom_pass.bloomTintColors.fill(new THREE.Vector3(BLOOM_TINT_COLOR.x, BLOOM_TINT_COLOR.y, BLOOM_TINT_COLOR.z));
+    const god_rays_pass = with_god_rays ? createGodRaysPass({ scene, camera }) : null;
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
+    if (god_rays_pass) composer.addPass(god_rays_pass);
     composer.addPass(bloom_pass);
 
-    const controller = createController(scene, { ...controller_options, bloom_pass, renderer });
+    const controller = createController(scene, { ...controller_options, bloom_pass, god_rays_pass, renderer });
     if (resume_state) {
         controller.applySnapshot(resume_state.snapshot);
         controller.setElapsedTime(resume_state.elapsed_time);
@@ -129,6 +132,7 @@ export function createDetailSceneEngine({
             if (container) unmount();
             lifetime.abort();
             controls.dispose();
+            god_rays_pass?.dispose();
             composer.dispose();
             renderer.dispose();
             renderer.forceContextLoss();

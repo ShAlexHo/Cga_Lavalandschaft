@@ -102,7 +102,7 @@ test('language switch translates the landing page and the scene GUI, and is reme
 });
 
 const TEXT = MESSAGES.en;
-const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'lava_flow', 'volcano_irregularities', 'smoke_ash', 'lava_landscape'];
+const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'lava_flow', 'volcano_irregularities', 'smoke_ash', 'lava_landscape', 'sun_god_rays'];
 
 function detailText(detail_key, text) {
     return TEXT[`details.${detail_key}.${text}`];
@@ -182,6 +182,11 @@ const DETAIL_SCENE_CASES = [
         labels: ['gui.metaballs.speed', 'gui.fog', 'gui.ground.rock_colour_1', 'gui.ground.crack_colour_4', 'gui.ground.crack_softness'],
         absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.ground', 'gui.folder.cracks'],
     },
+    {
+        detail_key: 'sun_god_rays', scene_name: 'sun-god-rays-scene',
+        labels: ['gui.metaballs.speed', 'gui.sun.strength', 'gui.sun.focus', 'gui.god_rays.exposure', 'gui.god_rays.decay', 'gui.god_rays.density'],
+        absent_labels: ['gui.fog', 'gui.volcano.surface_irregularities'], folders: ['gui.folder.metaballs', 'gui.folder.sun', 'gui.folder.god_rays'],
+    },
 ];
 
 for (const detail of DETAIL_SCENE_CASES) {
@@ -209,7 +214,7 @@ test('arrow buttons move between the numbered detail scenes directly, and the st
 
     await page.goto('/');
     await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 3 })).toBeAttached();
-    await expect(page.getByRole('heading', { name: numberedTitle('lava_landscape'), level: 3 })).toBeAttached();
+    await expect(page.getByRole('heading', { name: numberedTitle('sun_god_rays'), level: 3 })).toBeAttached();
 
     const metaballs_preview = page.getByRole('link', { name: detailText('metaballs', 'start_scene') });
     await metaballs_preview.scrollIntoViewIfNeeded();

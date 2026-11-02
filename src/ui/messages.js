@@ -71,6 +71,12 @@ export const MESSAGES = {
         'details.lava_landscape.text_1': 'Noise deforms the ground’s surface, and a crack pattern makes glowing cracks appear around the volcano, growing rarer towards the edge. At the horizon, the ground blurs into the sky in the fog, so the landscape seems to stretch on endlessly.',
         'details.lava_landscape.scroll_hint': 'About the lava landscape',
 
+        'details.sun_god_rays.title': 'Sun and god rays',
+        'details.sun_god_rays.start_scene': 'Start scene “Sun and god rays”',
+        'details.sun_god_rays.preview_alt': 'Screenshot of the scene “Sun and god rays”',
+        'details.sun_god_rays.text_1': 'A red sun slowly circles the landscape and lights it from one side. Its rays of light, the god rays, are added afterwards: the image is blurred towards the sun, while the volcano and the ground block the light.',
+        'details.sun_god_rays.scroll_hint': 'About the sun and god rays',
+
         'scene.home': 'Back to start page',
         'scene.navigation': 'Scene navigation',
         'scene.previous': 'Previous scene',
@@ -247,6 +253,12 @@ export const MESSAGES = {
         'details.lava_landscape.preview_alt': 'Screenshot der Szene „Lavalandschaft“',
         'details.lava_landscape.text_1': 'Noise verformt die Oberfläche des Bodens, und ein Rissmuster lässt rund um den Vulkan glühende Risse entstehen, die zum Rand hin seltener werden. Am Horizont verschwimmt der Boden im Nebel mit dem Himmel, sodass die Landschaft unendlich weit wirkt.',
         'details.lava_landscape.scroll_hint': 'Über die Lavalandschaft',
+
+        'details.sun_god_rays.title': 'Sonne und God Rays',
+        'details.sun_god_rays.start_scene': 'Szene „Sonne und God Rays“ starten',
+        'details.sun_god_rays.preview_alt': 'Screenshot der Szene „Sonne und God Rays“',
+        'details.sun_god_rays.text_1': 'Eine rote Sonne kreist langsam um die Landschaft und beleuchtet sie von einer Seite. Ihre Lichtstrahlen, die God Rays, entstehen nachträglich: Das Bild wird in Richtung der Sonne verwischt, wobei Vulkan und Boden das Licht verdecken.',
+        'details.sun_god_rays.scroll_hint': 'Über die Sonne und die God Rays',
 
         'scene.home': 'Zur Startseite',
         'scene.navigation': 'Szenennavigation',

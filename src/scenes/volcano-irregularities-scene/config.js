@@ -12,6 +12,7 @@ export const LANDSCAPE_VOLCANO_DEFAULTS = {
     paused: false,
     speed: 6,
     surface_irregularities: true,
+    metaballs_visible: true,
 };
 export const LANDSCAPE_VOLCANO_SPEED_RANGE = { min: 0, max: 8, step: 0.05 };
 export const LANDSCAPE_VOLCANO_AMBIENT_STRENGTH = 0.6;
