@@ -42,6 +42,11 @@ export const MESSAGES = {
         'details.volcano.preview_alt': 'Screenshot of the volcano scene',
         'details.volcano.text_1': 'The volcano is modelled in simplified form as a lathe, a profile rotated around its axis. The lava, in the form of metaballs, flows down a slightly inclined straight line.',
 
+        'details.radial_flow.title': 'Lava flowing in all directions',
+        'details.radial_flow.start_scene': 'Start radial flow scene',
+        'details.radial_flow.preview_alt': 'Screenshot of the radial flow scene',
+        'details.radial_flow.text_1': 'The metaballs now flow down the volcano in all directions. However, these hardly merge with one another, which is why the illusion of a liquid is lost. Two settings help: a decreasing flow speed keeps the metaballs on the volcano for longer, and a distribution split into sectors bundles them into streams.',
+
         'scene.home': 'Back to start page',
         'scene.navigation': 'Scene navigation',
         'scene.previous': 'Previous scene',
@@ -59,6 +64,8 @@ export const MESSAGES = {
         'ground.description_title': 'Lava with bloom on the ground',
         'volcano.scroll_hint': 'About the volcano as a lathe and the lava flow along a straight line',
         'volcano.description_title': 'Volcano as a lathe, lava flow along a straight line',
+        'radial_flow.scroll_hint': 'About lava flowing in all directions',
+        'radial_flow.description_title': 'Lava flowing in all directions',
 
         'gui.open_controls': 'Open Controls',
         'gui.close_controls': 'Close Controls',
@@ -81,6 +88,8 @@ export const MESSAGES = {
         'gui.folder.noise': 'Noise',
         'gui.folder.surface': 'Surface',
         'gui.folder.ground': 'Ground',
+        'gui.folder.flow_speed': 'Flow speed',
+        'gui.folder.distribution': 'Distribution',
         'gui.folder.volcano': 'Volcano',
         'gui.folder.sun': 'Sun',
         'gui.folder.smoke': 'Smoke & ash',
@@ -140,6 +149,9 @@ export const MESSAGES = {
         'gui.metaballs.spread': 'Spread',
         'gui.metaballs.spawn_height': 'Spawn height',
         'gui.metaballs.flow_slope': 'Flow slope',
+        'gui.metaballs.slow_down': 'Decreasing, no longer constant',
+        'gui.metaballs.sectors_enabled': 'Split into sectors',
+        'gui.metaballs.sector_count': 'Sector count',
     },
     de: {
         'app.title': 'Unstill Life: Lavalandschaft',
@@ -184,6 +196,11 @@ export const MESSAGES = {
         'details.volcano.preview_alt': 'Screenshot der Vulkan-Szene',
         'details.volcano.text_1': 'Der Vulkan wird vereinfacht als Rotationskörper (Lathe) modelliert. Die Lava fließt in Form von Metaballs eine leicht geneigte Gerade hinab.',
 
+        'details.radial_flow.title': 'Lavafluss in alle Richtungen',
+        'details.radial_flow.start_scene': 'Szene zum Lavafluss in alle Richtungen starten',
+        'details.radial_flow.preview_alt': 'Screenshot der Szene zum Lavafluss in alle Richtungen',
+        'details.radial_flow.text_1': 'Die Metaballs fließen nun in alle Richtungen den Vulkan hinab. Jedoch verschmelzen diese kaum miteinander, weswegen die Illusion einer Flüssigkeit verloren geht. Abhilfe schaffen zwei Einstellungen: eine abnehmende Fließgeschwindigkeit, welche die Metaballs länger auf dem Vulkan hält, und eine Verteilung in Sektoren, die sie zu Strömen bündelt.',
+
         'scene.home': 'Zur Startseite',
         'scene.navigation': 'Szenennavigation',
         'scene.previous': 'Vorherige Szene',
@@ -201,6 +218,8 @@ export const MESSAGES = {
         'ground.description_title': 'Lava mit Bloom-Effekt auf dem Boden',
         'volcano.scroll_hint': 'Über den Vulkan als Lathe und den Lavafluss auf einer Geraden',
         'volcano.description_title': 'Vulkan als Lathe, Lavafluss auf einer Geraden',
+        'radial_flow.scroll_hint': 'Über den Lavafluss in alle Richtungen',
+        'radial_flow.description_title': 'Lavafluss in alle Richtungen',
 
         'gui.open_controls': 'Steuerung öffnen',
         'gui.close_controls': 'Steuerung schließen',
@@ -223,6 +242,8 @@ export const MESSAGES = {
         'gui.folder.noise': 'Noise',
         'gui.folder.surface': 'Oberfläche',
         'gui.folder.ground': 'Boden',
+        'gui.folder.flow_speed': 'Fließgeschwindigkeit',
+        'gui.folder.distribution': 'Verteilung',
         'gui.folder.volcano': 'Vulkan',
         'gui.folder.sun': 'Sonne',
         'gui.folder.smoke': 'Rauch & Asche',
@@ -282,5 +303,8 @@ export const MESSAGES = {
         'gui.metaballs.spread': 'Streuung',
         'gui.metaballs.spawn_height': 'Entstehungshöhe',
         'gui.metaballs.flow_slope': 'Gefälle der Fließrichtung',
+        'gui.metaballs.slow_down': 'Abnehmend, nicht mehr konstant',
+        'gui.metaballs.sectors_enabled': 'Trennung in Sektoren',
+        'gui.metaballs.sector_count': 'Anzahl Sektoren',
     },
 };

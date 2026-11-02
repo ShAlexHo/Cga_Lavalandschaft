@@ -3,6 +3,7 @@ import { createGuiLabels } from '../ui/gui_labels.js';
 
 const GUI_WIDTH = 340;
 const RIGHT_ALIGNED_PANEL_CLASS = 'a';
+const WIDE_LABEL_CLASS = 'wide-label';
 const PLAYBACK_SPEED_RANGE = { min: 0, max: 3, step: 0.05 };
 
 export function createSceneGui(facade, { signal } = {}) {
@@ -45,6 +46,11 @@ export function createSceneGui(facade, { signal } = {}) {
         },
 
         addFolder,
+
+        widenLabel(controller) {
+            controller.domElement.closest('li').classList.add(WIDE_LABEL_CLASS);
+            return controller;
+        },
 
         finish() {
             const reset_actions = {

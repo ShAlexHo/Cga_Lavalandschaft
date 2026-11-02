@@ -209,6 +209,32 @@ test('volcano detail opens its own scene with the spawn height, the flow slope a
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
 
+test('radial flow detail opens its own scene with flow speed and distribution in separate folders, and the ground switch', async ({ page }) => {
+    const console_errors = collectConsoleErrors(page);
+
+    await page.goto('/');
+    const preview = page.getByRole('link', { name: 'Start radial flow scene' });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(/\/radial-flow-scene$/, { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+
+    for (const label of ['Speed', 'Decreasing, no longer constant', 'Split into sectors', 'Sector count', 'Visible']) {
+        await expect(page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) })).toHaveCount(1);
+    }
+    for (const folder of ['Flow speed', 'Distribution', 'Ground']) {
+        await expect(page.locator('.dg li.title', { hasText: new RegExp(`^${folder}$`) })).toHaveCount(1);
+    }
+    await expect(page.locator('.dg li.cr .property-name', { hasText: /^Flow slope$/ })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Previous scene: 5. Volcano as a lathe, lava flow along a straight line' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'About lava flowing in all directions' }).click();
+    await expect(page.getByRole('heading', { name: 'Lava flowing in all directions', level: 2 })).toBeInViewport({ timeout: 60_000 });
+
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+});
+
 test('arrow buttons move between the numbered detail scenes directly, and the start page shows the last one on return', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 

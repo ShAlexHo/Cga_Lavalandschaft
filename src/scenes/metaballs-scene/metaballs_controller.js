@@ -147,7 +147,7 @@ export function createMetaballsController(scene, { noise = false, surface = fals
             applyDisplacement();
 
             if (bloom_pass) controller.setBloomEnabled(MAIN_SCENE_DEFAULTS.bloomEnabled);
-            scenery.resetToDefaults();
+            scenery.resetToDefaults(controller);
         },
     };
 

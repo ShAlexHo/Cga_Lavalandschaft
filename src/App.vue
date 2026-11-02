@@ -84,6 +84,14 @@ body {
     }
 }
 
+.dg .cr.wide-label .property-name {
+    width: 88%;
+}
+
+.dg .cr.wide-label .c {
+    width: 12%;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 250ms ease;

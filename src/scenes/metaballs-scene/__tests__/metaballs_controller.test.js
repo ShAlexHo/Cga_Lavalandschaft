@@ -314,7 +314,7 @@ describe('createMetaballsController – with a scenery', () => {
             created_in.push({ scenery_scene, settings });
             return {
                 computeBalls: vi.fn(elapsed_time => [{ x: 0.5 + elapsed_time / 100, y: 0.5, z: 0.5, strength: BALL_STRENGTH, subtract: 30 }]),
-                resetToDefaults: vi.fn(() => { settings.count = 2; scenery_settings.shown = true; }),
+                resetToDefaults: vi.fn(controller => { settings.count = 2; scenery_settings.shown = true; controller.setRaymarchSteps(7); }),
                 methods: { getShown: () => scenery_settings.shown, setShown: value => { scenery_settings.shown = value; } },
                 setting_accessors: { shown: [() => scenery_settings.shown, value => { scenery_settings.shown = value; }] },
             };
@@ -336,6 +336,7 @@ describe('createMetaballsController – with a scenery', () => {
 
         expect(created_in[0].scenery_scene).toBe(scene);
         expect(with_scenery.getCount()).toBe(2);
+        expect(with_scenery.getRaymarchSteps()).toBe(7);
 
         with_scenery.setSpeed(2);
         with_scenery.update(1.5, camera);

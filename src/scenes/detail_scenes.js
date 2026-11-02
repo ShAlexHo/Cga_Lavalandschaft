@@ -4,6 +4,7 @@ export const DETAIL_SCENES = [
     { scene_name: 'surface-scene', message_key_prefix: 'details.surface' },
     { scene_name: 'ground-scene', message_key_prefix: 'details.ground' },
     { scene_name: 'volcano-scene', message_key_prefix: 'details.volcano' },
+    { scene_name: 'radial-flow-scene', message_key_prefix: 'details.radial_flow' },
 ].map((detail, index) => ({ ...detail, number: index + 1 }));
 
 export function findDetailScene(scene_name) {

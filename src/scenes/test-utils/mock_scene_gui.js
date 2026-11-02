@@ -2,7 +2,9 @@ import { vi } from 'vitest';
 import { GUI } from 'dat.gui';
 
 function makeController() {
-    return { name: vi.fn().mockReturnThis(), updateDisplay: vi.fn() };
+    const row = document.createElement('li');
+    const domElement = row.appendChild(document.createElement('div'));
+    return { name: vi.fn().mockReturnThis(), updateDisplay: vi.fn(), domElement };
 }
 
 export function makeMockGui() {

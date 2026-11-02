@@ -5,7 +5,7 @@ import { MESSAGES } from '../../ui/messages.js';
 describe('DETAIL_SCENES', () => {
     test('numbers the detail scenes from 1 in their order, without the main scene', () => {
         expect(DETAIL_SCENES.map(detail => `${detail.number} ${detail.scene_name}`)).toEqual([
-            '1 metaballs-scene', '2 noise-scene', '3 surface-scene', '4 ground-scene', '5 volcano-scene',
+            '1 metaballs-scene', '2 noise-scene', '3 surface-scene', '4 ground-scene', '5 volcano-scene', '6 radial-flow-scene',
         ]);
         expect(findDetailScene('main-scene')).toBeNull();
     });
@@ -22,7 +22,8 @@ describe('neighbouringDetailScenes', () => {
         expect(neighbouringDetailScenes('noise-scene')).toEqual({ previous: findDetailScene('metaballs-scene'), next: findDetailScene('surface-scene') });
         expect(neighbouringDetailScenes('metaballs-scene').previous).toBeNull();
         expect(neighbouringDetailScenes('ground-scene').next).toBe(findDetailScene('volcano-scene'));
-        expect(neighbouringDetailScenes('volcano-scene').next).toBeNull();
+        expect(neighbouringDetailScenes('volcano-scene').next).toBe(findDetailScene('radial-flow-scene'));
+        expect(neighbouringDetailScenes('radial-flow-scene').next).toBeNull();
     });
 
     test('the main scene has no neighbours', () => {

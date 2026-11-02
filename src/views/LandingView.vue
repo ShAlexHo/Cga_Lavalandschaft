@@ -15,6 +15,7 @@ import noise_scene_preview_url from '../assets/noise_preview.jpg';
 import surface_scene_preview_url from '../assets/surface_preview.jpg';
 import ground_scene_preview_url from '../assets/ground_preview.jpg';
 import volcano_scene_preview_url from '../assets/volcano_preview.jpg';
+import radial_flow_scene_preview_url from '../assets/radial_flow_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 import { DETAIL_SCENES, numberedTitle } from '../scenes/detail_scenes.js';
 
@@ -44,6 +45,10 @@ const DETAIL_RESOURCES = {
     'volcano-scene': {
         bundled_preview_url: volcano_scene_preview_url,
         loadEngine: () => import('../scenes/volcano-scene/scene_engine.js'),
+    },
+    'radial-flow-scene': {
+        bundled_preview_url: radial_flow_scene_preview_url,
+        loadEngine: () => import('../scenes/radial-flow-scene/scene_engine.js'),
     },
 };
 

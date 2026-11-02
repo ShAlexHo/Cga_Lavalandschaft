@@ -1,14 +1,9 @@
 import { computeFlowBalls } from '../metaballs-scene/metaballs_animation.js';
-import { createGroundPlate } from '../metaballs-scene/ground_plate.js';
-import { createVolcanoLathe } from '../metaballs-scene/volcano_lathe.js';
-import { createLavaLights } from '../metaballs-scene/lava_lights.js';
-import { GROUND_DEFAULTS, VOLCANO_DEFAULTS, VOLCANO_GROUND_PLATE_SIZE, VOLCANO_GLOW_LIGHT_POSITION } from '../metaballs-scene/config.js';
+import { createVolcanoLandscape } from '../metaballs-scene/volcano_landscape.js';
+import { GROUND_DEFAULTS, VOLCANO_DEFAULTS } from '../metaballs-scene/config.js';
 
 export function createVolcanoScenery(scene, settings) {
-    const ground_plate = createGroundPlate(scene, VOLCANO_GROUND_PLATE_SIZE);
-    ground_plate.setHeight(0);
-    createVolcanoLathe(scene);
-    createLavaLights(scene, VOLCANO_GLOW_LIGHT_POSITION);
+    const { ground_plate } = createVolcanoLandscape(scene);
 
     const methods = {
         getGroundVisible: ground_plate.getVisible,
