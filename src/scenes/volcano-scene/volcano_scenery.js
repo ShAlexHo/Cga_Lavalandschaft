@@ -1,6 +1,7 @@
 import { computeFlowBalls } from '../metaballs-scene/flow_animation.js';
 import { createVolcanoLandscape } from '../metaballs-scene/volcano_landscape.js';
-import { GROUND_DEFAULTS, VOLCANO_DEFAULTS } from '../metaballs-scene/config.js';
+import { GROUND_DEFAULTS } from '../metaballs-scene/config.js';
+import { VOLCANO_DEFAULTS } from './config.js';
 
 export function createVolcanoScenery(scene, settings) {
     const { ground_plate } = createVolcanoLandscape(scene);

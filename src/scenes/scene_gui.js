@@ -35,12 +35,12 @@ export function createSceneGui(facade, { signal } = {}) {
         liveParameters,
         bind,
 
-        addPlaybackControls() {
+        addPlaybackControls({ speed_range = PLAYBACK_SPEED_RANGE } = {}) {
             const parameters = liveParameters({
                 paused: [facade.isPaused, facade.setPaused],
                 speed: [facade.getSpeed, facade.setSpeed],
             });
-            const { min, max, step } = PLAYBACK_SPEED_RANGE;
+            const { min, max, step } = speed_range;
             bind(gui.add(parameters, 'paused'), 'gui.paused');
             bind(gui.add(parameters, 'speed', min, max, step), 'gui.metaballs.speed');
         },

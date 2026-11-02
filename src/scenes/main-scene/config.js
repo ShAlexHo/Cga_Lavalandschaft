@@ -66,6 +66,7 @@ export const METABALL_CRATER_X = 0.5;
 export const METABALL_CRATER_Y = 0.45;
 export const METABALL_CRATER_Z = 0.5;
 export const METABALL_GROUND_Y = 0.288;
+export const METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO = 6.36;
 export const METABALL_BALL_LIFETIME = 3.5;
 export const METABALL_SPAWN_INTERVAL = 36.0;
 export const METABALL_SECTORS = 6;
@@ -127,6 +128,7 @@ export const VOLCANO_PROFILE = [
 export const VOLCANO_PROFILE_SUBDIVISIONS = 48;
 export const VOLCANO_LATHE_SEGMENTS = 240;
 export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
+export const VOLCANO_AMBIENT_STRENGTH = 0.005;
 
 const SUN_DISTANCE_SCALE = 24;
 export const SUN_LIGHT_POSITION = { x: 12 * SUN_DISTANCE_SCALE, y: 10 * SUN_DISTANCE_SCALE, z: -30 * SUN_DISTANCE_SCALE };

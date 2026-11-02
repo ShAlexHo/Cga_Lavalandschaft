@@ -4,7 +4,7 @@ import noise_glsl from '../shaders/noise.glsl?raw';
 import vertex_glsl from '../shaders/volcano.vert?raw';
 import fragment_glsl from '../shaders/volcano.frag?raw';
 import {
-    SUN_LIGHT_COLOR, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
+    SUN_LIGHT_COLOR, VOLCANO_AMBIENT_STRENGTH, INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
     INTERACTION_DECAY_WIPE_NOISE_STRENGTH, INTERACTION_DECAY_WIPE_NOISE_FREQUENCY,
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
@@ -26,6 +26,7 @@ export function createVolcanoMaterial() {
             u_displacement_scale: { value: DEFAULT_SETTINGS.volcanoDisplacementScale },
             u_displacement_frequency: { value: DEFAULT_SETTINGS.volcanoDisplacementFrequency },
             u_rock_color: { value: new THREE.Color(DEFAULT_SETTINGS.volcanoRockColor) },
+            u_ambient_strength: { value: VOLCANO_AMBIENT_STRENGTH },
             u_interaction_positions: { value: Array.from({ length: INTERACTION_MAX_POINTS }, () => new THREE.Vector3()) },
             u_interaction_strengths: { value: new Float32Array(INTERACTION_MAX_POINTS) },
             u_interaction_radii: { value: new Float32Array(INTERACTION_MAX_POINTS) },

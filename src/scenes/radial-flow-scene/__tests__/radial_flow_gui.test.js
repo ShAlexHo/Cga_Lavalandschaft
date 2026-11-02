@@ -5,7 +5,7 @@ vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 import { setupRadialFlowGui } from '../radial_flow_gui.js';
 import { setLanguage } from '../../../ui/language.js';
 import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
-import { SECTOR_COUNT_MINIMUM } from '../../metaballs-scene/config.js';
+import { SECTOR_COUNT_MINIMUM } from '../config.js';
 
 function makeFacade() {
     return {

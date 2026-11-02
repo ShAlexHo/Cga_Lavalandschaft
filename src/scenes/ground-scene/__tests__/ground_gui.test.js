@@ -5,7 +5,7 @@ vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 import { setupGroundGui } from '../ground_gui.js';
 import { setLanguage } from '../../../ui/language.js';
 import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
-import { GROUND_HEIGHT_RANGE, GROUND_BALL_COUNT_RANGE } from '../../metaballs-scene/config.js';
+import { GROUND_HEIGHT_RANGE, GROUND_BALL_COUNT_RANGE } from '../config.js';
 
 
 function makeFacade() {

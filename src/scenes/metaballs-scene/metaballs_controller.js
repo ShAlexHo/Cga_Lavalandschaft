@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createSettingSnapshots } from '../setting_snapshots.js';
 import { createMetaballMaterial, updateMetaballBalls, updateMetaballLight } from '../main-scene/rendering/metaball_material.js';
 import { toHexColor } from '../main-scene/rendering/color_utils.js';
 import MAIN_SCENE_DEFAULTS from '../main-scene/default_settings.json';
@@ -121,12 +122,6 @@ export function createMetaballsController(scene, { noise = false, surface = fals
         getGlowColor: glow_color.get,
         setGlowColor: glow_color.set,
 
-        getSnapshot: () => Object.fromEntries(Object.entries(setting_accessors).map(([key, [get]]) => [key, get()])),
-
-        applySnapshot(snapshot) {
-            for (const [key, value] of Object.entries(snapshot)) setting_accessors[key]?.[1](value);
-        },
-
         resetToDefaults() {
             Object.assign(settings, DEFAULTS);
             effect.isolation = MAIN_SCENE_DEFAULTS.metaballIsolation;
@@ -165,6 +160,7 @@ export function createMetaballsController(scene, { noise = false, surface = fals
         glow_enabled: [controller.getGlowEnabled, controller.setGlowEnabled],
         glow_color: [controller.getGlowColor, controller.setGlowColor],
     };
+    Object.assign(controller, createSettingSnapshots(setting_accessors));
 
     if (noise) {
         Object.assign(controller, {

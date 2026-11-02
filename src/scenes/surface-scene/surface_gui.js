@@ -1,5 +1,5 @@
 import { createSceneGui } from '../scene_gui.js';
-import { DISPLACEMENT_STRENGTH_RANGE } from '../metaballs-scene/config.js';
+import { DISPLACEMENT_STRENGTH_RANGE } from './config.js';
 
 export function setupSurfaceGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });

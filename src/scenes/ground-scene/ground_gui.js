@@ -1,5 +1,5 @@
 import { createSceneGui } from '../scene_gui.js';
-import { GROUND_HEIGHT_RANGE, GROUND_BALL_COUNT_RANGE } from '../metaballs-scene/config.js';
+import { GROUND_HEIGHT_RANGE, GROUND_BALL_COUNT_RANGE } from './config.js';
 
 export function setupGroundGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });

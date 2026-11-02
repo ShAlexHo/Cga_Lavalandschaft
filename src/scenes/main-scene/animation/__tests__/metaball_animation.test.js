@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { METABALL_WAVE_TRANSITION, METABALL_SPAWN_INTERVAL } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 import { importFreshModule } from '../../test-utils/import_fresh_module.js';
+import { createRandom } from '../../random.js';
 
 let animation_module;
 beforeEach(async () => {
@@ -157,5 +158,17 @@ describe('getEruptionIntensity', () => {
         animation_module.stepMetaballAnimation(0.1);
 
         expect(animation_module.getEruptionIntensity(10_000)).toBe(1.0);
+    });
+});
+
+describe('createMetaballAnimation', () => {
+    test('every animation keeps its own balls, so two scenes cannot disturb each other', () => {
+        const own_animation = animation_module.createMetaballAnimation(createRandom(1));
+        own_animation.stepMetaballAnimation(0);
+
+        expect(own_animation.getSpawnCount()).toBe(1);
+        expect(own_animation.getActiveBalls()).toHaveLength(1);
+        expect(animation_module.getSpawnCount()).toBe(0);
+        expect(animation_module.getActiveBalls()).toHaveLength(0);
     });
 });

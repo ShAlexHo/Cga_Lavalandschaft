@@ -27,6 +27,8 @@ export function createVolcano(scene) {
         ...bindVisibility(mesh),
         getRockColor: () => toHexColor(material.uniforms.u_rock_color.value),
         setRockColor: value => material.uniforms.u_rock_color.value.set(value),
+        getAmbientStrength: () => material.uniforms.u_ambient_strength.value,
+        setAmbientStrength: value => { material.uniforms.u_ambient_strength.value = value; },
         ...bindDisplacementUniforms(material, rebakeCrackDisplacement),
         ...bindSunUniforms(material),
         ...bindSunFocusUniform(material),

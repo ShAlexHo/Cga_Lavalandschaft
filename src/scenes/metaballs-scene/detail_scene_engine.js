@@ -12,8 +12,8 @@ import {
 } from './config.js';
 import { captureCanvas } from '../../scene_screenshot.js';
 
-export function createMetaballsEngine({
-    resume_state = null, noise = false, surface = false, createScenery, camera_setup = CAMERA_SETUP, setupGui,
+export function createDetailSceneEngine({
+    resume_state = null, createController = createMetaballsController, controller_options = {}, camera_setup = CAMERA_SETUP, setupGui,
 }) {
     const lifetime = new AbortController();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -30,10 +30,10 @@ export function createMetaballsEngine({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.minDistance = CAMERA_MIN_DISTANCE;
-    controls.maxDistance = CAMERA_MAX_DISTANCE;
-    controls.autoRotate = true;
+    controls.enableZoom = Boolean(camera_setup.zoom_distance);
+    controls.minDistance = camera_setup.zoom_distance?.min ?? CAMERA_MIN_DISTANCE;
+    controls.maxDistance = camera_setup.zoom_distance?.max ?? CAMERA_MAX_DISTANCE;
+    controls.autoRotate = camera_setup.auto_rotate;
     controls.autoRotateSpeed = CAMERA_AUTO_ROTATE_SPEED;
     renderer.domElement.style.touchAction = 'pan-y';
 
@@ -48,7 +48,7 @@ export function createMetaballsEngine({
     composer.addPass(new RenderPass(scene, camera));
     composer.addPass(bloom_pass);
 
-    const controller = createMetaballsController(scene, { noise, surface, createScenery, bloom_pass });
+    const controller = createController(scene, { ...controller_options, bloom_pass, renderer });
     if (resume_state) {
         controller.applySnapshot(resume_state.snapshot);
         controller.setElapsedTime(resume_state.elapsed_time);

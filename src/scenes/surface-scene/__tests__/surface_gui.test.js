@@ -5,7 +5,7 @@ vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 import { setupSurfaceGui } from '../surface_gui.js';
 import { setLanguage } from '../../../ui/language.js';
 import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
-import { DISPLACEMENT_STRENGTH_RANGE } from '../../metaballs-scene/config.js';
+import { DISPLACEMENT_STRENGTH_RANGE } from '../config.js';
 
 function makeFacade() {
     const state = { displacement_strength: 0.01 };

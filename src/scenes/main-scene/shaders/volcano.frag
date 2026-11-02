@@ -5,6 +5,7 @@ uniform float u_sun_enabled;
 uniform float u_sun_strength;
 uniform float u_sun_focus;
 uniform vec3  u_rock_color;
+uniform float u_ambient_strength;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -27,7 +28,7 @@ void main() {
     vec3 halfway_direction = normalize(normalize(u_light_position - v_view_position) + view_direction);
     float specular   = pow(max(dot(halfway_direction, normal), 0.0), 32.0) * 0.01;
 
-    color = color * (0.005 + diffuse * 0.50) + vec3(specular);
+    color = color * (u_ambient_strength + diffuse * 0.50) + vec3(specular);
     color += u_sun_color * sun_diffuse * u_sun_strength * u_sun_enabled;
 
     gl_FragColor = vec4(color, 1.0);

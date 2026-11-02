@@ -48,10 +48,16 @@ export const MESSAGES = {
         'details.volcano.scroll_hint': 'About the volcano as a lathe and the lava flow along a straight line',
 
         'details.radial_flow.title': 'From single metaballs to a lava flow',
-        'details.radial_flow.start_scene': 'Start radial flow scene',
-        'details.radial_flow.preview_alt': 'Screenshot of the radial flow scene',
+        'details.radial_flow.start_scene': 'Start scene “From single metaballs to a lava flow”',
+        'details.radial_flow.preview_alt': 'Screenshot of the scene “From single metaballs to a lava flow”',
         'details.radial_flow.text_1': 'The metaballs now flow down the volcano in all directions. However, these hardly merge with one another, which is why the illusion of a liquid is lost. Two settings help: a decreasing flow speed keeps the metaballs on the volcano for longer, and a distribution split into sectors bundles them into streams.',
         'details.radial_flow.scroll_hint': 'About the way from single metaballs to a lava flow',
+
+        'details.landscape_volcano.title': 'Volcano with surface irregularities',
+        'details.landscape_volcano.start_scene': 'Start scene “Volcano with surface irregularities”',
+        'details.landscape_volcano.preview_alt': 'Screenshot of the scene “Volcano with surface irregularities”',
+        'details.landscape_volcano.text_1': 'The volcano’s surface irregularities are created with noise: a crack pattern lowers the surface in places. The metaballs keep flowing underneath unchanged, but because they only show where the surface has sunk in, the lava seems to adapt to the cracks. For comparison, the simplified smooth volcano, which has the same height on average, can be shown instead.',
+        'details.landscape_volcano.scroll_hint': 'About the volcano with surface irregularities',
 
         'scene.home': 'Back to start page',
         'scene.navigation': 'Scene navigation',
@@ -114,6 +120,7 @@ export const MESSAGES = {
         'gui.volcano.displacement_scale': 'Crack depth',
         'gui.volcano.displacement_frequency': 'Crack frequency',
         'gui.volcano.rock_colour': 'Rock colour',
+        'gui.volcano.surface_irregularities': 'Surface irregularities',
 
         'gui.sun.strength': 'Sun intensity',
         'gui.sun.focus': 'Sun focus',
@@ -195,10 +202,16 @@ export const MESSAGES = {
         'details.volcano.scroll_hint': 'Über den Vulkan als Lathe und den Lavafluss auf einer Geraden',
 
         'details.radial_flow.title': 'Vom einzelnen Metaball zum Lavafluss',
-        'details.radial_flow.start_scene': 'Szene zum Lavafluss in alle Richtungen starten',
-        'details.radial_flow.preview_alt': 'Screenshot der Szene zum Lavafluss in alle Richtungen',
+        'details.radial_flow.start_scene': 'Szene „Vom einzelnen Metaball zum Lavafluss“ starten',
+        'details.radial_flow.preview_alt': 'Screenshot der Szene „Vom einzelnen Metaball zum Lavafluss“',
         'details.radial_flow.text_1': 'Die Metaballs fließen nun in alle Richtungen den Vulkan hinab. Jedoch verschmelzen diese kaum miteinander, weswegen die Illusion einer Flüssigkeit verloren geht. Abhilfe schaffen zwei Einstellungen: eine abnehmende Fließgeschwindigkeit, welche die Metaballs länger auf dem Vulkan hält, und eine Verteilung in Sektoren, die sie zu Strömen bündelt.',
         'details.radial_flow.scroll_hint': 'Über den Weg vom einzelnen Metaball zum Lavafluss',
+
+        'details.landscape_volcano.title': 'Vulkan mit Oberflächenunebenheiten',
+        'details.landscape_volcano.start_scene': 'Szene „Vulkan mit Oberflächenunebenheiten“ starten',
+        'details.landscape_volcano.preview_alt': 'Screenshot der Szene „Vulkan mit Oberflächenunebenheiten“',
+        'details.landscape_volcano.text_1': 'Die Oberflächenunebenheiten des Vulkans entstehen durch Noise: Ein Rissmuster senkt die Oberfläche stellenweise ab. Die Metaballs fließen darunter unverändert weiter, doch weil sie nur dort sichtbar werden, wo die Oberfläche eingesunken ist, scheint sich die Lava den Rissen anzupassen. Zum Vergleich lässt sich der vereinfachte, glatte Vulkan einblenden, der im Mittel dieselbe Höhe hat.',
+        'details.landscape_volcano.scroll_hint': 'Über den Vulkan mit Oberflächenunebenheiten',
 
         'scene.home': 'Zur Startseite',
         'scene.navigation': 'Szenennavigation',
@@ -261,6 +274,7 @@ export const MESSAGES = {
         'gui.volcano.displacement_scale': 'Risstiefe',
         'gui.volcano.displacement_frequency': 'Rissfrequenz',
         'gui.volcano.rock_colour': 'Felsfarbe',
+        'gui.volcano.surface_irregularities': 'Oberflächenunebenheiten',
 
         'gui.sun.strength': 'Sonneneinstrahlung',
         'gui.sun.focus': 'Sonnenfokus',

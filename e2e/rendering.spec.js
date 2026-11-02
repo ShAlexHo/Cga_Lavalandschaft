@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { PNG } from 'pngjs';
+import { MESSAGES } from '../src/ui/messages.js';
 
 const SAMPLED_PIXEL_STRIDE = 37;
 const BRIGHT_LUMINANCE_THRESHOLD = 40;
@@ -100,9 +101,28 @@ test('language switch translates the landing page and the scene GUI, and is reme
     await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
 });
 
-async function openDetailScene(page, { start_link, scene_name }) {
+const TEXT = MESSAGES.en;
+const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'radial_flow', 'landscape_volcano'];
+
+function detailText(detail_key, text) {
+    return TEXT[`details.${detail_key}.${text}`];
+}
+
+function numberedTitle(detail_key) {
+    return `${DETAIL_ORDER.indexOf(detail_key) + 1}. ${detailText(detail_key, 'title')}`;
+}
+
+function neighbourLink(direction, detail_key) {
+    return `${TEXT[`scene.${direction}`]}: ${numberedTitle(detail_key)}`;
+}
+
+function exactly(text) {
+    return new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+}
+
+async function openDetailScene(page, { detail_key, scene_name }) {
     await page.goto('/');
-    const preview = page.getByRole('link', { name: start_link });
+    const preview = page.getByRole('link', { name: detailText(detail_key, 'start_scene') });
     await preview.scrollIntoViewIfNeeded();
     await preview.click();
     await expect(page).toHaveURL(new RegExp(`/${scene_name}$`), { timeout: 60_000 });
@@ -110,52 +130,47 @@ async function openDetailScene(page, { start_link, scene_name }) {
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
 }
 
-function guiRow(page, label) {
-    return page.locator('.dg li.cr .property-name', { hasText: new RegExp(`^${label}$`) });
+function guiRow(page, message_key) {
+    return page.locator('.dg li.cr .property-name', { hasText: exactly(TEXT[message_key]) });
 }
 
 test('metaballs detail opens its own scene with an explanation below it', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Implementation details' })).toBeAttached();
-    await openDetailScene(page, { start_link: 'Start metaballs scene', scene_name: 'metaballs-scene' });
+    await expect(page.getByRole('heading', { name: TEXT['landing.details_title'] })).toBeAttached();
+    await openDetailScene(page, { detail_key: 'metaballs', scene_name: 'metaballs-scene' });
 
-    await page.getByRole('button', { name: 'About metaballs' }).click();
-    await expect(page.getByRole('heading', { name: 'Metaballs', level: 2 })).toBeInViewport({ timeout: 60_000 });
-    await expect(page.getByText('Description in work')).toBeVisible();
+    await page.getByRole('button', { name: detailText('metaballs', 'scroll_hint') }).click();
+    await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 2 })).toBeInViewport({ timeout: 60_000 });
+    await expect(page.getByText(TEXT['scene.description_in_work'])).toBeVisible();
 
-    await page.getByRole('link', { name: 'Back to start page' }).click();
+    await page.getByRole('link', { name: TEXT['scene.home'] }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole('link', { name: 'Start metaballs scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.getByRole('link', { name: detailText('metaballs', 'start_scene') }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });
 
 const DETAIL_SCENE_CASES = [
+    { detail_key: 'noise', scene_name: 'noise-scene', labels: ['gui.noise.colour_1', 'gui.noise.colour_2'] },
     {
-        scene_name: 'noise-scene', start_link: 'Start noise scene', labels: ['Primary colour', 'Secondary colour'],
-        scroll_hint: 'About noise', title: 'Noise',
+        detail_key: 'surface', scene_name: 'surface-scene',
+        labels: ['gui.surface.noise', 'gui.surface.bump_mapping', 'gui.surface.displacement_mapping', 'gui.surface.displacement_strength'],
+    },
+    { detail_key: 'ground', scene_name: 'ground-scene', labels: ['gui.metaballs.count', 'gui.visible', 'gui.height'] },
+    {
+        detail_key: 'volcano', scene_name: 'volcano-scene',
+        labels: ['gui.metaballs.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
     },
     {
-        scene_name: 'surface-scene', start_link: 'Start surface scene', labels: ['Noise', 'Bump mapping', 'Displacement mapping', 'Displacement strength'],
-        scroll_hint: 'About surface irregularities', title: 'Surface irregularities',
+        detail_key: 'radial_flow', scene_name: 'radial-flow-scene',
+        labels: ['gui.metaballs.speed', 'gui.metaballs.slow_down', 'gui.metaballs.sectors_enabled', 'gui.metaballs.sector_count', 'gui.visible'],
+        absent_labels: ['gui.metaballs.flow_slope'], folders: ['gui.folder.flow_speed', 'gui.folder.distribution', 'gui.folder.ground'],
     },
     {
-        scene_name: 'ground-scene', start_link: 'Start ground scene', labels: ['Count', 'Visible', 'Height'],
-        scroll_hint: 'About lava with bloom on the ground', title: 'Lava with bloom on the ground',
-    },
-    {
-        scene_name: 'volcano-scene', start_link: 'Start volcano scene', labels: ['Speed', 'Spawn height', 'Flow slope', 'Visible'],
-        previous_link: 'Previous scene: 4. Lava with bloom on the ground',
-        scroll_hint: 'About the volcano as a lathe and the lava flow along a straight line', title: 'Volcano as a lathe, lava flow along a straight line',
-    },
-    {
-        scene_name: 'radial-flow-scene', start_link: 'Start radial flow scene',
-        labels: ['Speed', 'Decreasing, no longer constant', 'Split into sectors', 'Sector count', 'Visible'],
-        absent_labels: ['Flow slope'], folders: ['Flow speed', 'Distribution', 'Ground'],
-        previous_link: 'Previous scene: 5. Volcano as a lathe, lava flow along a straight line',
-        scroll_hint: 'About the way from single metaballs to a lava flow', title: 'From single metaballs to a lava flow',
+        detail_key: 'landscape_volcano', scene_name: 'landscape-volcano-scene',
+        labels: ['gui.metaballs.speed', 'gui.volcano.surface_irregularities'], absent_labels: ['gui.visible'], folders: ['gui.folder.volcano'],
     },
 ];
 
@@ -167,12 +182,13 @@ for (const detail of DETAIL_SCENE_CASES) {
         for (const label of detail.labels) await expect(guiRow(page, label)).toHaveCount(1);
         for (const label of detail.absent_labels ?? []) await expect(guiRow(page, label)).toHaveCount(0);
         for (const folder of detail.folders ?? []) {
-            await expect(page.locator('.dg li.title', { hasText: new RegExp(`^${folder}$`) })).toHaveCount(1);
+            await expect(page.locator('.dg li.title', { hasText: exactly(TEXT[folder]) })).toHaveCount(1);
         }
-        if (detail.previous_link) await expect(page.getByRole('link', { name: detail.previous_link })).toBeVisible();
+        const previous_key = DETAIL_ORDER[DETAIL_ORDER.indexOf(detail.detail_key) - 1];
+        await expect(page.getByRole('link', { name: neighbourLink('previous', previous_key) })).toBeVisible();
 
-        await page.getByRole('button', { name: detail.scroll_hint }).click();
-        await expect(page.getByRole('heading', { name: detail.title, level: 2 })).toBeInViewport({ timeout: 60_000 });
+        await page.getByRole('button', { name: detailText(detail.detail_key, 'scroll_hint') }).click();
+        await expect(page.getByRole('heading', { name: numberedTitle(detail.detail_key), level: 2 })).toBeInViewport({ timeout: 60_000 });
 
         expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
     });
@@ -182,29 +198,29 @@ test('arrow buttons move between the numbered detail scenes directly, and the st
     const console_errors = collectConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: '1. Metaballs', level: 3 })).toBeAttached();
-    await expect(page.getByRole('heading', { name: '4. Lava with bloom on the ground', level: 3 })).toBeAttached();
+    await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 3 })).toBeAttached();
+    await expect(page.getByRole('heading', { name: numberedTitle('landscape_volcano'), level: 3 })).toBeAttached();
 
-    const metaballs_preview = page.getByRole('link', { name: 'Start metaballs scene' });
+    const metaballs_preview = page.getByRole('link', { name: detailText('metaballs', 'start_scene') });
     await metaballs_preview.scrollIntoViewIfNeeded();
     await metaballs_preview.click();
     await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator('.scene-button-disabled')).toHaveCount(1);
 
-    await page.getByRole('link', { name: 'Next scene: 2. Noise' }).click();
+    await page.getByRole('link', { name: neighbourLink('next', 'noise') }).click();
     await expect(page).toHaveURL(/\/noise-scene$/, { timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0);
     await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByRole('heading', { name: '2. Noise', level: 2 })).toBeAttached();
-    await expect(page.getByRole('link', { name: 'Previous scene: 1. Metaballs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: numberedTitle('noise'), level: 2 })).toBeAttached();
+    await expect(page.getByRole('link', { name: neighbourLink('previous', 'metaballs') })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Back to start page' }).click();
+    await page.getByRole('link', { name: TEXT['scene.home'] }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-    await expect(page.getByRole('link', { name: 'Start metaballs scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
-    await expect(page.getByRole('link', { name: 'Start noise scene' }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
-    await expect(page.getByRole('link', { name: 'Start noise scene' })).toBeInViewport();
+    await expect(page.getByRole('link', { name: detailText('metaballs', 'start_scene') }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.getByRole('link', { name: detailText('noise', 'start_scene') }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(page.getByRole('link', { name: detailText('noise', 'start_scene') })).toBeInViewport();
 
     expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 });

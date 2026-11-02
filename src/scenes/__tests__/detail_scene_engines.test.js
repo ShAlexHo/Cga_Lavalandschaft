@@ -1,17 +1,21 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../metaballs-scene/metaballs_engine.js', () => ({
-    createMetaballsEngine: vi.fn(({ resume_state }) => ({
+vi.mock('../metaballs-scene/detail_scene_engine.js', () => ({
+    createDetailSceneEngine: vi.fn(({ resume_state }) => ({
         resume_state,
         getResumeState: vi.fn(() => ({ elapsed_time: 12 })),
         dispose: vi.fn(),
     })),
 }));
 
-import { createMetaballsEngine } from '../metaballs-scene/metaballs_engine.js';
+import { createDetailSceneEngine } from '../metaballs-scene/detail_scene_engine.js';
 import { closeOtherScenes } from '../scene_registry.js';
 import { VOLCANO_CAMERA_SETUP } from '../metaballs-scene/config.js';
-import { CAMERA_FOV as MAIN_SCENE_CAMERA_FOV, CAMERA_INITIAL_DISTANCE as MAIN_SCENE_CAMERA_DISTANCE } from '../main-scene/config.js';
+import { LANDSCAPE_VOLCANO_CAMERA_SETUP } from '../landscape-volcano-scene/config.js';
+import {
+    CAMERA_FOV as MAIN_SCENE_CAMERA_FOV, CAMERA_INITIAL_DISTANCE as MAIN_SCENE_CAMERA_DISTANCE,
+    CAMERA_MIN_DISTANCE as MAIN_SCENE_CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE as MAIN_SCENE_CAMERA_MAX_DISTANCE,
+} from '../main-scene/config.js';
 import * as noise_scene from '../noise-scene/scene_engine.js';
 import * as surface_scene from '../surface-scene/scene_engine.js';
 import * as ground_scene from '../ground-scene/scene_engine.js';
@@ -25,21 +29,34 @@ import { setupVolcanoGui } from '../volcano-scene/volcano_gui.js';
 import { createVolcanoScenery } from '../volcano-scene/volcano_scenery.js';
 import { setupRadialFlowGui } from '../radial-flow-scene/radial_flow_gui.js';
 import { createRadialFlowScenery } from '../radial-flow-scene/radial_flow_scenery.js';
+import * as landscape_volcano_scene from '../landscape-volcano-scene/scene_engine.js';
+import { createLandscapeVolcanoController } from '../landscape-volcano-scene/landscape_volcano_controller.js';
+import { setupLandscapeVolcanoGui } from '../landscape-volcano-scene/landscape_volcano_gui.js';
 
 const DETAIL_SCENE_ENGINES = [
-    { scene_name: 'noise-scene', scene_module: noise_scene, options: { noise: true, setupGui: setupNoiseGui } },
-    { scene_name: 'surface-scene', scene_module: surface_scene, options: { noise: true, surface: true, setupGui: setupSurfaceGui } },
+    { scene_name: 'noise-scene', scene_module: noise_scene, options: { controller_options: { noise: true }, setupGui: setupNoiseGui } },
+    { scene_name: 'surface-scene', scene_module: surface_scene, options: { controller_options: { noise: true, surface: true }, setupGui: setupSurfaceGui } },
     {
         scene_name: 'ground-scene', scene_module: ground_scene,
-        options: { noise: true, surface: true, createScenery: createGroundScenery, setupGui: setupGroundGui },
+        options: { controller_options: { noise: true, surface: true, createScenery: createGroundScenery }, setupGui: setupGroundGui },
     },
     {
         scene_name: 'volcano-scene', scene_module: volcano_scene,
-        options: { noise: true, surface: true, createScenery: createVolcanoScenery, camera_setup: VOLCANO_CAMERA_SETUP, setupGui: setupVolcanoGui },
+        options: {
+            controller_options: { noise: true, surface: true, createScenery: createVolcanoScenery }, camera_setup: VOLCANO_CAMERA_SETUP, setupGui: setupVolcanoGui,
+        },
     },
     {
         scene_name: 'radial-flow-scene', scene_module: radial_flow_scene,
-        options: { noise: true, surface: true, createScenery: createRadialFlowScenery, camera_setup: VOLCANO_CAMERA_SETUP, setupGui: setupRadialFlowGui },
+        options: {
+            controller_options: { noise: true, surface: true, createScenery: createRadialFlowScenery },
+            camera_setup: VOLCANO_CAMERA_SETUP,
+            setupGui: setupRadialFlowGui,
+        },
+    },
+    {
+        scene_name: 'landscape-volcano-scene', scene_module: landscape_volcano_scene,
+        options: { createController: createLandscapeVolcanoController, camera_setup: LANDSCAPE_VOLCANO_CAMERA_SETUP, setupGui: setupLandscapeVolcanoGui },
     },
 ];
 
@@ -48,9 +65,9 @@ beforeEach(() => {
 });
 
 describe.each(DETAIL_SCENE_ENGINES)('$scene_name engine', ({ scene_module, options }) => {
-    test('is the metaballs engine with the scene’s own options, scenery and panel', () => {
+    test('is the detail scene engine with the scene’s own controller options, camera and panel', () => {
         scene_module.createSceneEngine();
-        expect(createMetaballsEngine).toHaveBeenCalledWith({ resume_state: null, ...options });
+        expect(createDetailSceneEngine).toHaveBeenCalledWith({ resume_state: null, ...options });
     });
 
     test('closing it keeps a resume state for the next engine', () => {
@@ -74,5 +91,15 @@ describe('volcano camera setup', () => {
         const { x, y, z } = VOLCANO_CAMERA_SETUP.position;
         expect(VOLCANO_CAMERA_SETUP.fov).toBe(MAIN_SCENE_CAMERA_FOV);
         expect(Math.hypot(x, y, z)).toBeCloseTo(MAIN_SCENE_CAMERA_DISTANCE, 9);
+    });
+
+    test('the landscape volcano keeps the same framing, but its camera does not turn by itself and zooms as far as the main scene’s', () => {
+        expect(LANDSCAPE_VOLCANO_CAMERA_SETUP).toEqual({
+            ...VOLCANO_CAMERA_SETUP,
+            auto_rotate: false,
+            zoom_distance: { min: MAIN_SCENE_CAMERA_MIN_DISTANCE, max: MAIN_SCENE_CAMERA_MAX_DISTANCE },
+        });
+        expect(VOLCANO_CAMERA_SETUP.auto_rotate).toBe(true);
+        expect(VOLCANO_CAMERA_SETUP.zoom_distance).toBeUndefined();
     });
 });

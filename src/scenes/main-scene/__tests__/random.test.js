@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { makeSeededRandom, random } from '../random.js';
+import { makeSeededRandom, random, createRandom } from '../random.js';
+import { RANDOM_SEED } from '../config.js';
 
 describe('makeSeededRandom', () => {
     test('same seed produces identical sequence', () => {
@@ -108,5 +109,16 @@ describe('random (module-level instance, seed 42)', () => {
         const values = Array.from({ length: 20 }, () => random(0, 1000));
         const unique_values = new Set(values);
         expect(unique_values.size).toBeGreaterThan(1);
+    });
+});
+
+describe('createRandom', () => {
+    test('two generators with the same seed give the same sequence, independently of each other', () => {
+        const first = createRandom(RANDOM_SEED);
+        const second = createRandom(RANDOM_SEED);
+        for (let i = 0; i < 20; i++) {
+            expect(first.random(0, 10)).toBe(second.random(0, 10));
+            expect(first.randomGauss(5, 2)).toBe(second.randomGauss(5, 2));
+        }
     });
 });

@@ -7,9 +7,12 @@ import { createSky } from './objects/sky_object.js';
 import { createInteractionController } from './objects/interaction_controller.js';
 import { createImpactSmoke } from './objects/impact_smoke_object.js';
 import { createVolcanoAudio } from './audio/volcano_audio.js';
-import { SMOKE_SPAWN_HEIGHT, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES } from './config.js';
+import {
+    SMOKE_SPAWN_HEIGHT, METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES,
+} from './config.js';
 import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
+import { createSettingSnapshots } from '../setting_snapshots.js';
 
 const IRREGULAR_SETTING_ACCESSOR_NAMES = {
     paused: ['isPaused', 'setPaused'],
@@ -32,12 +35,10 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const impact_smoke = createImpactSmoke(scene);
     const volcano_audio = createVolcanoAudio();
 
-    metaball_field.effect.position.y = 0.36;
     volcano.mesh.position.y = ground.mesh.position.y;
     volcano.rebakeCrackDisplacement();
     ground.rebakeDisplacement(volcano.mesh.position);
 
-    const effect_offset = metaball_field.effect.position.y - volcano.mesh.position.y;
     const position = { x: 0, y: 0, z: 0 };
     let metaball_y_offset = DEFAULT_SETTINGS.metaballHeight;
     let time_scale = DEFAULT_SETTINGS.timeScale;
@@ -58,7 +59,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     function applyY(ground_y) {
         ground.mesh.position.y = ground_y;
         volcano.mesh.position.y = ground_y + position.y;
-        metaball_field.effect.position.y = ground_y + position.y + effect_offset + metaball_y_offset;
+        metaball_field.effect.position.y = ground_y + position.y + METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO + metaball_y_offset;
         smoke.effect.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
         volcano.rebakeCrackDisplacement();
         ground.rebakeDisplacement(volcano.mesh.position);
@@ -99,8 +100,7 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         },
 
         fastForward(duration, step) {
-            const step_count = Math.floor(duration / step);
-            for (let i = 0; i <= step_count; i++) metaball_field.update(i * step, camera, volcano.mesh.position);
+            metaball_field.fastForward(duration, step, camera, volcano.mesh.position);
             last_spawn_count = metaball_field.getSpawnCount();
             last_wave_start_count = metaball_field.getWaveStartCount();
         },
@@ -319,29 +319,14 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         getSoundVolume: () => volcano_audio.getVolume(),
         setSoundVolume: value => volcano_audio.setVolume(value),
 
-        getSnapshot,
-        applySnapshot,
-        resetToDefaults: () => applySnapshot(DEFAULT_SETTINGS),
+        resetToDefaults: () => controller.applySnapshot(DEFAULT_SETTINGS),
     };
 
-    const setting_bindings = Object.keys(DEFAULT_SETTINGS).map(key => {
+    const setting_accessors = Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map(key => {
         const [getter_name, setter_name] = settingAccessorNames(key);
-        return { key, get: () => controller[getter_name](), set: value => controller[setter_name](value) };
-    });
-
-    const setters_by_key = Object.fromEntries(setting_bindings.map(({ key, set }) => [key, set]));
-
-    function getSnapshot() {
-        const snapshot = {};
-        for (const { key, get } of setting_bindings) snapshot[key] = get();
-        return snapshot;
-    }
-
-    function applySnapshot(data) {
-        for (const [key, value] of Object.entries(data)) {
-            if (setters_by_key[key]) setters_by_key[key](value);
-        }
-    }
+        return [key, [() => controller[getter_name](), value => controller[setter_name](value)]];
+    }));
+    Object.assign(controller, createSettingSnapshots(setting_accessors));
 
     applyY(ground.mesh.position.y);
 

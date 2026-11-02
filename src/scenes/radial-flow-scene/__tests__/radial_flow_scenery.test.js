@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { createMetaballsController } from '../../metaballs-scene/metaballs_controller.js';
 import { computeFlowBalls } from '../../metaballs-scene/flow_animation.js';
 import { createRadialFlowScenery } from '../radial_flow_scenery.js';
-import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, VOLCANO_DEFAULTS } from '../../metaballs-scene/config.js';
+import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS } from '../config.js';
+import { VOLCANO_DEFAULTS } from '../../volcano-scene/config.js';
 import { METABALL_SECTORS as MAIN_SCENE_SECTOR_COUNT } from '../../main-scene/config.js';
 import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
 

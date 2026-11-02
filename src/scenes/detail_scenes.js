@@ -4,6 +4,7 @@ import surface_preview_url from '../assets/surface_preview.jpg';
 import ground_preview_url from '../assets/ground_preview.jpg';
 import volcano_preview_url from '../assets/volcano_preview.jpg';
 import radial_flow_preview_url from '../assets/radial_flow_preview.jpg';
+import landscape_volcano_preview_url from '../assets/landscape_volcano_preview.jpg';
 
 export const DETAIL_SCENES = [
     {
@@ -29,6 +30,10 @@ export const DETAIL_SCENES = [
     {
         scene_name: 'radial-flow-scene', message_key_prefix: 'details.radial_flow', preview_url: radial_flow_preview_url,
         loadEngine: () => import('./radial-flow-scene/scene_engine.js'),
+    },
+    {
+        scene_name: 'landscape-volcano-scene', message_key_prefix: 'details.landscape_volcano', preview_url: landscape_volcano_preview_url,
+        loadEngine: () => import('./landscape-volcano-scene/scene_engine.js'),
     },
 ].map((detail, index) => ({ ...detail, number: index + 1 }));
 

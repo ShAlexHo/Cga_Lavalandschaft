@@ -1,7 +1,8 @@
 import { computeBalls } from '../metaballs-scene/metaballs_animation.js';
 import { createGroundPlate } from '../metaballs-scene/ground_plate.js';
 import { createLavaLights } from '../metaballs-scene/lava_lights.js';
-import { GROUND_DEFAULTS, GROUND_PATH_SPEED_SCALE, GROUND_PLATE_SIZE, GROUND_GLOW_LIGHT_POSITION } from '../metaballs-scene/config.js';
+import { GROUND_DEFAULTS } from '../metaballs-scene/config.js';
+import { GROUND_PATH_SPEED_SCALE, GROUND_PLATE_SIZE, GROUND_GLOW_LIGHT_POSITION } from './config.js';
 
 export function createGroundScenery(scene, settings) {
     const ground_plate = createGroundPlate(scene, GROUND_PLATE_SIZE);

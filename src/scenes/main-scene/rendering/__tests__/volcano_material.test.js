@@ -11,6 +11,7 @@ import { createVolcanoMaterial, updateVolcanoLight, updateVolcanoInteraction } f
 import {
     INTERACTION_MAX_POINTS, INTERACTION_PLATEAU_FRACTION, INTERACTION_DECAY_WIPE_BAND_FRACTION,
     INTERACTION_DECAY_WIPE_NOISE_STRENGTH, INTERACTION_DECAY_WIPE_NOISE_FREQUENCY,
+    VOLCANO_AMBIENT_STRENGTH,
 } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
 
@@ -27,6 +28,7 @@ describe('createVolcanoMaterial', () => {
             'u_displacement_scale',
             'u_displacement_frequency',
             'u_rock_color',
+            'u_ambient_strength',
             'u_interaction_positions',
             'u_interaction_strengths',
             'u_interaction_radii',
@@ -39,6 +41,10 @@ describe('createVolcanoMaterial', () => {
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);
         });
+    });
+
+    test('keeps the landscape’s faint ambient light by default', () => {
+        expect(createVolcanoMaterial().uniforms.u_ambient_strength.value).toBe(VOLCANO_AMBIENT_STRENGTH);
     });
 
     test('interaction uniform arrays have length INTERACTION_MAX_POINTS and start at zero strength', () => {

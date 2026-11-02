@@ -5,7 +5,7 @@ vi.mock('dat.gui', () => ({ GUI: vi.fn() }));
 import { setupVolcanoGui } from '../volcano_gui.js';
 import { setLanguage } from '../../../ui/language.js';
 import { makeMockGui, findControl } from '../../test-utils/mock_scene_gui.js';
-import { SPAWN_HEIGHT_RANGE, FLOW_SLOPE_RANGE, VOLCANO_DEFAULTS } from '../../metaballs-scene/config.js';
+import { SPAWN_HEIGHT_RANGE, FLOW_SLOPE_RANGE, VOLCANO_DEFAULTS } from '../config.js';
 
 function makeFacade() {
     const state = { spawn_height: VOLCANO_DEFAULTS.spawn_height, flow_slope: VOLCANO_DEFAULTS.flow_slope };

@@ -1,5 +1,5 @@
 import { createSceneGui } from '../scene_gui.js';
-import { SECTOR_COUNT_MINIMUM } from '../metaballs-scene/config.js';
+import { SECTOR_COUNT_MINIMUM } from './config.js';
 
 export function setupRadialFlowGui(facade, { signal } = {}) {
     const scene_gui = createSceneGui(facade, { signal });

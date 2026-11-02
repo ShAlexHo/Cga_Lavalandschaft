@@ -1,6 +1,7 @@
 import { computeFlowBalls } from '../metaballs-scene/flow_animation.js';
 import { createVolcanoLandscape } from '../metaballs-scene/volcano_landscape.js';
-import { GROUND_DEFAULTS, RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, SECTOR_COUNT_MINIMUM } from '../metaballs-scene/config.js';
+import { GROUND_DEFAULTS } from '../metaballs-scene/config.js';
+import { RADIAL_FLOW_DEFAULTS, RADIAL_FLOW_BALL_RADIUS, SECTOR_COUNT_MINIMUM } from './config.js';
 
 export function createRadialFlowScenery(scene, settings) {
     const { ground_plate } = createVolcanoLandscape(scene);

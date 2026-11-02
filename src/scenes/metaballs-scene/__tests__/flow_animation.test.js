@@ -2,8 +2,9 @@ import { describe, test, expect } from 'vitest';
 import { computeFlowBalls, flowDistance, flowTiming, flowAngle, sectorOffset } from '../flow_animation.js';
 import { BALL_PATHS } from '../metaballs_animation.js';
 import {
-    MAX_BALL_COUNT, EFFECT_SCALE, VOLCANO_DEFAULTS, FLOW_SPEED, FLOW_MAX_DISTANCE, FLOW_END_DEPTH, FLOW_GROW_DURATION, FLOW_SLOWING_DISTANCE, FLOW_SECTOR_SPREAD,
+    MAX_BALL_COUNT, EFFECT_SCALE, FLOW_SPEED, FLOW_MAX_DISTANCE, FLOW_END_DEPTH, FLOW_GROW_DURATION, FLOW_SLOWING_DISTANCE, FLOW_SECTOR_SPREAD,
 } from '../config.js';
+import { VOLCANO_DEFAULTS } from '../../volcano-scene/config.js';
 import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
 
 function localRadius(ball, isolation, radius_scale) {

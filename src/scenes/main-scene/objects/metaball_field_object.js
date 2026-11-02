@@ -2,11 +2,12 @@ import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../rendering/metaball_material.js';
 import { createMetaballFieldTexture } from '../rendering/metaball_field_texture.js';
 import { toHexColor } from '../rendering/color_utils.js';
-import { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } from '../animation/metaball_animation.js';
+import * as main_scene_animation from '../animation/metaball_animation.js';
 import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-export function createMetaballField(scene) {
+export function createMetaballField(scene, { animation = main_scene_animation, camera_arc_culling = true } = {}) {
+    const { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } = animation;
     const field_texture = createMetaballFieldTexture({ max_balls: METABALL_GPU_MAX_BALLS });
     const material = createMetaballMaterial({ field_texture });
     const effect = createMetaballGeometry(scene, material);
@@ -14,7 +15,7 @@ export function createMetaballField(scene) {
     let is_field_texture_outdated = true;
 
     function uploadBalls(balls) {
-        updateMetaballBalls(effect, balls, last_camera);
+        updateMetaballBalls(effect, balls, camera_arc_culling ? last_camera : null);
         is_field_texture_outdated = true;
     }
 
@@ -23,14 +24,21 @@ export function createMetaballField(scene) {
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_strength = DEFAULT_SETTINGS.displacementStrength;
 
+    function update(time, camera, volcano_position) {
+        last_camera = camera;
+        const balls = stepMetaballAnimation(time);
+        if (balls) uploadBalls(balls);
+        updateMetaballLight(material, camera, time);
+        updateMetaballDisplacement(material, { enabled: displacement_enabled, strength: displacement_strength, camera, volcano_position });
+    }
+
     return {
         effect,
-        update(time, camera, volcano_position) {
-            last_camera = camera;
-            const balls = stepMetaballAnimation(time);
-            if (balls) uploadBalls(balls);
-            updateMetaballLight(material, camera, time);
-            updateMetaballDisplacement(material, { enabled: displacement_enabled, strength: displacement_strength, camera, volcano_position });
+        update,
+
+        fastForward(duration, step, camera, volcano_position) {
+            const step_count = Math.floor(duration / step);
+            for (let i = 0; i <= step_count; i++) update(i * step, camera, volcano_position);
         },
 
         renderFieldTexture(renderer) {

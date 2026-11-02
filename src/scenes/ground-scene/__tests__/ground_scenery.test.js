@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { createMetaballsController } from '../../metaballs-scene/metaballs_controller.js';
 import { computeBalls } from '../../metaballs-scene/metaballs_animation.js';
 import { createGroundScenery } from '../ground_scenery.js';
-import { DEFAULTS, MAX_BALL_COUNT, GROUND_DEFAULTS, GROUND_PLATE_SIZE, GROUND_PATH_SPEED_SCALE } from '../../metaballs-scene/config.js';
+import { DEFAULTS, MAX_BALL_COUNT, GROUND_DEFAULTS } from '../../metaballs-scene/config.js';
+import { GROUND_PLATE_SIZE, GROUND_PATH_SPEED_SCALE } from '../config.js';
 
 let camera;
 

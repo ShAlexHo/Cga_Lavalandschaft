@@ -101,6 +101,30 @@ describe('createMetaballField', () => {
         expect(updateMetaballBalls).toHaveBeenCalledWith(field.effect, [], null);
     });
 
+    test('fades out the balls on the far side of the volcano by the camera, unless that culling is switched off', () => {
+        const active_balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30, angle: 0 }];
+
+        const culled = createMetaballField(makeScene());
+        stepMetaballAnimation.mockReturnValueOnce(active_balls);
+        culled.update(1, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(updateMetaballBalls).toHaveBeenLastCalledWith(culled.effect, active_balls, NEAR_CAMERA);
+
+        const unculled = createMetaballField(makeScene(), { camera_arc_culling: false });
+        stepMetaballAnimation.mockReturnValueOnce(active_balls);
+        unculled.update(1, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(updateMetaballBalls).toHaveBeenLastCalledWith(unculled.effect, active_balls, null);
+    });
+
+    test('fastForward() steps the animation from 0 up to the given duration, for the given camera', () => {
+        const field = createMetaballField(makeScene());
+        stepMetaballAnimation.mockClear();
+        updateMetaballLight.mockClear();
+
+        field.fastForward(2, 0.5, NEAR_CAMERA, VOLCANO_POSITION);
+        expect(stepMetaballAnimation.mock.calls.map(([time]) => time)).toEqual([0, 0.5, 1, 1.5, 2]);
+        expect(updateMetaballLight).toHaveBeenLastCalledWith(field.effect.material, NEAR_CAMERA, 2);
+    });
+
     test('update() rebuilds only when the animation step returns balls', () => {
         const field = createMetaballField(makeScene());
         updateMetaballBalls.mockClear();
