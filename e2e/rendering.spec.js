@@ -143,7 +143,13 @@ test('metaballs detail opens its own scene with an explanation below it', async 
 
     await page.getByRole('button', { name: detailText('metaballs', 'scroll_hint') }).click();
     await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 2 })).toBeInViewport({ timeout: 60_000 });
-    await expect(page.getByText(TEXT['scene.description_in_work'])).toBeVisible();
+    for (const heading of ['field_heading', 'isosurface_heading', 'example_heading', 'usage_heading']) {
+        await expect(page.getByRole('heading', { name: TEXT[`details.metaballs.description.${heading}`], level: 3 })).toBeVisible();
+    }
+    await expect(page.locator('.scene-description math')).toHaveCount(20);
+    await expect(page.getByRole('img', { name: TEXT['details.metaballs.description.single_ball_figure_alt'] })).toBeVisible();
+    await expect(page.getByRole('img', { name: TEXT['details.metaballs.description.two_balls_figure_alt'] })).toBeVisible();
+    await expect(page.getByText(TEXT['scene.description_in_work'])).toHaveCount(0);
 
     await page.getByRole('link', { name: TEXT['scene.home'] }).click();
     await expect(page).toHaveURL(/\/$/);

@@ -13,6 +13,7 @@ export const DETAIL_SCENES = [
     {
         scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', preview_url: metaballs_preview_url,
         loadEngine: () => import('./metaballs-scene/scene_engine.js'),
+        loadDescription: () => import('./metaballs-scene/description/MetaballsDescription.vue'),
     },
     {
         scene_name: 'noise-scene', message_key_prefix: 'details.noise', preview_url: noise_preview_url,

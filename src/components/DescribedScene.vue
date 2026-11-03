@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, defineAsyncComponent } from 'vue';
 import SceneStage from './SceneStage.vue';
 import { findDetailScene, numberedTitle } from '../scenes/detail_scenes.js';
 import { localize } from '../language_state.js';
@@ -10,6 +10,7 @@ const properties = defineProps({
 });
 
 const detail = findDetailScene(properties.scene_name);
+const SceneDescription = detail.loadDescription ? defineAsyncComponent(detail.loadDescription) : null;
 
 const description = ref(null);
 
@@ -29,7 +30,8 @@ function scrollToDescription() {
 
         <article ref="description" class="scene-description">
             <h2 class="scene-description-title">{{ numberedTitle(detail, localize(`${detail.message_key_prefix}.title`)) }}</h2>
-            <p>{{ localize('scene.description_in_work') }}</p>
+            <SceneDescription v-if="SceneDescription" />
+            <p v-else>{{ localize('scene.description_in_work') }}</p>
         </article>
     </main>
 </template>
