@@ -13,6 +13,7 @@ import {
 import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 import { createSettingSnapshots } from '../setting_snapshots.js';
+import { finishBuild } from '../stepwise_build.js';
 
 const IRREGULAR_SETTING_ACCESSOR_NAMES = {
     paused: ['isPaused', 'setPaused'],
@@ -24,7 +25,11 @@ function settingAccessorNames(key) {
     return IRREGULAR_SETTING_ACCESSOR_NAMES[key] ?? [`get${name}`, `set${name}`];
 }
 
-export function createSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled, signal }) {
+export function createSceneController(options) {
+    return finishBuild(buildSceneController(options));
+}
+
+export function* buildSceneController({ scene, camera, renderer, bloom_pass, god_rays_pass, setControlsEnabled, signal }) {
     const ground = createGround(scene);
     const volcano = createVolcano(scene);
     const metaball_field = createMetaballField(scene);
@@ -33,11 +38,9 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     const sky = createSky(scene);
     const interaction = createInteractionController(renderer, volcano.mesh, { signal });
     const impact_smoke = createImpactSmoke(scene);
+    yield;
     const volcano_audio = createVolcanoAudio();
-
-    volcano.mesh.position.y = ground.mesh.position.y;
-    volcano.rebakeCrackDisplacement();
-    ground.rebakeDisplacement(volcano.mesh.position);
+    yield;
 
     const position = { x: 0, y: 0, z: 0 };
     let metaball_y_offset = DEFAULT_SETTINGS.metaballHeight;
@@ -56,11 +59,15 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
         return 1 + (METABALL_WAVE_BOOST_MULTIPLIER - 1) * decay_fraction;
     }
 
-    function applyY(ground_y) {
+    function placeAtHeight(ground_y) {
         ground.mesh.position.y = ground_y;
         volcano.mesh.position.y = ground_y + position.y;
         metaball_field.effect.position.y = ground_y + position.y + METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO + metaball_y_offset;
         smoke.effect.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
+    }
+
+    function applyY(ground_y) {
+        placeAtHeight(ground_y);
         volcano.rebakeCrackDisplacement();
         ground.rebakeDisplacement(volcano.mesh.position);
     }
@@ -99,8 +106,8 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
             }
         },
 
-        fastForward(duration, step) {
-            metaball_field.fastForward(duration, step, camera, volcano.mesh.position);
+        fastForward(duration, step, from_duration = 0) {
+            metaball_field.fastForward(duration, step, camera, volcano.mesh.position, from_duration);
             last_spawn_count = metaball_field.getSpawnCount();
             last_wave_start_count = metaball_field.getWaveStartCount();
         },
@@ -328,7 +335,11 @@ export function createSceneController({ scene, camera, renderer, bloom_pass, god
     }));
     Object.assign(controller, createSettingSnapshots(setting_accessors));
 
-    applyY(ground.mesh.position.y);
+    placeAtHeight(ground.mesh.position.y);
+    volcano.rebakeCrackDisplacement();
+    yield;
+    ground.rebakeDisplacement(volcano.mesh.position);
+    yield;
 
     return controller;
 }

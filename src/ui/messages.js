@@ -115,6 +115,7 @@ export const MESSAGES = {
         'scene.previous': 'Previous scene',
         'scene.next': 'Next scene',
         'scene.loading': 'Loading scene…',
+        'landing.preview_loading': 'Loading preview…',
         'scene.description_in_work': 'Description in work',
 
         'gui.open_controls': 'Open Controls',
@@ -331,6 +332,7 @@ export const MESSAGES = {
         'scene.previous': 'Vorherige Szene',
         'scene.next': 'Nächste Szene',
         'scene.loading': 'Szene wird geladen…',
+        'landing.preview_loading': 'Vorschau wird geladen…',
         'scene.description_in_work': 'Beschreibung in Arbeit',
 
         'gui.open_controls': 'Steuerung öffnen',

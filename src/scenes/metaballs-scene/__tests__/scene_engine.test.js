@@ -89,6 +89,21 @@ import { createMetaballsController } from '../metaballs_controller.js';
 import { setupMetaballsGui } from '../metaballs_gui.js';
 
 let pending_frame = null;
+let visibility_observer = null;
+
+class MockIntersectionObserver {
+    constructor(callback, options) {
+        this.callback = callback;
+        this.options = options;
+        this.observe = vi.fn();
+        this.disconnect = vi.fn();
+        visibility_observer = this;
+    }
+}
+
+function setSceneVisible(is_intersecting) {
+    visibility_observer.callback([{ isIntersecting: is_intersecting }]);
+}
 
 function runFrame() {
     const callback = pending_frame;
@@ -113,6 +128,8 @@ beforeEach(() => {
     document.body.innerHTML = '';
     clock_state.deltas = [];
     pending_frame = null;
+    visibility_observer = null;
+    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
     vi.stubGlobal('requestAnimationFrame', vi.fn(callback => { pending_frame = callback; return 1; }));
     vi.stubGlobal('cancelAnimationFrame', vi.fn(() => { pending_frame = null; }));
 });
@@ -221,13 +238,35 @@ describe('metaballs createSceneEngine', () => {
         expect(engine.getElapsedTime()).toBe(2.5);
     });
 
-    test('unmount() stops the render loop and window resize handling', () => {
+    test('pauses rendering while the scene is scrolled out of view, and resumes without the time spent away', () => {
+        const engine = createSceneEngine();
+        const container = makeContainer();
+        clock_state.deltas = [0, 1];
+        engine.mount(container);
+        expect(visibility_observer.observe).toHaveBeenCalledWith(container);
+        expect(visibility_observer.options).toEqual({ rootMargin: '-1px' });
+        runFrame();
+
+        setSceneVisible(false);
+        expect(pending_frame).toBeNull();
+        renderer_state.composer.render.mockClear();
+
+        clock_state.deltas = [300, 0.5];
+        setSceneVisible(true);
+        setSceneVisible(true);
+        expect(renderer_state.composer.render).toHaveBeenCalledTimes(1);
+        expect(engine.getElapsedTime()).toBe(1.5);
+    });
+
+    test('unmount() stops the render loop, the visibility watch and window resize handling', () => {
         const engine = createSceneEngine();
         engine.mount(makeContainer());
+        const observer = visibility_observer;
         engine.unmount();
         renderer_state.last.setSize.mockClear();
 
         expect(pending_frame).toBeNull();
+        expect(observer.disconnect).toHaveBeenCalled();
         window.dispatchEvent(new Event('resize'));
         expect(renderer_state.last.setSize).not.toHaveBeenCalled();
     });

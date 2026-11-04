@@ -36,9 +36,10 @@ export function createMetaballField(scene, { animation = main_scene_animation, c
         effect,
         update,
 
-        fastForward(duration, step, camera, volcano_position) {
-            const step_count = Math.floor(duration / step);
-            for (let i = 0; i <= step_count; i++) update(i * step, camera, volcano_position);
+        fastForward(duration, step, camera, volcano_position, from_duration = 0) {
+            const first_step = from_duration > 0 ? Math.floor(from_duration / step) + 1 : 0;
+            const last_step = Math.floor(duration / step);
+            for (let i = first_step; i <= last_step; i++) update(i * step, camera, volcano_position);
         },
 
         renderFieldTexture(renderer) {

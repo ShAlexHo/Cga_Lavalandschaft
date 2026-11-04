@@ -12,6 +12,7 @@ import { LANGUAGES, setLanguage } from '../ui/language.js';
 import main_scene_preview_url from '../assets/scene_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 import { DETAIL_SCENES, numberedTitle } from '../scenes/detail_scenes.js';
+import { createScenePreparation } from '../scene_preparation.js';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
 const AUTHOR_URL = 'https://github.com/ShAlexHo';
@@ -29,9 +30,12 @@ function detailPreviewUrl(detail) {
 
 const preview_ratios = reactive(Object.fromEntries(['main-scene', ...DETAILS.map(detail => detail.scene_name)].map(scene_name => [scene_name, 16 / 9])));
 
-function updatePreviewRatio(event, scene_name) {
+const loaded_previews = reactive({});
+
+function finishPreviewLoading(event, scene_name) {
     const image = event.target;
     if (image.naturalHeight > 0) preview_ratios[scene_name] = image.naturalWidth / image.naturalHeight;
+    loaded_previews[scene_name] = true;
 }
 
 const MAIN_SCENE_HREF = router.resolve({ name: 'main-scene' }).href;
@@ -60,33 +64,28 @@ async function enterScene(event, { scene_name, frame, image }) {
     await router.push({ name: scene_name });
 }
 
-const SCENE_ENGINE_LOADERS = [
-    () => import('../scenes/main-scene/scene_engine.js'),
-    ...DETAILS.map(detail => detail.loadEngine),
-];
+const SCENE_ENGINE_LOADERS = {
+    'main-scene': () => import('../scenes/main-scene/scene_engine.js'),
+    ...Object.fromEntries(DETAILS.map(detail => [detail.scene_name, detail.loadEngine])),
+};
+let scene_preparation = null;
+let is_unmounted = false;
 
-function runWhenIdle(callback) {
-    if ('requestIdleCallback' in window) window.requestIdleCallback(callback, { timeout: 2000 });
-    else setTimeout(callback, 300);
-}
-
-function prepareScenes(loaders) {
-    if (loaders.length === 0) return;
-    runWhenIdle(async () => {
-        const scene_module = await loaders[0]();
-        scene_module.getSceneEngine().prepare();
-        prepareScenes(loaders.slice(1));
-    });
+function requestPreparation(scene_name) {
+    scene_preparation?.request(scene_name, SCENE_ENGINE_LOADERS[scene_name]);
 }
 
 onMounted(async () => {
     window.scrollTo(0, saved_scroll_top);
     await whenReturnFinished();
-    prepareScenes(SCENE_ENGINE_LOADERS);
+    if (is_unmounted) return;
+    scene_preparation = createScenePreparation();
 });
 
 onBeforeUnmount(() => {
+    is_unmounted = true;
     saved_scroll_top = window.scrollY;
+    scene_preparation?.dispose();
 });
 </script>
 
@@ -133,14 +132,20 @@ onBeforeUnmount(() => {
                     :style="{ '--preview-ratio': preview_ratios['main-scene'] }"
                     :aria-label="localize('landing.start_scene')"
                     @click="enterScene($event, { scene_name: 'main-scene', frame: preview_frame, image: preview_image })"
+                    @pointerenter="requestPreparation('main-scene')"
+                    @focus="requestPreparation('main-scene')"
                 >
                     <img
                         ref="preview_image"
                         :src="preview_url"
                         :alt="localize('landing.preview_alt')"
                         class="preview-image"
-                        @load="updatePreviewRatio($event, 'main-scene')"
+                        :class="{ loaded: loaded_previews['main-scene'] }"
+                        decoding="async"
+                        @load="finishPreviewLoading($event, 'main-scene')"
+                        @error="finishPreviewLoading($event, 'main-scene')"
                     />
+                    <span v-if="!loaded_previews['main-scene']" class="preview-spinner" role="status" :aria-label="localize('landing.preview_loading')"></span>
                     <span class="play-button" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
                     </span>
@@ -197,14 +202,20 @@ onBeforeUnmount(() => {
                         :style="{ '--preview-ratio': preview_ratios[detail.scene_name] }"
                         :aria-label="localize(`${detail.message_key_prefix}.start_scene`)"
                         @click="enterDetailScene($event, detail)"
+                        @pointerenter="requestPreparation(detail.scene_name)"
+                        @focus="requestPreparation(detail.scene_name)"
                     >
                         <img
                             :ref="element => setDetailPreviewElement(detail.scene_name, 'image', element)"
                             :src="detailPreviewUrl(detail)"
                             :alt="localize(`${detail.message_key_prefix}.preview_alt`)"
                             class="preview-image"
-                            @load="updatePreviewRatio($event, detail.scene_name)"
+                            :class="{ loaded: loaded_previews[detail.scene_name] }"
+                            decoding="async"
+                            @load="finishPreviewLoading($event, detail.scene_name)"
+                            @error="finishPreviewLoading($event, detail.scene_name)"
                         />
+                        <span v-if="!loaded_previews[detail.scene_name]" class="preview-spinner preview-spinner-small" role="status" :aria-label="localize('landing.preview_loading')"></span>
                         <span class="play-button play-button-small" aria-hidden="true">
                             <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
                         </span>
@@ -330,8 +341,31 @@ onBeforeUnmount(() => {
     width: var(--main-preview-width);
     aspect-ratio: var(--preview-ratio);
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
+    background: var(--color-surface);
     box-shadow: 0 20px 60px rgba(255, 60, 0, 0.12);
+}
+
+.preview-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: scene-spinner-rotate 900ms linear infinite;
+}
+
+.preview-spinner.preview-spinner-small {
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border-width: 3px;
 }
 
 .preview:focus-visible {
@@ -344,7 +378,12 @@ onBeforeUnmount(() => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 400ms ease, filter 300ms ease;
+    opacity: 0;
+    transition: transform 400ms ease, filter 300ms ease, opacity 300ms ease;
+}
+
+.preview-image.loaded {
+    opacity: 1;
 }
 
 .play-button {

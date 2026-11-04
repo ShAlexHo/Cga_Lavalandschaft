@@ -26,8 +26,8 @@ vi.mock('three', () => ({
     PCFSoftShadowMap: 'pcf-soft',
 }));
 
-vi.mock('../scene_controller.js', () => ({
-    createSceneController: vi.fn(() => ({
+vi.mock('../scene_controller.js', () => {
+    const createMockController = vi.fn(() => ({
         update: vi.fn(),
         getTimeScale: vi.fn(() => 1),
         isPaused: vi.fn(() => false),
@@ -42,8 +42,16 @@ vi.mock('../scene_controller.js', () => ({
         fastForward: vi.fn(),
         getSnapshot: vi.fn(() => ({ timeScale: 1, groundHeight: -6 })),
         applySnapshot: vi.fn(),
-    })),
-}));
+    }));
+    return {
+        createMockController,
+        buildSceneController: vi.fn(function* (options) {
+            yield;
+            yield;
+            return createMockController(options);
+        }),
+    };
+});
 
 vi.mock('../objects/camera_object.js', () => ({
     createCameraController: vi.fn(() => ({
@@ -76,9 +84,9 @@ vi.mock('../ui/gui.js', () => ({
     }),
 }));
 
-import { createSceneEngine, getSceneEngine, closeSceneEngine } from '../scene_engine.js';
+import { createSceneEngine, getSceneEngine, closeSceneEngine, prepareSceneEngineGradually } from '../scene_engine.js';
 import { closeOtherScenes } from '../../scene_registry.js';
-import { createSceneController } from '../scene_controller.js';
+import { createMockController } from '../scene_controller.js';
 import { createCameraController } from '../objects/camera_object.js';
 import { createPostProcessing } from '../rendering/post_processing.js';
 import { setupGui } from '../ui/gui.js';
@@ -102,7 +110,7 @@ function makeContainer(width = 800, height = 600) {
 }
 
 function lastController() {
-    return createSceneController.mock.results.at(-1).value;
+    return createMockController.mock.results.at(-1).value;
 }
 
 function lastUpdateTime() {
@@ -123,10 +131,13 @@ afterEach(() => {
 });
 
 describe('createSceneEngine', () => {
-    test('fast-forwards the lava simulation and starts the clock at the warm-up time', () => {
+    test('fast-forwards the lava simulation in eight consecutive slices and starts the clock at the warm-up time', () => {
         const engine = createSceneEngine();
 
-        expect(lastController().fastForward).toHaveBeenCalledWith(SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS);
+        const slice = SCENE_WARM_UP_SECONDS / 8;
+        expect(lastController().fastForward.mock.calls).toEqual(
+            Array.from({ length: 8 }, (_, i) => [(i + 1) * slice, SCENE_WARM_UP_STEP_SECONDS, i * slice]),
+        );
         expect(engine.getElapsedTime()).toBe(SCENE_WARM_UP_SECONDS);
     });
 
@@ -212,7 +223,7 @@ describe('createSceneEngine', () => {
         engine.unmount();
         engine.mount(makeContainer());
 
-        expect(createSceneController).toHaveBeenCalledTimes(1);
+        expect(createMockController).toHaveBeenCalledTimes(1);
     });
 
     test('mount() starts audio, and listens for a gesture in case the browser still blocks it', () => {
@@ -323,7 +334,7 @@ describe('createSceneEngine – closing and resuming', () => {
         const container = makeContainer();
         engine.mount(container);
         const gui_signal = setupGui.mock.calls.at(-1)[1].signal;
-        const controller_signal = createSceneController.mock.calls.at(-1)[0].signal;
+        const controller_signal = createMockController.mock.calls.at(-1)[0].signal;
 
         engine.dispose();
 
@@ -340,7 +351,7 @@ describe('createSceneEngine – closing and resuming', () => {
 describe('getSceneEngine', () => {
     test('creates the engine once and reuses it', () => {
         expect(getSceneEngine()).toBe(getSceneEngine());
-        expect(createSceneController).toHaveBeenCalledTimes(1);
+        expect(createMockController).toHaveBeenCalledTimes(1);
     });
 
     test('closeSceneEngine() frees the engine, and the next one resumes where it was left', () => {
@@ -369,5 +380,45 @@ describe('getSceneEngine', () => {
 
         closeOtherScenes('main-scene');
         expect(renderer.forceContextLoss).not.toHaveBeenCalled();
+    });
+});
+
+describe('prepareSceneEngineGradually', () => {
+    beforeEach(() => {
+        closeSceneEngine();
+        createMockController.mockClear();
+    });
+
+    afterEach(() => {
+        closeSceneEngine();
+    });
+
+    test('builds the engine one step per turn, so the page stays responsive in between, and then prepares it', async () => {
+        let turns = 0;
+        const waitForTurn = vi.fn(async () => { turns++; });
+
+        await prepareSceneEngineGradually(waitForTurn);
+
+        expect(turns).toBeGreaterThanOrEqual(4);
+        expect(createMockController).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.compile).toHaveBeenCalledTimes(1);
+    });
+
+    test('opening the scene during a gradual build finishes that same build at once instead of starting anew', async () => {
+        let releaseTurn;
+        const waitForTurn = () => new Promise(resolve => { releaseTurn = resolve; });
+
+        const preparation = prepareSceneEngineGradually(waitForTurn);
+        releaseTurn();
+        await Promise.resolve();
+        expect(createMockController).not.toHaveBeenCalled();
+
+        const engine = getSceneEngine();
+        expect(createMockController).toHaveBeenCalledTimes(1);
+
+        releaseTurn();
+        await preparation;
+        expect(getSceneEngine()).toBe(engine);
+        expect(createMockController).toHaveBeenCalledTimes(1);
     });
 });

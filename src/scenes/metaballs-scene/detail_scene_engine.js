@@ -13,6 +13,8 @@ import {
 } from './config.js';
 import { captureCanvas } from '../../scene_screenshot.js';
 
+const VISIBILITY_ROOT_MARGIN = '-1px';
+
 export function createDetailSceneEngine({
     resume_state = null, createController = createMetaballsController, controller_options = {}, camera_setup = CAMERA_SETUP, with_god_rays = false, setupGui,
 }) {
@@ -65,6 +67,7 @@ export function createDetailSceneEngine({
 
     let container = null;
     let animation_frame_id = null;
+    let visibility_observer = null;
     let is_prepared = false;
 
     function renderFrame(delta_seconds) {
@@ -88,9 +91,21 @@ export function createDetailSceneEngine({
         renderFrame(clock.getDelta());
     }
 
-    function unmount() {
+    function startAnimation() {
+        if (animation_frame_id !== null) return;
+        clock.getDelta();
+        animate();
+    }
+
+    function stopAnimation() {
         cancelAnimationFrame(animation_frame_id);
         animation_frame_id = null;
+    }
+
+    function unmount() {
+        stopAnimation();
+        visibility_observer.disconnect();
+        visibility_observer = null;
         window.removeEventListener('resize', resize);
         container = null;
     }
@@ -109,8 +124,9 @@ export function createDetailSceneEngine({
             container.append(renderer.domElement, gui_container);
             resize();
             window.addEventListener('resize', resize);
-            clock.getDelta();
-            animate();
+            visibility_observer = new IntersectionObserver(([entry]) => (entry.isIntersecting ? startAnimation() : stopAnimation()), { rootMargin: VISIBILITY_ROOT_MARGIN });
+            visibility_observer.observe(container);
+            startAnimation();
         },
 
         unmount,

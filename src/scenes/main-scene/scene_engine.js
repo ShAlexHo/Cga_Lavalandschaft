@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createSceneController } from './scene_controller.js';
+import { buildSceneController } from './scene_controller.js';
 import { createCameraController } from './objects/camera_object.js';
 import { createKeyLight } from './objects/key_light_object.js';
 import { createPostProcessing } from './rendering/post_processing.js';
@@ -8,10 +8,16 @@ import { registerOpenScene } from '../scene_registry.js';
 import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
 import { captureCanvas } from '../../scene_screenshot.js';
+import { finishBuild } from '../stepwise_build.js';
 
 const SCENE_NAME = 'main-scene';
+const WARM_UP_SLICES = 8;
 
 export function createSceneEngine(resume_state = null) {
+    return finishBuild(buildSceneEngine(resume_state));
+}
+
+function* buildSceneEngine(resume_state = null) {
     const lifetime = new AbortController();
 
     const scene = new THREE.Scene();
@@ -25,6 +31,7 @@ export function createSceneEngine(resume_state = null) {
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    yield;
 
     const camera_controller = createCameraController(renderer);
     const camera = camera_controller.camera;
@@ -33,7 +40,7 @@ export function createSceneEngine(resume_state = null) {
 
     const clock = new THREE.Clock();
 
-    const controller = createSceneController({
+    const controller = yield* buildSceneController({
         scene, camera, renderer,
         bloom_pass: post_processing.bloom_pass,
         god_rays_pass: post_processing.god_rays_pass,
@@ -56,7 +63,11 @@ export function createSceneEngine(resume_state = null) {
         camera.position.copy(resume_state.camera_position);
         elapsed_time = resume_state.elapsed_time;
     } else {
-        controller.fastForward(SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS);
+        for (let slice = 1; slice <= WARM_UP_SLICES; slice++) {
+            const slice_duration = SCENE_WARM_UP_SECONDS / WARM_UP_SLICES;
+            controller.fastForward(slice * slice_duration, SCENE_WARM_UP_STEP_SECONDS, (slice - 1) * slice_duration);
+            yield;
+        }
         elapsed_time = SCENE_WARM_UP_SECONDS;
     }
 
@@ -146,18 +157,38 @@ export function createSceneEngine(resume_state = null) {
 }
 
 let engine = null;
+let pending_build = null;
 let last_resume_state = null;
 
 if (import.meta.hot) {
     import.meta.hot.accept(() => window.location.reload());
 }
 
+function openEngine(built_engine) {
+    engine = built_engine;
+    pending_build = null;
+    registerOpenScene(SCENE_NAME, closeSceneEngine);
+}
+
 export function getSceneEngine() {
-    if (!engine) {
-        engine = createSceneEngine(last_resume_state);
-        registerOpenScene(SCENE_NAME, closeSceneEngine);
-    }
+    if (!engine) openEngine(finishBuild(pending_build ?? buildSceneEngine(last_resume_state)));
     return engine;
+}
+
+export async function prepareSceneEngineGradually(waitForTurn) {
+    if (!engine) {
+        pending_build ??= buildSceneEngine(last_resume_state);
+        const build = pending_build;
+        let step = build.next();
+        while (!step.done) {
+            await waitForTurn();
+            if (engine) return;
+            step = build.next();
+        }
+        openEngine(step.value);
+    }
+    await waitForTurn();
+    engine.prepare();
 }
 
 export function closeSceneEngine() {
