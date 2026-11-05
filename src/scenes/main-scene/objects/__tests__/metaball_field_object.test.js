@@ -3,14 +3,14 @@ import { makeColor, makeScene } from '../../test-utils/three_mocks.js';
 
 vi.mock('../../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn((scene, material) => {
-        const effect = { material, position: { x: 0, y: 0, z: 0 }, isolation: 50 };
-        scene.add(effect);
-        return effect;
+        const mesh = { material, position: { x: 0, y: 0, z: 0 }, isolation: 50 };
+        scene.add(mesh);
+        return mesh;
     }),
-    ballToWorldPosition: vi.fn((ball, effect) => ({
-        x: effect.position.x + 30 * (2 * ball.x - 1),
-        y: effect.position.y + 30 * (2 * ball.y - 1),
-        z: effect.position.z + 30 * (2 * ball.z - 1),
+    ballToWorldPosition: vi.fn((ball, mesh) => ({
+        x: mesh.position.x + 30 * (2 * ball.x - 1),
+        y: mesh.position.y + 30 * (2 * ball.y - 1),
+        z: mesh.position.z + 30 * (2 * ball.z - 1),
     })),
     ballToWorldRadius: vi.fn(() => 1.5),
 }));
@@ -83,7 +83,7 @@ describe('createMetaballField – field texture', () => {
         field.renderFieldTexture(renderer);
         field.renderFieldTexture(renderer);
         expect(fieldTexture().render).toHaveBeenCalledTimes(1);
-        expect(fieldTexture().render).toHaveBeenCalledWith(renderer, field.effect.material.uniforms);
+        expect(fieldTexture().render).toHaveBeenCalledWith(renderer, field.mesh.material.uniforms);
 
         field.setCount(3);
         field.renderFieldTexture(renderer);
@@ -97,8 +97,8 @@ describe('createMetaballField', () => {
         const field = createMetaballField(scene);
         expect(createMetaballMaterial).toHaveBeenCalledTimes(1);
         expect(createMetaballGeometry).toHaveBeenCalledWith(scene, expect.any(Object));
-        expect(scene.add).toHaveBeenCalledWith(field.effect);
-        expect(updateMetaballBalls).toHaveBeenCalledWith(field.effect, [], null);
+        expect(scene.add).toHaveBeenCalledWith(field.mesh);
+        expect(updateMetaballBalls).toHaveBeenCalledWith(field.mesh, [], null);
     });
 
     test('fades out the balls on the far side of the volcano by the camera, unless that culling is switched off', () => {
@@ -107,12 +107,12 @@ describe('createMetaballField', () => {
         const culled = createMetaballField(makeScene());
         stepMetaballAnimation.mockReturnValueOnce(active_balls);
         culled.update(1, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(updateMetaballBalls).toHaveBeenLastCalledWith(culled.effect, active_balls, NEAR_CAMERA);
+        expect(updateMetaballBalls).toHaveBeenLastCalledWith(culled.mesh, active_balls, NEAR_CAMERA);
 
         const unculled = createMetaballField(makeScene(), { camera_arc_culling: false });
         stepMetaballAnimation.mockReturnValueOnce(active_balls);
         unculled.update(1, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(updateMetaballBalls).toHaveBeenLastCalledWith(unculled.effect, active_balls, null);
+        expect(updateMetaballBalls).toHaveBeenLastCalledWith(unculled.mesh, active_balls, null);
     });
 
     test('fastForward() steps the animation from 0 up to the given duration, for the given camera', () => {
@@ -122,7 +122,7 @@ describe('createMetaballField', () => {
 
         field.fastForward(2, 0.5, NEAR_CAMERA, VOLCANO_POSITION);
         expect(stepMetaballAnimation.mock.calls.map(([time]) => time)).toEqual([0, 0.5, 1, 1.5, 2]);
-        expect(updateMetaballLight).toHaveBeenLastCalledWith(field.effect.material, NEAR_CAMERA, 2);
+        expect(updateMetaballLight).toHaveBeenLastCalledWith(field.mesh.material, NEAR_CAMERA, 2);
     });
 
     test('update() rebuilds only when the animation step returns balls', () => {
@@ -136,7 +136,7 @@ describe('createMetaballField', () => {
         const balls = [{ x: 0.5, y: 0.5, z: 0.5, strength: 1, subtract: 30 }];
         stepMetaballAnimation.mockReturnValueOnce(balls);
         field.update(1, NEAR_CAMERA, VOLCANO_POSITION);
-        expect(updateMetaballBalls).toHaveBeenCalledWith(field.effect, balls, NEAR_CAMERA);
+        expect(updateMetaballBalls).toHaveBeenCalledWith(field.mesh, balls, NEAR_CAMERA);
         expect(updateMetaballLight).toHaveBeenCalledWith(expect.any(Object), NEAR_CAMERA, 1);
     });
 
@@ -148,12 +148,12 @@ describe('createMetaballField', () => {
         expect(mock_settings.paused).toBe(true);
     });
 
-    test('getActiveWorldPositions maps active balls through ballToWorldPosition/ballToWorldRadius using the field\'s effect, carrying subtract/isolation along', () => {
+    test('getActiveWorldPositions maps active balls through ballToWorldPosition/ballToWorldRadius using the field\'s mesh, carrying subtract/isolation along', () => {
         const field = createMetaballField(makeScene());
         getActiveBalls.mockReturnValueOnce([{ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }]);
         const positions = field.getActiveWorldPositions();
-        expect(ballToWorldPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.effect);
-        expect(ballToWorldRadius).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.effect);
+        expect(ballToWorldPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.mesh);
+        expect(ballToWorldRadius).toHaveBeenCalledWith({ x: 0.5, y: 0.5, z: 0.5, subtract: 30 }, field.mesh);
         expect(positions).toEqual([{ x: 0, y: 0, z: 0, radius: 1.5, subtract: 30, isolation: 50 }]);
     });
 

@@ -66,7 +66,7 @@ export const METABALL_CRATER_X = 0.5;
 export const METABALL_CRATER_Y = 0.45;
 export const METABALL_CRATER_Z = 0.5;
 export const METABALL_GROUND_Y = 0.288;
-export const METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO = 6.36;
+export const METABALL_HEIGHT_ABOVE_VOLCANO = 6.36;
 export const METABALL_BALL_LIFETIME = 3.5;
 export const METABALL_SPAWN_INTERVAL = 36.0;
 export const METABALL_SECTORS = 6;
@@ -127,7 +127,7 @@ export const VOLCANO_PROFILE = [
 ];
 export const VOLCANO_PROFILE_SUBDIVISIONS = 48;
 export const VOLCANO_LATHE_SEGMENTS = 240;
-export const VOLCANO_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
+export const KEY_LIGHT_POSITION = { x: 5, y: 8, z: 5 };
 export const VOLCANO_AMBIENT_STRENGTH = 0.005;
 
 const SUN_DISTANCE_SCALE = 24;
@@ -136,8 +136,6 @@ export const SUN_LIGHT_COLOR = 0xff1020;
 export const SUN_CORE_COLOR = 0xff3311;
 export const SUN_BLOOD_ORANGE_COLOR = 0xcc2200;
 export const SUN_ASH_TINT_COLOR = 0xdd1100;
-export const SUN_LIGHT_INTENSITY = 4.0;
-export const SUN_LIGHT_DISTANCE = 60 * SUN_DISTANCE_SCALE;
 export const SUN_VISUAL_RADIUS = 40;
 
 export const SUN_ORBIT_RADIUS = Math.sqrt(SUN_LIGHT_POSITION.x ** 2 + SUN_LIGHT_POSITION.z ** 2);
@@ -181,18 +179,6 @@ export const SMOKE_AMBIENT_RADIUS = 22.0;
 export const SMOKE_AMBIENT_HEIGHT_MIN = -3.0;
 export const SMOKE_AMBIENT_HEIGHT_MAX = 14.0;
 export const SMOKE_AMBIENT_OPACITY = 0.35;
-
-export const KEY_LIGHT_COLOR = 0xff7733;
-export const KEY_LIGHT_INTENSITY = 1.3;
-export const AMBIENT_LIGHT_COLOR = 0x550000;
-export const AMBIENT_LIGHT_INTENSITY = 0.9;
-
-export const KEY_LIGHT_SHADOW_MAP_SIZE = 2048;
-const KEY_LIGHT_SHADOW_MARGIN = 10;
-export const KEY_LIGHT_SHADOW_FRUSTUM = GROUND_SIZE / 2 + KEY_LIGHT_SHADOW_MARGIN;
-export const KEY_LIGHT_SHADOW_NEAR = 1;
-export const KEY_LIGHT_SHADOW_FAR = 100;
-export const KEY_LIGHT_SHADOW_BIAS = -0.0015;
 
 export const GOD_RAYS_RESOLUTION_SCALE = 0.5;
 export const GOD_RAYS_SAMPLE_COUNT = 60;

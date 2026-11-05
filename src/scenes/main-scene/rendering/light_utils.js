@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { VOLCANO_LIGHT_POSITION } from '../config.js';
+import { KEY_LIGHT_POSITION } from '../config.js';
 
 export function computeLightViewPosition(camera, world_position, target) {
     return target.copy(world_position).applyMatrix4(camera.matrixWorldInverse);
 }
 
-const KEY_LIGHT_WORLD_POSITION = new THREE.Vector3(VOLCANO_LIGHT_POSITION.x, VOLCANO_LIGHT_POSITION.y, VOLCANO_LIGHT_POSITION.z);
+const KEY_LIGHT_WORLD_POSITION = new THREE.Vector3(KEY_LIGHT_POSITION.x, KEY_LIGHT_POSITION.y, KEY_LIGHT_POSITION.z);
 const scratch_key_light_view_position = new THREE.Vector3();
 const scratch_sun_view_position = new THREE.Vector3();
 

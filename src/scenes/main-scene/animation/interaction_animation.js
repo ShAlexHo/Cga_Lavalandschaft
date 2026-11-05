@@ -1,4 +1,4 @@
-import { smoothstep, clamp } from './math_utils.js';
+import { smoothstep, clamp, distance } from './math_utils.js';
 import {
     INTERACTION_MAX_POINTS, INTERACTION_DECAY_DURATION,
     INTERACTION_BUMP_RADIUS, INTERACTION_PUSH_HEIGHT_SCALE,
@@ -12,18 +12,9 @@ import {
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-export const MAX_POINTS = INTERACTION_MAX_POINTS;
-
 export const settings = {
     enabled: DEFAULT_SETTINGS.interactionMode,
 };
-
-function distance(point_a, point_b) {
-    const offset_x = point_a.x - point_b.x;
-    const offset_y = point_a.y - point_b.y;
-    const offset_z = point_a.z - point_b.z;
-    return Math.sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
-}
 
 function distanceFromViewRay(camera_position, ray_point, point) {
     const direction_x = ray_point.x - camera_position.x;
@@ -61,7 +52,7 @@ function findNearestActive(pool, point) {
     return { record: nearest, distance: nearest_distance };
 }
 
-const touch_pool = Array.from({ length: MAX_POINTS }, () => ({
+const touch_pool = Array.from({ length: INTERACTION_MAX_POINTS }, () => ({
     x: 0, y: 0, z: 0, height_cap: 0, last_touched_time: -Infinity, active: false,
 }));
 let pool_head = 0;
@@ -190,7 +181,7 @@ export function registerTouch(time, hit_point, metaballs, camera_position) {
     slot.height_cap = distance(hit_point, nearest_metaball_by_surface) * INTERACTION_PUSH_HEIGHT_SCALE;
     slot.last_touched_time = time;
     slot.active = true;
-    pool_head = (pool_head + 1) % MAX_POINTS;
+    pool_head = (pool_head + 1) % INTERACTION_MAX_POINTS;
 
     spawnSmokeAt(time, hit_point, camera_position, slot.height_cap);
 
@@ -201,7 +192,7 @@ const active_touch_points = [];
 
 export function stepInteractionAnimation(time) {
     active_touch_points.length = 0;
-    for (let i = 0; i < MAX_POINTS; i++) {
+    for (let i = 0; i < INTERACTION_MAX_POINTS; i++) {
         const point = touch_pool[i];
         if (!point.active) continue;
         const age = time - point.last_touched_time;

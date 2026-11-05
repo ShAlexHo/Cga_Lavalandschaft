@@ -25,9 +25,9 @@ vi.mock('../geometry/ground_geometry.js', () => ({
 
 vi.mock('../geometry/metaball_geometry.js', () => ({
     createMetaballGeometry: vi.fn(scene => {
-        const effect = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
-        scene.add(effect);
-        return effect;
+        const mesh = { position: { x: 0, y: 0, z: 0 }, isolation: 50 };
+        scene.add(mesh);
+        return mesh;
     }),
     ballToWorldPosition: vi.fn(() => ({ x: 0, y: 0, z: 0 })),
     ballToWorldRadius: vi.fn(() => 0),
@@ -139,15 +139,14 @@ vi.mock('../audio/volcano_audio.js', () => ({
 vi.mock('../objects/sun_object.js', () => ({
     createSun: vi.fn(scene => {
         const state = { visible: true };
-        const light = { visible: true, position: { x: 12, y: 10, z: -30 } };
-        const mesh = { visible: true };
-        scene.add(light, mesh);
+        const mesh = { visible: true, position: { x: 12, y: 10, z: -30 } };
+        scene.add(mesh);
         return {
-            light,
             mesh,
+            position: mesh.position,
             update: vi.fn(),
             getVisible: () => state.visible,
-            setVisible: value => { state.visible = value; light.visible = value; mesh.visible = value; },
+            setVisible: value => { state.visible = value; mesh.visible = value; },
         };
     }),
 }));
@@ -260,7 +259,7 @@ beforeEach(() => {
 });
 
 describe('createSceneController – initial positioning', () => {
-    test('places ground, volcano and effect exactly like the previous hand-wired setup', () => {
+    test('places ground, volcano and metaball mesh exactly like the previous hand-wired setup', () => {
         const controller = makeController();
         expect(controller.getGroundHeight()).toBe(-6);
         expect(controller.getOffsetY()).toBe(0);
@@ -332,21 +331,21 @@ describe('createSceneController – time scale', () => {
 });
 
 describe('createSceneController – setGroundHeight / setOffsetY', () => {
-    test('setGroundHeight recomputes ground/volcano/effect y-positions via the effect_offset formula', () => {
+    test('setGroundHeight recomputes ground/volcano/metaball mesh y-positions via the height offset formula', () => {
         const controller = makeController();
         controller.setGroundHeight(-3);
         expect(controller.getGroundHeight()).toBe(-3);
         expect(controller.getGroundHeight()).toBeCloseTo(-3, 9);
     });
 
-    test('setOffsetY shifts volcano/effect but leaves ground height untouched', () => {
+    test('setOffsetY shifts volcano/metaball mesh but leaves ground height untouched', () => {
         const controller = makeController();
         controller.setOffsetY(2);
         expect(controller.getOffsetY()).toBe(2);
         expect(controller.getGroundHeight()).toBe(-6);
     });
 
-    test('setOffsetX/Z move both volcano and metaball effect together', () => {
+    test('setOffsetX/Z move both volcano and metaball mesh together', () => {
         const controller = makeController();
         controller.setOffsetX(3);
         controller.setOffsetZ(-4);
@@ -363,14 +362,14 @@ describe('createSceneController – metaballs', () => {
         expect(updateMetaballBalls).toHaveBeenCalled();
     });
 
-    test('setMetaballIsolation updates effect.isolation and rebuilds the field', () => {
+    test('setMetaballIsolation updates mesh.isolation and rebuilds the field', () => {
         const controller = makeController();
         controller.setMetaballIsolation(77);
         expect(controller.getMetaballIsolation()).toBe(77);
         expect(updateMetaballBalls).toHaveBeenCalled();
     });
 
-    test('setMetaballRadius updates effect.radius_scale and rebuilds the field', () => {
+    test('setMetaballRadius updates mesh.radius_scale and rebuilds the field', () => {
         const controller = makeController();
         controller.setMetaballRadius(1.5);
         expect(controller.getMetaballRadius()).toBe(1.5);
@@ -609,7 +608,7 @@ describe('createSceneController – smoke', () => {
         expect(controller.getSmokeVisible()).toBe(false);
     });
 
-    test('setOffsetX/Z also move the smoke effect', () => {
+    test('setOffsetX/Z also move the smoke points', () => {
         const scene = makeScene();
         const controller = createSceneController({
             scene, camera: makeCamera(), renderer: makeRenderer(),
@@ -708,7 +707,7 @@ describe('createSceneController – update()', () => {
         controller.update(12.5);
 
         const sun = createSun.mock.results[0].value;
-        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), sun.light.position, 12.5, scene.background);
+        expect(updateGroundLight).toHaveBeenCalledWith(expect.any(Object), camera, expect.any(Object), sun.position, 12.5, scene.background);
         expect(stepMetaballAnimation).toHaveBeenCalledTimes(1);
         expect(stepMetaballAnimation.mock.calls[0][0]).toBe(12.5);
         expect(updateMetaballLight).toHaveBeenCalledTimes(1);
@@ -716,8 +715,8 @@ describe('createSceneController – update()', () => {
         expect(updateMetaballLight.mock.calls[0][2]).toBe(12.5);
         expect(updateVolcanoLight).toHaveBeenCalledTimes(1);
         expect(updateVolcanoLight.mock.calls[0][1]).toBe(camera);
-        expect(updateVolcanoLight.mock.calls[0][2]).toBe(sun.light.position);
-        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), camera, sun.light.position, 12.5, 1.0);
+        expect(updateVolcanoLight.mock.calls[0][2]).toBe(sun.position);
+        expect(updateSmokeMaterial).toHaveBeenCalledWith(expect.any(Object), camera, sun.position, 12.5, 1.0);
         expect(sun.update).toHaveBeenCalledWith(12.5);
     });
 

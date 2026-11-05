@@ -13,23 +13,23 @@ export function createMetaballGeometry(scene, material) {
         2 * METABALL_PROXY_HALF_EXTENT_Z,
     );
     geometry.translate(METABALL_PROXY_CENTER_X, METABALL_PROXY_CENTER_Y, METABALL_PROXY_CENTER_Z);
-    const effect = new THREE.Mesh(geometry, material);
-    effect.isolation = DEFAULT_SETTINGS.metaballIsolation;
-    effect.radius_scale = DEFAULT_SETTINGS.metaballRadius;
-    effect.scale.set(METABALL_SCALE_XY, METABALL_SCALE_XY, METABALL_SCALE_Z);
-    scene.add(effect);
-    return effect;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.isolation = DEFAULT_SETTINGS.metaballIsolation;
+    mesh.radius_scale = DEFAULT_SETTINGS.metaballRadius;
+    mesh.scale.set(METABALL_SCALE_XY, METABALL_SCALE_XY, METABALL_SCALE_Z);
+    scene.add(mesh);
+    return mesh;
 }
 
-export function ballToWorldPosition(ball, effect) {
+export function ballToWorldPosition(ball, mesh) {
     return {
-        x: effect.position.x + effect.scale.x * (2 * ball.x - 1),
-        y: effect.position.y + effect.scale.y * (2 * ball.y - 1),
-        z: effect.position.z + effect.scale.z * (2 * ball.z - 1),
+        x: mesh.position.x + mesh.scale.x * (2 * ball.x - 1),
+        y: mesh.position.y + mesh.scale.y * (2 * ball.y - 1),
+        z: mesh.position.z + mesh.scale.z * (2 * ball.z - 1),
     };
 }
 
-export function ballToWorldRadius(ball, effect) {
-    const field_radius = Math.sqrt(ball.strength / (effect.isolation + ball.subtract));
-    return 2 * effect.scale.x * field_radius * effect.radius_scale;
+export function ballToWorldRadius(ball, mesh) {
+    const field_radius = Math.sqrt(ball.strength / (mesh.isolation + ball.subtract));
+    return 2 * mesh.scale.x * field_radius * mesh.radius_scale;
 }

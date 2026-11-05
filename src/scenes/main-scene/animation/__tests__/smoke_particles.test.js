@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { importFreshModule } from '../../test-utils/import_fresh_module.js';
+import { importFreshModule } from '../../../../test-utils/import_fresh_module.js';
 import {
     SMOKE_MAX_PARTICLES, SMOKE_LIFETIME,
     SMOKE_SIZE_MULTIPLIER_MIN, SMOKE_SIZE_MULTIPLIER_MAX,

@@ -49,7 +49,7 @@ export async function expandIntoScene({ frame, image }) {
     }).finished;
 
     spinner = document.createElement('div');
-    spinner.className = 'scene-transition-spinner';
+    spinner.className = 'spinner scene-transition-spinner';
     spinner.setAttribute('role', 'status');
     spinner.setAttribute('aria-label', translate('scene.loading'));
     document.body.appendChild(spinner);

@@ -7,19 +7,19 @@ import { bindVisibility } from './visibility_utils.js';
 
 export function createSmoke(scene, { settings = main_scene_settings } = {}) {
     const material = createSmokeMaterial();
-    const effect = createSmokeGeometry(scene, material, particle_seeds);
-    setSmokeDrawRange(effect, settings.count);
+    const points = createSmokeGeometry(scene, material, particle_seeds);
+    setSmokeDrawRange(points, settings.count);
 
     return {
-        effect,
+        points,
         update(camera, sun_world_position, time, eruption_intensity = 1.0) {
             updateSmokeMaterial(material, camera, sun_world_position, time, computePlumeOpacityFactor(eruption_intensity));
         },
 
-        ...bindVisibility(effect),
+        ...bindVisibility(points),
 
         getCount: () => settings.count,
-        setCount: value => { settings.count = value; setSmokeDrawRange(effect, value); },
+        setCount: value => { settings.count = value; setSmokeDrawRange(points, value); },
         getMaxCount: () => settings.max_count,
         getSpread: () => material.uniforms.u_spread.value,
         setSpread: value => { material.uniforms.u_spread.value = value; },

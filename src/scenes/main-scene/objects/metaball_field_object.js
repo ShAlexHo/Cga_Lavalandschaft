@@ -2,38 +2,40 @@ import { createMetaballGeometry, ballToWorldPosition, ballToWorldRadius } from '
 import { createMetaballMaterial, updateMetaballLight, updateMetaballBalls, updateMetaballDisplacement } from '../rendering/metaball_material.js';
 import { createMetaballFieldTexture } from '../rendering/metaball_field_texture.js';
 import { toHexColor } from '../rendering/color_utils.js';
+import { distance } from '../animation/math_utils.js';
 import * as main_scene_animation from '../animation/metaball_animation.js';
 import { METABALL_GPU_MAX_BALLS } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-export function createMetaballField(scene, { animation = main_scene_animation, camera_arc_culling = true } = {}) {
-    const { settings, getActiveBalls, stepMetaballAnimation, getEruptionIntensity, getSpawnCount, getWaveStartCount } = animation;
+export function createMetaballField(scene, { animation: initial_animation = main_scene_animation, camera_arc_culling: initial_camera_arc_culling = true } = {}) {
+    let animation = initial_animation;
     const field_texture = createMetaballFieldTexture({ max_balls: METABALL_GPU_MAX_BALLS });
     const material = createMetaballMaterial({ field_texture });
-    const effect = createMetaballGeometry(scene, material);
+    const mesh = createMetaballGeometry(scene, material);
     let last_camera = null;
     let is_field_texture_outdated = true;
+    let camera_arc_culling = initial_camera_arc_culling;
 
     function uploadBalls(balls) {
-        updateMetaballBalls(effect, balls, camera_arc_culling ? last_camera : null);
+        updateMetaballBalls(mesh, balls, camera_arc_culling ? last_camera : null);
         is_field_texture_outdated = true;
     }
 
-    uploadBalls(getActiveBalls());
+    uploadBalls(animation.getActiveBalls());
 
     let displacement_enabled = DEFAULT_SETTINGS.displacementEnabled;
     let displacement_strength = DEFAULT_SETTINGS.displacementStrength;
 
     function update(time, camera, volcano_position) {
         last_camera = camera;
-        const balls = stepMetaballAnimation(time);
+        const balls = animation.stepMetaballAnimation(time);
         if (balls) uploadBalls(balls);
         updateMetaballLight(material, camera, time);
         updateMetaballDisplacement(material, { enabled: displacement_enabled, strength: displacement_strength, camera, volcano_position });
     }
 
     return {
-        effect,
+        mesh,
         update,
 
         fastForward(duration, step, camera, volcano_position, from_duration = 0) {
@@ -48,26 +50,32 @@ export function createMetaballField(scene, { animation = main_scene_animation, c
             is_field_texture_outdated = false;
         },
 
-        isPaused: () => settings.paused,
-        setPaused: value => { settings.paused = value; },
-        getEruptionIntensity: time => getEruptionIntensity(time),
-        getSpawnCount: () => getSpawnCount(),
-        getWaveStartCount: () => getWaveStartCount(),
-        getActiveWorldPositions: () => getActiveBalls().map(ball => ({
-            ...ballToWorldPosition(ball, effect),
-            radius: ballToWorldRadius(ball, effect),
+        setAnimation(next_animation) {
+            animation = next_animation;
+            uploadBalls(animation.getActiveBalls());
+        },
+
+        setCameraArcCulling(value) {
+            camera_arc_culling = value;
+            uploadBalls(animation.getActiveBalls());
+        },
+
+        isPaused: () => animation.settings.paused,
+        setPaused: value => { animation.settings.paused = value; },
+        getEruptionIntensity: time => animation.getEruptionIntensity(time),
+        getSpawnCount: () => animation.getSpawnCount(),
+        getWaveStartCount: () => animation.getWaveStartCount(),
+        getActiveWorldPositions: () => animation.getActiveBalls().map(ball => ({
+            ...ballToWorldPosition(ball, mesh),
+            radius: ballToWorldRadius(ball, mesh),
             subtract: ball.subtract,
-            isolation: effect.isolation,
+            isolation: mesh.isolation,
         })),
         squeezeNearestBall({ x, y, z, shrink_increment }) {
             let nearest_ball = null;
             let nearest_distance = Infinity;
-            for (const ball of getActiveBalls()) {
-                const world_position = ballToWorldPosition(ball, effect);
-                const offset_x = world_position.x - x;
-                const offset_y = world_position.y - y;
-                const offset_z = world_position.z - z;
-                const ball_distance = Math.sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
+            for (const ball of animation.getActiveBalls()) {
+                const ball_distance = distance(ballToWorldPosition(ball, mesh), { x, y, z });
                 if (ball_distance < nearest_distance) {
                     nearest_distance = ball_distance;
                     nearest_ball = ball;
@@ -80,23 +88,23 @@ export function createMetaballField(scene, { animation = main_scene_animation, c
             if (scale <= 0) nearest_ball.active = false;
         },
 
-        getCount: () => settings.count,
-        setCount: value => { settings.count = value; uploadBalls(getActiveBalls()); },
-        getMaxCount: () => Math.min(settings.max_count, METABALL_GPU_MAX_BALLS),
-        getIsolation: () => effect.isolation,
-        setIsolation: value => { effect.isolation = value; uploadBalls(getActiveBalls()); },
-        getRadius: () => effect.radius_scale,
-        setRadius: value => { effect.radius_scale = value; uploadBalls(getActiveBalls()); },
-        getSpread: () => settings.spread,
-        setSpread: value => { settings.spread = value; },
-        getSpeed: () => settings.speed_factor,
-        setSpeed: value => { settings.speed_factor = value; },
-        getSinkSpeed: () => settings.sink_speed,
-        setSinkSpeed: value => { settings.sink_speed = value; },
-        getDisappearY: () => settings.disappear_y,
-        setDisappearY: value => { settings.disappear_y = value; },
-        getFlowRadius: () => settings.flow_z_radius,
-        setFlowRadius: value => { settings.flow_z_radius = value; },
+        getCount: () => animation.settings.count,
+        setCount: value => { animation.settings.count = value; uploadBalls(animation.getActiveBalls()); },
+        getMaxCount: () => Math.min(animation.settings.max_count, METABALL_GPU_MAX_BALLS),
+        getIsolation: () => mesh.isolation,
+        setIsolation: value => { mesh.isolation = value; uploadBalls(animation.getActiveBalls()); },
+        getRadius: () => mesh.radius_scale,
+        setRadius: value => { mesh.radius_scale = value; uploadBalls(animation.getActiveBalls()); },
+        getSpread: () => animation.settings.spread,
+        setSpread: value => { animation.settings.spread = value; },
+        getSpeed: () => animation.settings.speed_factor,
+        setSpeed: value => { animation.settings.speed_factor = value; },
+        getSinkSpeed: () => animation.settings.sink_speed,
+        setSinkSpeed: value => { animation.settings.sink_speed = value; },
+        getDisappearY: () => animation.settings.disappear_y,
+        setDisappearY: value => { animation.settings.disappear_y = value; },
+        getFlowRadius: () => animation.settings.flow_z_radius,
+        setFlowRadius: value => { animation.settings.flow_z_radius = value; },
 
         getColorHot: () => toHexColor(material.uniforms.u_color_hot.value),
         setColorHot: value => material.uniforms.u_color_hot.value.set(value),

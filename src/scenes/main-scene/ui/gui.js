@@ -5,9 +5,11 @@ import { createGuiLabels } from '../../../ui/gui_labels.js';
 const TIME_SCALE_MIN = 1;
 const TIME_SCALE_MAX = 6;
 const TIME_SCALE_STEP = 1;
+const MODE_SETTING_KEYS = ['interactionMode', 'timeScale'];
 
 export function setupGui(facade, { mode_controls_only = false, restore_saved = true, signal } = {}) {
     const gui = new GUI({ closed: true });
+    const persisted_keys = mode_controls_only ? MODE_SETTING_KEYS : null;
     const all_controllers = [];
     const refresh_bindings = [];
     const { label, addFolder, followLanguage } = createGuiLabels(gui);
@@ -55,21 +57,27 @@ export function setupGui(facade, { mode_controls_only = false, restore_saved = t
         all_controllers.forEach(controller => controller.updateDisplay());
     }
 
-    function restoreSavedSettings(keys) {
+    function pickPersisted(settings) {
+        return persisted_keys ? Object.fromEntries(persisted_keys.filter(key => key in settings).map(key => [key, settings[key]])) : { ...settings };
+    }
+
+    function saveSettings() {
+        saveToLocalStorage(pickPersisted(facade.getSnapshot()));
+    }
+
+    function restoreSavedSettings() {
         if (!restore_saved) return;
         const saved = loadFromLocalStorage();
         if (!saved) return;
-        const restored = keys
-            ? Object.fromEntries(keys.filter(key => key in saved).map(key => [key, saved[key]]))
-            : { ...saved };
+        const restored = pickPersisted(saved);
         if ('timeScale' in restored) restored.timeScale = Math.min(Math.max(restored.timeScale, TIME_SCALE_MIN), TIME_SCALE_MAX);
         facade.applySnapshot(restored);
         refreshDisplay();
     }
 
-    window.addEventListener('beforeunload', () => saveToLocalStorage(facade.getSnapshot()), { signal });
+    window.addEventListener('beforeunload', saveSettings, { signal });
     signal?.addEventListener('abort', () => {
-        saveToLocalStorage(facade.getSnapshot());
+        saveSettings();
         stopRelabelling();
         gui.destroy();
     }, { once: true });
@@ -83,7 +91,7 @@ export function setupGui(facade, { mode_controls_only = false, restore_saved = t
 
     if (mode_controls_only) {
         label(gui.add(persistence_actions, 'reset'), 'gui.reset.all');
-        restoreSavedSettings(['interactionMode', 'timeScale']);
+        restoreSavedSettings();
         return gui;
     }
 

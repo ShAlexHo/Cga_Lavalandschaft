@@ -3,15 +3,18 @@ let saved_scroll_top = 0;
 </script>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { scene_screenshots } from '../scene_screenshot.js';
 import { expandIntoScene, whenReturnFinished } from '../scene_transition.js';
-import { current_language, localize } from '../language_state.js';
+import { current_language, localize } from '../ui/language_state.js';
 import { LANGUAGES, setLanguage } from '../ui/language.js';
-import main_scene_preview_url from '../assets/scene_preview.jpg';
+import { detailText, detailTitle } from '../ui/detail_texts.js';
+import main_scene_preview_url from '../assets/main_scene_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
-import { DETAIL_SCENES, numberedTitle } from '../scenes/detail_scenes.js';
+import ScenePreview from '../components/ScenePreview.vue';
+import { DETAIL_SCENES } from '../scenes/detail-scenes/detail_scenes.js';
+import { MAIN_SCENE_NAME } from '../scenes/main-scene/scene_name.js';
 import { createScenePreparation } from '../scene_preparation.js';
 
 const REPOSITORY_URL = 'https://github.com/ShAlexHo/Cga_Lavalandschaft';
@@ -20,38 +23,16 @@ const SEMINAR_URL = 'https://hpicgs.github.io/seminar-3d-rendering-computational
 
 const router = useRouter();
 
+const MAIN_SCENE_HREF = router.resolve({ name: MAIN_SCENE_NAME }).href;
 const DETAILS = DETAIL_SCENES.map(detail => ({ ...detail, href: router.resolve({ name: detail.scene_name }).href }));
 
-const preview_url = computed(() => scene_screenshots['main-scene'] ?? main_scene_preview_url);
+const main_scene_image_url = computed(() => scene_screenshots[MAIN_SCENE_NAME] ?? main_scene_preview_url);
 
-function detailPreviewUrl(detail) {
+function detailImageUrl(detail) {
     return scene_screenshots[detail.scene_name] ?? detail.preview_url;
 }
 
-const preview_ratios = reactive(Object.fromEntries(['main-scene', ...DETAILS.map(detail => detail.scene_name)].map(scene_name => [scene_name, 16 / 9])));
-
-const loaded_previews = reactive({});
-
-function finishPreviewLoading(event, scene_name) {
-    const image = event.target;
-    if (image.naturalHeight > 0) preview_ratios[scene_name] = image.naturalWidth / image.naturalHeight;
-    loaded_previews[scene_name] = true;
-}
-
-const MAIN_SCENE_HREF = router.resolve({ name: 'main-scene' }).href;
-const preview_frame = ref(null);
-const preview_image = ref(null);
-const detail_preview_elements_by_scene_name = {};
 let is_entering = false;
-
-function setDetailPreviewElement(scene_name, kind, element) {
-    (detail_preview_elements_by_scene_name[scene_name] ??= {})[kind] = element;
-}
-
-function enterDetailScene(event, detail) {
-    const { frame, image } = detail_preview_elements_by_scene_name[detail.scene_name];
-    return enterScene(event, { scene_name: detail.scene_name, frame, image });
-}
 
 async function enterScene(event, { scene_name, frame, image }) {
     const is_modified_click = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
@@ -65,7 +46,7 @@ async function enterScene(event, { scene_name, frame, image }) {
 }
 
 const SCENE_ENGINE_LOADERS = {
-    'main-scene': () => import('../scenes/main-scene/scene_engine.js'),
+    [MAIN_SCENE_NAME]: () => import('../scenes/main-scene/scene_engine.js'),
     ...Object.fromEntries(DETAILS.map(detail => [detail.scene_name, detail.loadEngine])),
 };
 let scene_preparation = null;
@@ -99,12 +80,12 @@ onBeforeUnmount(() => {
                         {{ localize('landing.subtitle_course_prefix') }}
                         <a
                             :href="SEMINAR_URL"
-                            class="seminar-link"
+                            class="text-link"
                             target="_blank"
                             rel="noopener noreferrer"
                             :title="localize('landing.seminar_link')"
-                        >3D-Rendering &amp; Computational Art</a>
-                        {{ localize('landing.by') }} Shyue-Shyang Alexander Ho
+                        >{{ localize('landing.seminar_name') }}</a>
+                        {{ localize('landing.by') }} {{ localize('landing.author_name') }}
                     </p>
                 </div>
 
@@ -124,37 +105,20 @@ onBeforeUnmount(() => {
             </header>
 
             <div class="preview-area">
-                <a
-                    ref="preview_frame"
+                <ScenePreview
+                    :scene_name="MAIN_SCENE_NAME"
                     :href="MAIN_SCENE_HREF"
-                    class="preview"
-                    data-scene-preview="main-scene"
-                    :style="{ '--preview-ratio': preview_ratios['main-scene'] }"
-                    :aria-label="localize('landing.start_scene')"
-                    @click="enterScene($event, { scene_name: 'main-scene', frame: preview_frame, image: preview_image })"
-                    @pointerenter="requestPreparation('main-scene')"
-                    @focus="requestPreparation('main-scene')"
-                >
-                    <img
-                        ref="preview_image"
-                        :src="preview_url"
-                        :alt="localize('landing.preview_alt')"
-                        class="preview-image"
-                        :class="{ loaded: loaded_previews['main-scene'] }"
-                        decoding="async"
-                        @load="finishPreviewLoading($event, 'main-scene')"
-                        @error="finishPreviewLoading($event, 'main-scene')"
-                    />
-                    <span v-if="!loaded_previews['main-scene']" class="preview-spinner" role="status" :aria-label="localize('landing.preview_loading')"></span>
-                    <span class="play-button" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
-                    </span>
-                </a>
+                    :image_url="main_scene_image_url"
+                    :alt="localize('landing.preview_alt')"
+                    :label="localize('landing.start_scene')"
+                    @enter="enterScene"
+                    @prepare="requestPreparation"
+                />
             </div>
         </section>
 
         <section class="description">
-            <h2 class="description-title">
+            <h2 class="section-title">
                 <a
                     :href="REPOSITORY_URL"
                     class="github-link"
@@ -163,7 +127,7 @@ onBeforeUnmount(() => {
                     :aria-label="localize('landing.repository_link')"
                 >
                     <span class="link-text">{{ localize('landing.description_title') }}</span>
-                    <span class="github-badge"><GitHubIcon />GitHub</span>
+                    <span class="github-badge"><GitHubIcon />{{ localize('landing.github') }}</span>
                 </a>
             </h2>
             <p class="description-author">
@@ -176,7 +140,7 @@ onBeforeUnmount(() => {
                     :aria-label="localize('landing.author_link')"
                 >
                     <GitHubIcon />
-                    <span class="link-text">Shyue-Shyang Alexander Ho</span>
+                    <span class="link-text">{{ localize('landing.author_name') }}</span>
                 </a>
             </p>
             <p>{{ localize('landing.description') }}</p>
@@ -185,44 +149,24 @@ onBeforeUnmount(() => {
 
         <section class="details">
             <header class="details-header">
-                <h2 class="details-title">{{ localize('landing.details_title') }}</h2>
+                <h2 class="section-title">{{ localize('landing.details_title') }}</h2>
                 <p class="details-intro">{{ localize('landing.details_intro') }}</p>
             </header>
 
             <div class="details-grid">
                 <article v-for="detail in DETAILS" :key="detail.scene_name" class="detail">
-                    <div class="detail-column">
-                        <h3 class="detail-title">{{ numberedTitle(detail, localize(`${detail.message_key_prefix}.title`)) }}</h3>
-                    </div>
-                    <a
-                        :ref="element => setDetailPreviewElement(detail.scene_name, 'frame', element)"
+                    <h3 class="detail-title">{{ detailTitle(detail) }}</h3>
+                    <ScenePreview
+                        :scene_name="detail.scene_name"
                         :href="detail.href"
-                        class="preview preview-small"
-                        :data-scene-preview="detail.scene_name"
-                        :style="{ '--preview-ratio': preview_ratios[detail.scene_name] }"
-                        :aria-label="localize(`${detail.message_key_prefix}.start_scene`)"
-                        @click="enterDetailScene($event, detail)"
-                        @pointerenter="requestPreparation(detail.scene_name)"
-                        @focus="requestPreparation(detail.scene_name)"
-                    >
-                        <img
-                            :ref="element => setDetailPreviewElement(detail.scene_name, 'image', element)"
-                            :src="detailPreviewUrl(detail)"
-                            :alt="localize(`${detail.message_key_prefix}.preview_alt`)"
-                            class="preview-image"
-                            :class="{ loaded: loaded_previews[detail.scene_name] }"
-                            decoding="async"
-                            @load="finishPreviewLoading($event, detail.scene_name)"
-                            @error="finishPreviewLoading($event, detail.scene_name)"
-                        />
-                        <span v-if="!loaded_previews[detail.scene_name]" class="preview-spinner preview-spinner-small" role="status" :aria-label="localize('landing.preview_loading')"></span>
-                        <span class="play-button play-button-small" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
-                        </span>
-                    </a>
-                    <div class="detail-column detail-text">
-                        <p>{{ localize(`${detail.message_key_prefix}.text_1`) }}</p>
-                    </div>
+                        :image_url="detailImageUrl(detail)"
+                        :alt="detailText(detail, 'preview_alt')"
+                        :label="detailText(detail, 'start_scene')"
+                        small
+                        @enter="enterScene"
+                        @prepare="requestPreparation"
+                    />
+                    <p class="detail-text">{{ detailText(detail, 'text_1') }}</p>
                 </article>
             </div>
         </section>
@@ -288,16 +232,11 @@ onBeforeUnmount(() => {
 
 .language-option[aria-pressed='true'] {
     background: var(--color-accent);
-    color: #fff;
-}
-
-.language-option:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    color: var(--color-on-accent);
 }
 
 .title {
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: clamp(1.75rem, 4vw, 3rem);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -310,124 +249,29 @@ onBeforeUnmount(() => {
     font-size: clamp(0.85rem, 1.4vw, 1rem);
 }
 
-.seminar-link {
-    color: var(--color-text);
+.text-link,
+.github-link .link-text {
     text-decoration: underline;
-    text-decoration-color: rgba(255, 91, 0, 0.5);
+    text-decoration-color: var(--color-accent-soft);
     text-underline-offset: 3px;
     transition: color 200ms ease, text-decoration-color 200ms ease;
 }
 
-.seminar-link:hover,
-.seminar-link:focus-visible {
-    color: var(--color-accent);
-    text-decoration-color: var(--color-accent);
+.text-link {
+    color: var(--color-text);
 }
 
-.seminar-link:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-    border-radius: 2px;
+.text-link:hover,
+.text-link:focus-visible,
+.github-link:hover .link-text,
+.github-link:focus-visible .link-text {
+    color: var(--color-accent);
+    text-decoration-color: var(--color-accent);
 }
 
 .preview-area {
     display: flex;
     justify-content: center;
-}
-
-.preview {
-    position: relative;
-    display: block;
-    width: var(--main-preview-width);
-    aspect-ratio: var(--preview-ratio);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    background: var(--color-surface);
-    box-shadow: 0 20px 60px rgba(255, 60, 0, 0.12);
-}
-
-.preview-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 48px;
-    height: 48px;
-    margin: -24px 0 0 -24px;
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: scene-spinner-rotate 900ms linear infinite;
-}
-
-.preview-spinner.preview-spinner-small {
-    width: 36px;
-    height: 36px;
-    margin: -18px 0 0 -18px;
-    border-width: 3px;
-}
-
-.preview:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 4px;
-}
-
-.preview-image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: transform 400ms ease, filter 300ms ease, opacity 300ms ease;
-}
-
-.preview-image.loaded {
-    opacity: 1;
-}
-
-.play-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: grid;
-    place-items: center;
-    width: 96px;
-    height: 96px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    border-radius: 50%;
-    background: var(--color-surface);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    translate: -50% -50%;
-    scale: 0.9;
-    transition: opacity 200ms ease, scale 200ms ease;
-}
-
-.play-button svg {
-    width: 44px;
-    height: 44px;
-    margin-left: 6px;
-    fill: #fff;
-}
-
-.preview:hover .preview-image,
-.preview:focus-visible .preview-image {
-    filter: brightness(0.75);
-    transform: scale(1.015);
-}
-
-.preview:hover .play-button,
-.preview:focus-visible .play-button {
-    opacity: 1;
-    scale: 1;
-}
-
-@media (hover: none) {
-    .play-button {
-        opacity: 1;
-        scale: 1;
-    }
 }
 
 .description {
@@ -447,26 +291,12 @@ onBeforeUnmount(() => {
     transition: color 200ms ease;
 }
 
-.github-link .link-text {
-    text-decoration: underline;
-    text-decoration-color: rgba(255, 91, 0, 0.5);
-    text-underline-offset: 3px;
-    transition: text-decoration-color 200ms ease;
-}
-
 .github-link:hover,
 .github-link:focus-visible {
     color: var(--color-accent);
 }
 
-.github-link:hover .link-text,
-.github-link:focus-visible .link-text {
-    text-decoration-color: var(--color-accent);
-}
-
 .github-link:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
     border-radius: 4px;
 }
 
@@ -479,7 +309,7 @@ onBeforeUnmount(() => {
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 999px;
     background: var(--color-surface);
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.8rem;
     font-weight: 600;
     transition: border-color 200ms ease;
@@ -495,13 +325,6 @@ onBeforeUnmount(() => {
     color: var(--color-text-muted);
 }
 
-.description-title {
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
 .description-author {
     margin: 4px 0 16px;
     color: var(--color-text-muted);
@@ -514,22 +337,11 @@ onBeforeUnmount(() => {
 
 .details-header {
     width: var(--details-width);
-    margin: 0 auto;
-}
-
-.details-header {
-    margin-bottom: 40px;
+    margin: 0 auto 40px;
     padding-top: 48px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     font-size: 1.05rem;
     line-height: 1.65;
-}
-
-.details-title {
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.2;
 }
 
 .details-intro {
@@ -557,33 +369,15 @@ onBeforeUnmount(() => {
     gap: 20px;
 }
 
-.detail-column {
-    font-size: 1.05rem;
-}
-
 .detail-title {
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 1.35rem;
     font-weight: 600;
     line-height: 1.2;
 }
 
-.preview.preview-small {
-    width: 100%;
-}
-
-.play-button.play-button-small {
-    width: 64px;
-    height: 64px;
-}
-
-.play-button-small svg {
-    width: 30px;
-    height: 30px;
-    margin-left: 4px;
-}
-
 .detail-text {
+    font-size: 1.05rem;
     line-height: 1.65;
 }
 
@@ -622,16 +416,6 @@ onBeforeUnmount(() => {
 
     .details {
         padding: 0 16px 72px;
-    }
-
-    .play-button {
-        width: 72px;
-        height: 72px;
-    }
-
-    .play-button svg {
-        width: 32px;
-        height: 32px;
     }
 }
 </style>

@@ -15,8 +15,8 @@ uniform float u_ball_strength[METABALL_GPU_MAX_BALLS];
 uniform float u_ball_subtract[METABALL_GPU_MAX_BALLS];
 uniform int   u_ball_count;
 uniform float u_isolation;
-uniform vec3  u_effect_position;
-uniform float u_effect_scale;
+uniform vec3  u_mesh_position;
+uniform float u_mesh_scale;
 uniform vec3  u_box_half_extent;
 uniform vec3  u_box_center;
 uniform int   u_raymarch_steps;
@@ -98,7 +98,7 @@ vec3 analyticFieldGradient(vec3 local_position) {
 
 float displacedField(vec3 local_position, float field) {
     if (u_displacement <= 0.0 || field <= u_isolation * METABALL_FIELD_DISPLACEMENT_SHELL) return field;
-    vec3 world_position = u_effect_position + u_effect_scale * local_position;
+    vec3 world_position = u_mesh_position + u_mesh_scale * local_position;
     return field + length(sampledFieldGradient(local_position)) * crustColdness(world_position) * u_displacement;
 }
 
@@ -139,7 +139,7 @@ bool marchFieldTexture(vec3 origin, vec3 direction, float entry_distance, float 
 #endif
 
 void main() {
-    vec3 local_camera_position = (cameraPosition - u_effect_position) / u_effect_scale;
+    vec3 local_camera_position = (cameraPosition - u_mesh_position) / u_mesh_scale;
     vec3 ray_direction = normalize(v_local_position - local_camera_position);
 
     vec3 box_minimum = u_box_center - u_box_half_extent;
@@ -183,7 +183,7 @@ void main() {
 
         float distance_to_surface = safeStepDistance(march_position);
         if (u_displacement > 0.0) {
-            vec3 probe_world_position = u_effect_position + u_effect_scale * march_position;
+            vec3 probe_world_position = u_mesh_position + u_mesh_scale * march_position;
             distance_to_surface -= crustColdness(probe_world_position) * u_displacement;
             if (distance_to_surface < SURFACE_EPSILON) {
                 did_hit = true;
@@ -212,7 +212,7 @@ void main() {
 #endif
     vec3 local_normal = normalize(-gradient);
 
-    vec3 world_position = u_effect_position + u_effect_scale * hit_local_position;
+    vec3 world_position = u_mesh_position + u_mesh_scale * hit_local_position;
 
     vec3 view_position = (viewMatrix * vec4(world_position, 1.0)).xyz;
     vec3 normal = normalize(mat3(viewMatrix) * local_normal);

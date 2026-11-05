@@ -23,16 +23,16 @@ function saveLanguage(language) {
 }
 
 const listeners = new Set();
-let current_language = loadSavedLanguage();
-document.documentElement.lang = current_language;
+let active_language = loadSavedLanguage();
+document.documentElement.lang = active_language;
 
 export function getLanguage() {
-    return current_language;
+    return active_language;
 }
 
 export function setLanguage(language) {
-    if (!LANGUAGES.includes(language) || language === current_language) return;
-    current_language = language;
+    if (!LANGUAGES.includes(language) || language === active_language) return;
+    active_language = language;
     saveLanguage(language);
     document.documentElement.lang = language;
     listeners.forEach(listener => listener(language));
@@ -43,6 +43,6 @@ export function onLanguageChange(listener) {
     return () => listeners.delete(listener);
 }
 
-export function translate(key, language = current_language) {
+export function translate(key, language = active_language) {
     return MESSAGES[language]?.[key] ?? MESSAGES[DEFAULT_LANGUAGE][key] ?? key;
 }

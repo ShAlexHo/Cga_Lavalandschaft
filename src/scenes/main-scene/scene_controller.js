@@ -8,7 +8,7 @@ import { createInteractionController } from './objects/interaction_controller.js
 import { createImpactSmoke } from './objects/impact_smoke_object.js';
 import { createVolcanoAudio } from './audio/volcano_audio.js';
 import {
-    SMOKE_SPAWN_HEIGHT, METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES,
+    SMOKE_SPAWN_HEIGHT, METABALL_HEIGHT_ABOVE_VOLCANO, METABALL_WAVE_BOOST_MULTIPLIER, METABALL_WAVE_BOOST_HOLD_FRAMES, METABALL_WAVE_BOOST_DECAY_FRAMES,
 } from './config.js';
 import { smoothstep, distance } from './animation/math_utils.js';
 import DEFAULT_SETTINGS from './default_settings.json';
@@ -62,8 +62,17 @@ export function* buildSceneController({ scene, camera, renderer, bloom_pass, god
     function placeAtHeight(ground_y) {
         ground.mesh.position.y = ground_y;
         volcano.mesh.position.y = ground_y + position.y;
-        metaball_field.effect.position.y = ground_y + position.y + METABALL_EFFECT_HEIGHT_ABOVE_VOLCANO + metaball_y_offset;
-        smoke.effect.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
+        metaball_field.mesh.position.y = ground_y + position.y + METABALL_HEIGHT_ABOVE_VOLCANO + metaball_y_offset;
+        smoke.points.position.y = ground_y + position.y + SMOKE_SPAWN_HEIGHT;
+    }
+
+    function applyHorizontalOffset(axis, value) {
+        position[axis] = value;
+        volcano.mesh.position[axis] = value;
+        metaball_field.mesh.position[axis] = value;
+        smoke.points.position[axis] = value;
+        volcano.rebakeCrackDisplacement();
+        ground.rebakeDisplacement(volcano.mesh.position);
     }
 
     function applyY(ground_y) {
@@ -75,7 +84,7 @@ export function* buildSceneController({ scene, camera, renderer, bloom_pass, god
     const controller = {
         update(time, real_delta_seconds) {
             sun.update(time);
-            ground.update(camera, volcano.mesh.position, sun.light.position, time, scene.background);
+            ground.update(camera, volcano.mesh.position, sun.position, time, scene.background);
             metaball_field.update(time, camera, volcano.mesh.position);
             metaball_field.renderFieldTexture(renderer);
             const { touch_points, smoke_bursts, is_touching_lava } = interaction.step(
@@ -84,9 +93,9 @@ export function* buildSceneController({ scene, camera, renderer, bloom_pass, god
                 metaball_squeeze => metaball_field.squeezeNearestBall(metaball_squeeze),
                 real_delta_seconds,
             );
-            volcano.update(camera, sun.light.position, touch_points);
-            impact_smoke.update(camera, sun.light.position, smoke_bursts);
-            smoke.update(camera, sun.light.position, time, metaball_field.getEruptionIntensity(time));
+            volcano.update(camera, sun.position, touch_points);
+            impact_smoke.update(camera, sun.position, smoke_bursts);
+            smoke.update(camera, sun.position, time, metaball_field.getEruptionIntensity(time));
             volcano_audio.update(time);
             volcano_audio.setPressing(is_touching_lava);
             volcano_audio.setCameraDistance(distance(camera.position, volcano.mesh.position));
@@ -272,28 +281,14 @@ export function* buildSceneController({ scene, camera, renderer, bloom_pass, god
         setSmokeEmberCoolingTime: value => smoke.setEmberCoolingTime(value),
 
         getOffsetX: () => position.x,
-        setOffsetX(value) {
-            position.x = value;
-            volcano.mesh.position.x = value;
-            metaball_field.effect.position.x = value;
-            smoke.effect.position.x = value;
-            volcano.rebakeCrackDisplacement();
-            ground.rebakeDisplacement(volcano.mesh.position);
-        },
+        setOffsetX: value => applyHorizontalOffset('x', value),
         getOffsetY: () => position.y,
         setOffsetY(value) {
             position.y = value;
             applyY(ground.mesh.position.y);
         },
         getOffsetZ: () => position.z,
-        setOffsetZ(value) {
-            position.z = value;
-            volcano.mesh.position.z = value;
-            metaball_field.effect.position.z = value;
-            smoke.effect.position.z = value;
-            volcano.rebakeCrackDisplacement();
-            ground.rebakeDisplacement(volcano.mesh.position);
-        },
+        setOffsetZ: value => applyHorizontalOffset('z', value),
 
         getBloomEnabled: () => bloom_pass.enabled,
         setBloomEnabled(value) { bloom_pass.enabled = value; },

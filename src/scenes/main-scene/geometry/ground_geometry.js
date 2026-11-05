@@ -3,14 +3,14 @@ import { GROUND_SIZE, GROUND_SEGMENTS } from '../config.js';
 import { crackDisplacementNoise, warpedFractalBrownianMotion } from './terrain_crack_noise.js';
 import { bakeVertexDisplacement } from './vertex_displacement_utils.js';
 import { smoothstep } from '../animation/math_utils.js';
+import DEFAULT_SETTINGS from '../default_settings.json';
 
 export function createGroundGeometry(scene, material) {
     const geometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS, GROUND_SEGMENTS);
     geometry.setAttribute('a_bump', new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count), 1));
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -6;
-    mesh.receiveShadow = true;
+    mesh.position.y = DEFAULT_SETTINGS.groundHeight;
     mesh.pristine_positions = geometry.attributes.position.array.slice();
     scene.add(mesh);
     return mesh;

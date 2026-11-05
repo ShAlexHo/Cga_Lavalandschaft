@@ -10,7 +10,7 @@ import {
     INTERACTION_LAVA_DETECTION_TOLERANCE,
 } from '../../config.js';
 import DEFAULT_SETTINGS from '../../default_settings.json';
-import { importFreshModule } from '../../test-utils/import_fresh_module.js';
+import { importFreshModule } from '../../../../test-utils/import_fresh_module.js';
 
 const CAMERA_POSITION = { x: 0, y: 0, z: 10 };
 
@@ -389,7 +389,7 @@ describe('stepInteractionSmoke', () => {
 });
 
 describe('touch pool wraparound', () => {
-    test('a touch beyond MAX_POINTS distinct locations overwrites the oldest slot', () => {
+    test('a touch beyond INTERACTION_MAX_POINTS distinct locations overwrites the oldest slot', () => {
         for (let i = 0; i < INTERACTION_MAX_POINTS; i++) {
             animation_module.registerTouch(0, { x: i * 10, y: 0, z: 0 }, [metaball(i * 10 + 0.1, 0, 0, 1.2)], CAMERA_POSITION);
         }

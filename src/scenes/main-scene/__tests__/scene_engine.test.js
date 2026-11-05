@@ -10,7 +10,6 @@ vi.mock('three', () => ({
         constructor() {
             this.domElement = document.createElement('canvas');
             this.domElement.toDataURL = vi.fn(() => 'data:image/jpeg;base64,AAAA');
-            this.shadowMap = {};
             this.setSize = vi.fn();
             this.setPixelRatio = vi.fn();
             this.compile = vi.fn();
@@ -23,7 +22,6 @@ vi.mock('three', () => ({
         getDelta() { return clock_state.deltas.shift() ?? 0; }
     },
     ReinhardToneMapping: 'reinhard',
-    PCFSoftShadowMap: 'pcf-soft',
 }));
 
 vi.mock('../scene_controller.js', () => {
@@ -62,7 +60,6 @@ vi.mock('../objects/camera_object.js', () => ({
     })),
 }));
 
-vi.mock('../objects/key_light_object.js', () => ({ createKeyLight: vi.fn() }));
 
 vi.mock('../rendering/post_processing.js', () => ({
     createPostProcessing: vi.fn(() => ({

@@ -1,7 +1,7 @@
 <script setup>
 import { watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
-import { localize } from './language_state.js';
+import { localize } from './ui/language_state.js';
 import { revealScene, shrinkIntoPreview } from './scene_transition.js';
 
 watchEffect(() => { document.title = localize('app.title'); });
@@ -30,6 +30,10 @@ function finishTransition() {
     --color-text: #f2e6dc;
     --color-text-muted: #b59d90;
     --color-accent: #ff5b00;
+    --color-accent-soft: rgba(255, 91, 0, 0.5);
+    --color-on-accent: #fff;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -41,8 +45,29 @@ function finishTransition() {
 body {
     background: var(--color-background);
     color: var(--color-text);
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+.section-title {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--color-on-accent);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: scene-spinner-rotate 900ms linear infinite;
 }
 
 .scene-transition-overlay {
@@ -61,12 +86,8 @@ body {
     width: 56px;
     height: 56px;
     margin: -28px 0 0 -28px;
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
     background: rgba(12, 5, 5, 0.5);
     box-shadow: 0 0 0 10px rgba(12, 5, 5, 0.5), 0 0 40px rgba(12, 5, 5, 0.6);
-    pointer-events: none;
     animation:
         scene-spinner-rotate 900ms linear infinite,
         scene-spinner-fade-in 200ms ease 150ms both;

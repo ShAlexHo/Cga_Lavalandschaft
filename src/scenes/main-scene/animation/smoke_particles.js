@@ -10,10 +10,8 @@ import {
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-const MAX_PARTICLES = SMOKE_MAX_PARTICLES;
-
 export function createSmokeSettings() {
-    return { count: DEFAULT_SETTINGS.smokeCount, max_count: MAX_PARTICLES };
+    return { count: DEFAULT_SETTINGS.smokeCount, max_count: SMOKE_MAX_PARTICLES };
 }
 
 export const settings = createSmokeSettings();
@@ -28,15 +26,15 @@ const COOLING_MULTIPLIER = meanAndStandardDeviation(SMOKE_EMBER_COOLING_MULTIPLI
 const ACCENT_HEADROOM = 1 - SMOKE_ACCENT_THRESHOLD;
 
 function createParticleSeeds() {
-    const is_ambient = new Float32Array(MAX_PARTICLES);
-    const motion_seed = new Float32Array(MAX_PARTICLES * 4);
-    const timing_seed = new Float32Array(MAX_PARTICLES * 2);
-    const appearance = new Float32Array(MAX_PARTICLES * 3);
-    const accent_base = new Float32Array(MAX_PARTICLES);
-    const ember_cooling_multiplier = new Float32Array(MAX_PARTICLES);
-    const ambient_seed = new Float32Array(MAX_PARTICLES * 4);
+    const is_ambient = new Float32Array(SMOKE_MAX_PARTICLES);
+    const motion_seed = new Float32Array(SMOKE_MAX_PARTICLES * 4);
+    const timing_seed = new Float32Array(SMOKE_MAX_PARTICLES * 2);
+    const appearance = new Float32Array(SMOKE_MAX_PARTICLES * 3);
+    const accent_base = new Float32Array(SMOKE_MAX_PARTICLES);
+    const ember_cooling_multiplier = new Float32Array(SMOKE_MAX_PARTICLES);
+    const ambient_seed = new Float32Array(SMOKE_MAX_PARTICLES * 4);
 
-    for (let i = 0; i < MAX_PARTICLES; i++) {
+    for (let i = 0; i < SMOKE_MAX_PARTICLES; i++) {
         const ambient = random(0, 1) < SMOKE_AMBIENT_FRACTION;
         is_ambient[i] = ambient ? 1.0 : 0.0;
 

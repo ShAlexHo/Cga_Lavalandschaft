@@ -8,8 +8,6 @@ import {
 } from '../config.js';
 import DEFAULT_SETTINGS from '../default_settings.json';
 
-const MAX_BALLS = METABALL_MAX_BALLS;
-
 const BALL_STRENGTH = (METABALL_STRENGTH_SCALE / METABALL_SCALE_XY) ** 2;
 
 export function createMetaballAnimation({ random, randomGauss }) {
@@ -20,13 +18,13 @@ export function createMetaballAnimation({ random, randomGauss }) {
         sink_speed: DEFAULT_SETTINGS.metaballSinkSpeed,
         disappear_y: DEFAULT_SETTINGS.metaballDisappearY,
         paused: DEFAULT_SETTINGS.paused,
-        max_count: MAX_BALLS,
+        max_count: METABALL_MAX_BALLS,
         flow_z_radius: DEFAULT_SETTINGS.flowRadius,
     };
 
     const SECTOR_WIDTH = (Math.PI * 2) / METABALL_SECTORS;
 
-    const ball_pool = Array.from({ length: MAX_BALLS }, (_, i) => {
+    const ball_pool = Array.from({ length: METABALL_MAX_BALLS }, (_, i) => {
         const base_strength = BALL_STRENGTH * random(0.70, 1.25);
         return {
             x: METABALL_CRATER_X, y: METABALL_CRATER_Y, z: METABALL_CRATER_Z,
@@ -37,7 +35,7 @@ export function createMetaballAnimation({ random, randomGauss }) {
         };
     });
 
-    const spawn_times = new Float64Array(MAX_BALLS).fill(Infinity);
+    const spawn_times = new Float64Array(METABALL_MAX_BALLS).fill(Infinity);
 
     let pool_head = 0;
     let current_wave_count = 0;
@@ -52,7 +50,7 @@ export function createMetaballAnimation({ random, randomGauss }) {
 
     function getActiveBalls() {
         active_balls.length = 0;
-        for (let i = 0; i < MAX_BALLS; i++) {
+        for (let i = 0; i < METABALL_MAX_BALLS; i++) {
             if (ball_pool[i].active) active_balls.push(ball_pool[i]);
         }
         return active_balls;
@@ -85,8 +83,8 @@ export function createMetaballAnimation({ random, randomGauss }) {
         } else {
             if (current_wave_count < settings.count && time - last_spawn_time >= METABALL_SPAWN_INTERVAL) {
                 let index = -1;
-                for (let offset = 0; offset < MAX_BALLS; offset++) {
-                    const candidate = (pool_head + offset) % MAX_BALLS;
+                for (let offset = 0; offset < METABALL_MAX_BALLS; offset++) {
+                    const candidate = (pool_head + offset) % METABALL_MAX_BALLS;
                     if (!ball_pool[candidate].active) { index = candidate; break; }
                 }
                 if (index !== -1) {
@@ -96,7 +94,7 @@ export function createMetaballAnimation({ random, randomGauss }) {
                     ball_pool[index].shrink_fraction = 0;
                     current_wave_count++;
                     if (current_wave_count === 1) wave_start_count++;
-                    pool_head = (index + 1) % MAX_BALLS;
+                    pool_head = (index + 1) % METABALL_MAX_BALLS;
                     last_spawn_time = time;
                     spawn_count++;
                 }
@@ -107,7 +105,7 @@ export function createMetaballAnimation({ random, randomGauss }) {
             }
         }
 
-        for (let i = 0; i < MAX_BALLS; i++) {
+        for (let i = 0; i < METABALL_MAX_BALLS; i++) {
             if (!ball_pool[i].active) continue;
             const ball = ball_pool[i];
             const raw_fraction = (time - spawn_times[i]) * settings.speed_factor * ball.speed_multiplier / METABALL_BALL_LIFETIME;

@@ -9,7 +9,7 @@ export default defineConfig({
             provider: 'v8',
             reporter: ['text', 'html'],
             include: ['src/**/*.js'],
-            exclude: ['src/main.js', 'src/**/__tests__/**'],
+            exclude: ['src/main.js', 'src/**/__tests__/**', 'src/**/test-utils/**'],
         },
     },
 });

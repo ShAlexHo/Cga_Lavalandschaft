@@ -5,6 +5,41 @@ import { MESSAGES } from '../src/ui/messages.js';
 const SAMPLED_PIXEL_STRIDE = 37;
 const BRIGHT_LUMINANCE_THRESHOLD = 40;
 
+const TEXT = MESSAGES.en;
+const GERMAN_TEXT = MESSAGES.de;
+const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'lava_flow', 'volcano_irregularities', 'smoke_ash', 'lava_landscape', 'sun_god_rays'];
+
+function detailText(detail_key, text) {
+    return TEXT[`details.${detail_key}.${text}`];
+}
+
+function numberedTitle(detail_key) {
+    return `${DETAIL_ORDER.indexOf(detail_key) + 1}. ${detailText(detail_key, 'title')}`;
+}
+
+function neighbourLink(direction, detail_key) {
+    return `${TEXT[`scene.${direction}`]}: ${numberedTitle(detail_key)}`;
+}
+
+function exactly(text) {
+    return new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+}
+
+async function openDetailScene(page, { detail_key, scene_name }) {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: TEXT['landing.details_title'] })).toBeAttached();
+    const preview = page.getByRole('link', { name: detailText(detail_key, 'start_scene') });
+    await preview.scrollIntoViewIfNeeded();
+    await preview.click();
+    await expect(page).toHaveURL(new RegExp(`/${scene_name}$`), { timeout: 60_000 });
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+}
+
+function guiRow(page, message_key) {
+    return page.locator('.dg li.cr .property-name', { hasText: exactly(TEXT[message_key]) });
+}
+
 function collectConsoleErrors(page) {
     const console_errors = [];
     page.on('console', message => {
@@ -12,6 +47,10 @@ function collectConsoleErrors(page) {
     });
     page.on('pageerror', error => console_errors.push(error.message));
     return console_errors;
+}
+
+function expectNoConsoleErrors(console_errors) {
+    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
 }
 
 test('scene renders a non-blank image', async ({ page }) => {
@@ -24,7 +63,7 @@ test('scene renders a non-blank image', async ({ page }) => {
 
     await page.waitForTimeout(1000);
 
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+    expectNoConsoleErrors(console_errors);
 
     await page.evaluate(() => {
         document.querySelectorAll('.dg, .home-button').forEach(element => element.remove());
@@ -55,10 +94,10 @@ test('landing page enters the scene via the play button and shows the left scene
     const console_errors = collectConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Unstill Life: Lava Landscape' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: TEXT['app.title'] })).toBeVisible();
     await expect(page.locator('canvas')).toHaveCount(0);
 
-    const preview = page.getByRole('link', { name: 'Start scene', exact: true });
+    const preview = page.getByRole('link', { name: TEXT['landing.start_scene'], exact: true });
     const play_button = preview.locator('.play-button');
     await expect(play_button).toHaveCSS('opacity', '0');
     await preview.hover();
@@ -71,15 +110,15 @@ test('landing page enters the scene via the play button and shows the left scene
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await page.waitForTimeout(500);
 
-    await page.getByRole('link', { name: 'Back to start page' }).click();
+    await page.getByRole('link', { name: TEXT['scene.home'] }).click();
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(1);
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('canvas')).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
     await expect(preview).toBeVisible();
-    await expect(page.locator('.preview:not(.preview-small) .preview-image')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(preview.locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
 
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+    expectNoConsoleErrors(console_errors);
 });
 
 test('language switch translates the landing page and the scene GUI, and is remembered', async ({ page }) => {
@@ -88,57 +127,22 @@ test('language switch translates the landing page and the scene GUI, and is reme
     await expect(page.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByRole('button', { name: 'DE' }).click();
-    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: GERMAN_TEXT['app.title'] })).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await expect(page).toHaveTitle('Unstill Life: Lavalandschaft');
+    await expect(page).toHaveTitle(GERMAN_TEXT['app.title']);
 
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Unstill Life: Lavalandschaft' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: GERMAN_TEXT['app.title'] })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Szene starten', exact: true }).click();
+    await page.getByRole('link', { name: GERMAN_TEXT['landing.start_scene'], exact: true }).click();
     await expect(page).toHaveURL(/\/main-scene$/, { timeout: 60_000 });
-    await expect(page.locator('.dg .property-name', { hasText: 'Interaktionsmodus' })).toHaveCount(1, { timeout: 60_000 });
-    await expect(page.locator('.dg .close-button')).toHaveText('Steuerung öffnen');
+    await expect(page.locator('.dg .property-name', { hasText: GERMAN_TEXT['gui.interaction_mode'] })).toHaveCount(1, { timeout: 60_000 });
+    await expect(page.locator('.dg .close-button')).toHaveText(GERMAN_TEXT['gui.open_controls']);
 });
-
-const TEXT = MESSAGES.en;
-const DETAIL_ORDER = ['metaballs', 'noise', 'surface', 'ground', 'volcano', 'lava_flow', 'volcano_irregularities', 'smoke_ash', 'lava_landscape', 'sun_god_rays'];
-
-function detailText(detail_key, text) {
-    return TEXT[`details.${detail_key}.${text}`];
-}
-
-function numberedTitle(detail_key) {
-    return `${DETAIL_ORDER.indexOf(detail_key) + 1}. ${detailText(detail_key, 'title')}`;
-}
-
-function neighbourLink(direction, detail_key) {
-    return `${TEXT[`scene.${direction}`]}: ${numberedTitle(detail_key)}`;
-}
-
-function exactly(text) {
-    return new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
-}
-
-async function openDetailScene(page, { detail_key, scene_name }) {
-    await page.goto('/');
-    const preview = page.getByRole('link', { name: detailText(detail_key, 'start_scene') });
-    await preview.scrollIntoViewIfNeeded();
-    await preview.click();
-    await expect(page).toHaveURL(new RegExp(`/${scene_name}$`), { timeout: 60_000 });
-    await expect(page.locator('canvas')).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
-}
-
-function guiRow(page, message_key) {
-    return page.locator('.dg li.cr .property-name', { hasText: exactly(TEXT[message_key]) });
-}
 
 test('metaballs detail opens its own scene with an explanation below it', async ({ page }) => {
     const console_errors = collectConsoleErrors(page);
 
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: TEXT['landing.details_title'] })).toBeAttached();
     await openDetailScene(page, { detail_key: 'metaballs', scene_name: 'metaballs-scene' });
 
     await page.getByRole('button', { name: detailText('metaballs', 'scroll_hint') }).click();
@@ -155,7 +159,7 @@ test('metaballs detail opens its own scene with an explanation below it', async 
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('link', { name: detailText('metaballs', 'start_scene') }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
 
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+    expectNoConsoleErrors(console_errors);
 });
 
 const DETAIL_SCENE_CASES = [
@@ -167,31 +171,31 @@ const DETAIL_SCENE_CASES = [
     { detail_key: 'ground', scene_name: 'ground-scene', labels: ['gui.metaballs.count', 'gui.visible', 'gui.height'] },
     {
         detail_key: 'volcano', scene_name: 'volcano-scene',
-        labels: ['gui.metaballs.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
+        labels: ['gui.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
     },
     {
         detail_key: 'lava_flow', scene_name: 'lava-flow-scene',
-        labels: ['gui.metaballs.speed', 'gui.metaballs.slow_down', 'gui.metaballs.sectors_enabled', 'gui.metaballs.sector_count', 'gui.visible'],
+        labels: ['gui.speed', 'gui.metaballs.slow_down', 'gui.metaballs.sectors_enabled', 'gui.metaballs.sector_count', 'gui.visible'],
         absent_labels: ['gui.metaballs.flow_slope'], folders: ['gui.folder.flow_speed', 'gui.folder.distribution', 'gui.folder.ground'],
     },
     {
         detail_key: 'volcano_irregularities', scene_name: 'volcano-irregularities-scene',
-        labels: ['gui.metaballs.speed', 'gui.volcano.surface_irregularities'], absent_labels: ['gui.visible'], folders: ['gui.folder.volcano'],
+        labels: ['gui.speed', 'gui.volcano.surface_irregularities'], absent_labels: ['gui.visible'], folders: ['gui.folder.volcano'],
     },
     {
         detail_key: 'smoke_ash', scene_name: 'smoke-ash-scene',
-        labels: ['gui.metaballs.speed', 'gui.smoke.count', 'gui.smoke.rise_speed', 'gui.smoke.ember_cooling_time'],
+        labels: ['gui.speed', 'gui.smoke.count', 'gui.smoke.rise_speed', 'gui.smoke.ember_cooling_time'],
         absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.smoke'],
     },
     {
         detail_key: 'lava_landscape', scene_name: 'lava-landscape-scene',
-        labels: ['gui.metaballs.speed', 'gui.fog', 'gui.ground.rock_colour_1', 'gui.ground.crack_colour_4', 'gui.ground.crack_softness'],
+        labels: ['gui.speed', 'gui.fog', 'gui.ground.rock_colour_1', 'gui.ground.crack_colour_2', 'gui.ground.crack_softness'],
         absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.ground', 'gui.folder.cracks'],
     },
     {
         detail_key: 'sun_god_rays', scene_name: 'sun-god-rays-scene',
-        labels: ['gui.metaballs.speed', 'gui.sun.strength', 'gui.sun.focus', 'gui.god_rays.exposure', 'gui.god_rays.decay', 'gui.god_rays.density'],
-        absent_labels: ['gui.fog', 'gui.volcano.surface_irregularities'], folders: ['gui.folder.metaballs', 'gui.folder.sun', 'gui.folder.god_rays'],
+        labels: ['gui.speed', 'gui.god_rays.decay', 'gui.god_rays.density'],
+        absent_labels: ['gui.fog', 'gui.volcano.surface_irregularities', 'gui.sun.strength', 'gui.sun.focus'], folders: ['gui.folder.metaballs', 'gui.folder.god_rays'],
     },
 ];
 
@@ -211,7 +215,7 @@ for (const detail of DETAIL_SCENE_CASES) {
         await page.getByRole('button', { name: detailText(detail.detail_key, 'scroll_hint') }).click();
         await expect(page.getByRole('heading', { name: numberedTitle(detail.detail_key), level: 2 })).toBeInViewport({ timeout: 60_000 });
 
-        expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+        expectNoConsoleErrors(console_errors);
     });
 }
 
@@ -222,11 +226,7 @@ test('arrow buttons move between the numbered detail scenes directly, and the st
     await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 3 })).toBeAttached();
     await expect(page.getByRole('heading', { name: numberedTitle('sun_god_rays'), level: 3 })).toBeAttached();
 
-    const metaballs_preview = page.getByRole('link', { name: detailText('metaballs', 'start_scene') });
-    await metaballs_preview.scrollIntoViewIfNeeded();
-    await metaballs_preview.click();
-    await expect(page).toHaveURL(/\/metaballs-scene$/, { timeout: 60_000 });
-    await expect(page.locator('.scene-transition-overlay')).toHaveCount(0, { timeout: 60_000 });
+    await openDetailScene(page, { detail_key: 'metaballs', scene_name: 'metaballs-scene' });
     await expect(page.locator('.scene-button-disabled')).toHaveCount(1);
 
     await page.getByRole('link', { name: neighbourLink('next', 'noise') }).click();
@@ -243,5 +243,5 @@ test('arrow buttons move between the numbered detail scenes directly, and the st
     await expect(page.getByRole('link', { name: detailText('noise', 'start_scene') }).locator('img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
     await expect(page.getByRole('link', { name: detailText('noise', 'start_scene') })).toBeInViewport();
 
-    expect(console_errors, `unexpected console/page errors: ${console_errors.join('; ')}`).toEqual([]);
+    expectNoConsoleErrors(console_errors);
 });

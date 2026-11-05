@@ -251,7 +251,7 @@ describe('setupGui – structure', () => {
         expect(result).toBe(gui);
     });
 
-    test('creates all expected folders, including Boden and Vulkan unconditionally', () => {
+    test('creates all expected folders, including the ground and volcano folders unconditionally', () => {
         const { gui } = makeMockGui();
         setupGui(makeFacade());
         const folders = gui.addFolder.mock.calls.map(call => call[0]);
@@ -326,7 +326,7 @@ describe('setupGui – Metaballs folder', () => {
     });
 });
 
-describe('setupGui – Lavafarbe folder', () => {
+describe('setupGui – lava colour folder', () => {
     test.each([
         ['color_hot', 'setColorHot', '#ff0000'],
         ['color_cool', 'setColorCool', '#220000'],
@@ -358,7 +358,7 @@ describe('setupGui – Noise folder', () => {
     });
 });
 
-describe('setupGui – Boden folder', () => {
+describe('setupGui – ground folder', () => {
     test.each([
         ['visible', 'setGroundVisible', false],
         ['color', 'setGroundColor', '#550000'],
@@ -378,7 +378,7 @@ describe('setupGui – Boden folder', () => {
     });
 });
 
-describe('setupGui – Vulkan folder', () => {
+describe('setupGui – volcano folder', () => {
     test.each([
         ['visible', 'setVolcanoVisible', false],
         ['displacement_scale', 'setVolcanoDisplacementScale', 3.2],
@@ -393,7 +393,7 @@ describe('setupGui – Vulkan folder', () => {
     });
 });
 
-describe('setupGui – Sonne folder', () => {
+describe('setupGui – sun folder', () => {
     test.each([
         ['visible', 'setSunVisible', false],
         ['strength', 'setSunStrength', 0.12],
@@ -407,7 +407,7 @@ describe('setupGui – Sonne folder', () => {
     });
 });
 
-describe('setupGui – Rauch & Asche folder', () => {
+describe('setupGui – smoke and ash folder', () => {
     test('count control is seeded from getSmokeCount/getMaxSmokeCount and writes back via setSmokeCount', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade({ getSmokeCount: vi.fn(() => 150), getMaxSmokeCount: vi.fn(() => 300) });
@@ -449,7 +449,7 @@ describe('setupGui – Bloom folder', () => {
     });
 });
 
-describe('setupGui – Himmel folder', () => {
+describe('setupGui – sky folder', () => {
     test('color onChange calls facade.setSkyColor', () => {
         const { registry } = makeMockGui();
         const facade = makeFacade();
@@ -488,7 +488,7 @@ describe('setupGui – Sound folder', () => {
     });
 });
 
-describe('setupGui – Zurücksetzen', () => {
+describe('setupGui – reset', () => {
     beforeEach(() => {
         saveToLocalStorage.mockClear();
         loadFromLocalStorage.mockClear().mockReturnValue(null);
@@ -588,6 +588,19 @@ describe('setupGui – lifetime', () => {
     beforeEach(() => {
         saveToLocalStorage.mockClear();
         loadFromLocalStorage.mockClear().mockReturnValue(null);
+    });
+
+    test('the mode controls save only the settings they restore, the interaction mode and the time scale', () => {
+        makeMockGui();
+        const facade = makeFacade({ getSnapshot: vi.fn(() => ({ interactionMode: true, timeScale: 3, paused: false, smokeCount: 1200 })) });
+        const add_event_listener_spy = vi.spyOn(window, 'addEventListener');
+
+        setupGui(facade, { mode_controls_only: true });
+        const handler = add_event_listener_spy.mock.calls.find(call => call[0] === 'beforeunload')[1];
+        handler();
+
+        expect(saveToLocalStorage).toHaveBeenLastCalledWith({ interactionMode: true, timeScale: 3 });
+        add_event_listener_spy.mockRestore();
     });
 
     test('restore_saved: false ignores localStorage, for a scene resumed from memory', () => {

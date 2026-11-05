@@ -1,16 +1,15 @@
 import * as THREE from 'three';
 import { buildSceneController } from './scene_controller.js';
 import { createCameraController } from './objects/camera_object.js';
-import { createKeyLight } from './objects/key_light_object.js';
 import { createPostProcessing } from './rendering/post_processing.js';
 import { setupGui } from './ui/gui.js';
 import { registerOpenScene } from '../scene_registry.js';
 import { SCENE_WARM_UP_SECONDS, SCENE_WARM_UP_STEP_SECONDS } from './config.js';
 import DEFAULT_SETTINGS from './default_settings.json';
-import { captureCanvas } from '../../scene_screenshot.js';
+import { captureCanvas } from '../canvas_capture.js';
+import { MAIN_SCENE_NAME } from './scene_name.js';
 import { finishBuild } from '../stepwise_build.js';
 
-const SCENE_NAME = 'main-scene';
 const WARM_UP_SLICES = 8;
 
 export function createSceneEngine(resume_state = null) {
@@ -23,14 +22,10 @@ function* buildSceneEngine(resume_state = null) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(DEFAULT_SETTINGS.skyColor);
 
-    createKeyLight(scene);
-
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     yield;
 
     const camera_controller = createCameraController(renderer);
@@ -167,7 +162,7 @@ if (import.meta.hot) {
 function openEngine(built_engine) {
     engine = built_engine;
     pending_build = null;
-    registerOpenScene(SCENE_NAME, closeSceneEngine);
+    registerOpenScene(MAIN_SCENE_NAME, closeSceneEngine);
 }
 
 export function getSceneEngine() {

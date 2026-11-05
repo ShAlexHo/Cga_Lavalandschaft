@@ -12,20 +12,21 @@ varying vec3 v_view_position;
 varying vec3 v_normal;
 
 void main() {
-    vec3 crack_world_position = (modelMatrix * vec4(position, 1.0)).xyz;
+    vec3 world_position = (modelMatrix * vec4(position, 1.0)).xyz;
 
     vec3 volcano_center = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 
     float push_amount = 0.0;
     for (int i = 0; i < INTERACTION_MAX_POINTS; i++) {
-        float point_distance = length(crack_world_position - u_interaction_positions[i]);
+        if (u_interaction_strengths[i] <= 0.0) continue;
+        float point_distance = length(world_position - u_interaction_positions[i]);
         float radius = u_interaction_radii[i];
         float plateau_edge = radius * u_interaction_plateau_fraction;
         float falloff = 1.0 - smoothstep(plateau_edge, radius, point_distance);
 
-        float vertex_axis_distance = length(crack_world_position.xz - volcano_center.xz);
+        float vertex_axis_distance = length(world_position.xz - volcano_center.xz);
         float touch_axis_distance = length(u_interaction_positions[i].xz - volcano_center.xz);
-        float wipe_noise = simplexNoise(crack_world_position * u_interaction_wipe_noise_frequency) * radius * u_interaction_wipe_noise_strength;
+        float wipe_noise = simplexNoise(world_position * u_interaction_wipe_noise_frequency) * radius * u_interaction_wipe_noise_strength;
         float axis_distance_beyond_touch = vertex_axis_distance - touch_axis_distance + wipe_noise;
 
         float wipe_band = radius * u_interaction_wipe_band_fraction;
@@ -34,8 +35,8 @@ void main() {
 
         push_amount = max(push_amount, u_interaction_strengths[i] * falloff * wipe_mask);
     }
-    vec3 push_direction = normalize(cameraPosition - crack_world_position);
-    vec3 final_world_position = crack_world_position + push_direction * push_amount;
+    vec3 push_direction = normalize(cameraPosition - world_position);
+    vec3 final_world_position = world_position + push_direction * push_amount;
 
     v_world_position = final_world_position;
     vec4 view_position = viewMatrix * vec4(final_world_position, 1.0);

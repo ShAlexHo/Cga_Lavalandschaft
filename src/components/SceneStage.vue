@@ -2,10 +2,11 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { scene_screenshots } from '../scene_screenshot.js';
-import { localize } from '../language_state.js';
+import { localize } from '../ui/language_state.js';
 import { closeOtherScenes } from '../scenes/scene_registry.js';
 import { coverWithScreenshot } from '../scene_transition.js';
-import { neighbouringDetailScenes, numberedTitle } from '../scenes/detail_scenes.js';
+import { neighbouringDetailScenes } from '../scenes/detail-scenes/detail_scenes.js';
+import { detailTitle } from '../ui/detail_texts.js';
 
 const properties = defineProps({
     engine: { type: Object, required: true },
@@ -24,7 +25,7 @@ const NAVIGATION = previous || next
     : [];
 
 function navigationLabel({ direction, target }) {
-    return `${localize(`scene.${direction}`)}: ${numberedTitle(target, localize(`${target.message_key_prefix}.title`))}`;
+    return `${localize(`scene.${direction}`)}: ${detailTitle(target)}`;
 }
 
 let is_mounted = false;
@@ -115,18 +116,13 @@ onBeforeUnmount(leaveScene);
     border-radius: 50%;
     background: var(--color-surface);
     backdrop-filter: blur(4px);
-    color: #fff;
+    color: var(--color-on-accent);
     transition: background 200ms ease, border-color 200ms ease;
 }
 
 .scene-button:not(.scene-button-disabled):hover {
     border-color: rgba(255, 255, 255, 0.7);
     background: rgba(255, 91, 0, 0.7);
-}
-
-.scene-button:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
 }
 
 .scene-button-disabled {

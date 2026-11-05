@@ -1,8 +1,9 @@
 <script setup>
 import { ref, defineAsyncComponent } from 'vue';
 import SceneStage from './SceneStage.vue';
-import { findDetailScene, numberedTitle } from '../scenes/detail_scenes.js';
-import { localize } from '../language_state.js';
+import { findDetailScene } from '../scenes/detail-scenes/detail_scenes.js';
+import { localize } from '../ui/language_state.js';
+import { detailText, detailTitle } from '../ui/detail_texts.js';
 
 const properties = defineProps({
     engine: { type: Object, required: true },
@@ -23,13 +24,13 @@ function scrollToDescription() {
     <main class="described-scene">
         <SceneStage :engine="properties.engine" :scene_name="properties.scene_name">
             <button type="button" class="scroll-hint" @click="scrollToDescription">
-                {{ localize(`${detail.message_key_prefix}.scroll_hint`) }}
+                {{ detailText(detail, 'scroll_hint') }}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
         </SceneStage>
 
         <article ref="description" class="scene-description">
-            <h2 class="scene-description-title">{{ numberedTitle(detail, localize(`${detail.message_key_prefix}.title`)) }}</h2>
+            <h2 class="section-title">{{ detailTitle(detail) }}</h2>
             <SceneDescription v-if="SceneDescription" />
             <p v-else>{{ localize('scene.description_in_work') }}</p>
         </article>
@@ -63,11 +64,6 @@ function scrollToDescription() {
     color: var(--color-accent);
 }
 
-.scroll-hint:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
-}
-
 .scroll-hint svg {
     width: 18px;
     height: 18px;
@@ -86,20 +82,8 @@ function scrollToDescription() {
     line-height: 1.65;
 }
 
-.scene-description-title {
+.scene-description .section-title {
     margin-bottom: 16px;
-    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-.scene-description :slotted(p) {
-    margin-top: 1em;
-}
-
-.scene-description :slotted(p:first-of-type) {
-    margin-top: 0;
 }
 
 @media (max-width: 600px) {

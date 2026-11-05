@@ -57,12 +57,12 @@ describe('createSmoke', () => {
         const smoke = createSmoke(scene);
         expect(createSmokeMaterial).toHaveBeenCalledTimes(1);
         expect(createSmokeGeometry).toHaveBeenCalledWith(scene, expect.any(Object), particle_seeds);
-        expect(scene.add).toHaveBeenCalledWith(smoke.effect);
+        expect(scene.add).toHaveBeenCalledWith(smoke.points);
     });
 
     test('sets the initial draw range to settings.count', () => {
         const smoke = createSmoke(makeScene());
-        expect(setSmokeDrawRange).toHaveBeenCalledWith(smoke.effect, 200);
+        expect(setSmokeDrawRange).toHaveBeenCalledWith(smoke.points, 200);
     });
 
     test('update() forwards the camera, sun position, time and the computed plume opacity factor to the material', () => {
@@ -81,7 +81,7 @@ describe('createSmoke', () => {
         expect(computePlumeOpacityFactor).toHaveBeenCalledWith(1.0);
     });
 
-    test('getVisible/setVisible toggle effect.visible', () => {
+    test('getVisible/setVisible toggle points.visible', () => {
         const smoke = createSmoke(makeScene());
         expect(smoke.getVisible()).toBe(true);
         smoke.setVisible(false);
@@ -93,7 +93,7 @@ describe('createSmoke', () => {
         smoke.setCount(50);
         expect(smoke.getCount()).toBe(50);
         expect(mock_settings.count).toBe(50);
-        expect(setSmokeDrawRange).toHaveBeenCalledWith(smoke.effect, 50);
+        expect(setSmokeDrawRange).toHaveBeenCalledWith(smoke.points, 50);
     });
 
     test('spread/riseSpeed getters and setters forward to the material uniforms', () => {

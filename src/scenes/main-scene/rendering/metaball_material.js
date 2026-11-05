@@ -68,8 +68,8 @@ export function createMetaballMaterial({ max_balls = METABALL_GPU_MAX_BALLS, fie
             u_ball_subtract: { value: new Float32Array(max_balls) },
             u_ball_count: { value: 0 },
             u_isolation: { value: DEFAULT_SETTINGS.metaballIsolation },
-            u_effect_position: { value: new THREE.Vector3() },
-            u_effect_scale: { value: 1.0 },
+            u_mesh_position: { value: new THREE.Vector3() },
+            u_mesh_scale: { value: 1.0 },
             u_box_half_extent: { value: new THREE.Vector3(METABALL_PROXY_HALF_EXTENT_X, METABALL_PROXY_HALF_EXTENT_Y, METABALL_PROXY_HALF_EXTENT_Z) },
             u_box_center: { value: new THREE.Vector3(METABALL_PROXY_CENTER_X, METABALL_PROXY_CENTER_Y, METABALL_PROXY_CENTER_Z) },
             u_raymarch_steps: { value: METABALL_RAYMARCH_STEPS },
@@ -90,13 +90,13 @@ export function updateMetaballLight(material, camera, time) {
     material.uniforms.u_projection_matrix.value.copy(camera.projectionMatrix);
 }
 
-export function updateMetaballBalls(effect, balls, camera) {
-    const uniforms = effect.material.uniforms;
+export function updateMetaballBalls(mesh, balls, camera) {
+    const uniforms = mesh.material.uniforms;
     const centers = uniforms.u_ball_center.value;
     const strengths = uniforms.u_ball_strength.value;
     const subtracts = uniforms.u_ball_subtract.value;
-    const radius_scale_squared = effect.radius_scale * effect.radius_scale;
-    const camera_azimuth = camera && worldAzimuth(effect.position, camera.position);
+    const radius_scale_squared = mesh.radius_scale * mesh.radius_scale;
+    const camera_azimuth = camera && worldAzimuth(mesh.position, camera.position);
     for (let i = 0; i < centers.length; i++) {
         const ball = balls[i];
         if (ball) {
@@ -109,9 +109,9 @@ export function updateMetaballBalls(effect, balls, camera) {
         }
     }
     uniforms.u_ball_count.value = Math.min(balls.length, centers.length);
-    uniforms.u_isolation.value = effect.isolation;
-    uniforms.u_effect_position.value.copy(effect.position);
-    uniforms.u_effect_scale.value = effect.scale.x;
+    uniforms.u_isolation.value = mesh.isolation;
+    uniforms.u_mesh_position.value.copy(mesh.position);
+    uniforms.u_mesh_scale.value = mesh.scale.x;
 }
 
 export function updateMetaballDisplacement(material, { enabled, strength, camera, volcano_position }) {

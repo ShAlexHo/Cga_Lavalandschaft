@@ -8,7 +8,6 @@ import { bindVisibility } from './visibility_utils.js';
 export function createVolcano(scene) {
     const material = createVolcanoMaterial();
     const mesh = createVolcanoGeometry(scene, material);
-    mesh.castShadow = true;
 
     function rebakeCrackDisplacement() {
         return bakeCrackDisplacement(
