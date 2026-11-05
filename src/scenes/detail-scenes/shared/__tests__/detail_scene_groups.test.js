@@ -53,11 +53,10 @@ describe('scene groups', () => {
         }
     });
 
-    test('the ground scene keeps the framing of the floating metaballs, but its camera does not turn by itself', async () => {
+    test('all metaball scenes share the demo framing, and their camera does not turn by itself', async () => {
         const { 'metaballs-scenes': metaballs } = await groupDefinitions();
-        const { camera_setup } = metaballs.scenes['ground-scene'];
-        expect(camera_setup).toEqual({ ...DETAIL_CAMERA_SETUP, auto_rotate: false });
-        expect(metaballs.scenes['metaballs-scene'].camera_setup).toBeUndefined();
+        for (const { camera_setup } of Object.values(metaballs.scenes)) expect(camera_setup).toBeUndefined();
+        expect(DETAIL_CAMERA_SETUP.auto_rotate).toBe(false);
     });
 
     test('every landscape scene keeps a lava of its own, so its lava resumes where it was left', async () => {

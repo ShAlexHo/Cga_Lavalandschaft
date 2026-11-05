@@ -26,9 +26,18 @@ export const DETAIL_SCENES = [
         scene_name: 'metaballs-scene', message_key_prefix: 'details.metaballs', preview_url: metaballs_preview_url, loadGroup: loadMetaballsGroup,
         loadDescription: () => import('./metaballs/description/MetaballsDescription.vue'),
     },
-    { scene_name: 'noise-scene', message_key_prefix: 'details.noise', preview_url: noise_preview_url, loadGroup: loadMetaballsGroup },
-    { scene_name: 'surface-scene', message_key_prefix: 'details.surface', preview_url: surface_preview_url, loadGroup: loadMetaballsGroup },
-    { scene_name: 'ground-scene', message_key_prefix: 'details.ground', preview_url: ground_preview_url, loadGroup: loadMetaballsGroup },
+    {
+        scene_name: 'noise-scene', message_key_prefix: 'details.noise', preview_url: noise_preview_url, loadGroup: loadMetaballsGroup,
+        loadDescription: () => import('./metaballs/description/NoiseDescription.vue'),
+    },
+    {
+        scene_name: 'surface-scene', message_key_prefix: 'details.surface', preview_url: surface_preview_url, loadGroup: loadMetaballsGroup,
+        loadDescription: () => import('./metaballs/description/SurfaceDescription.vue'),
+    },
+    {
+        scene_name: 'ground-scene', message_key_prefix: 'details.ground', preview_url: ground_preview_url, loadGroup: loadMetaballsGroup,
+        loadDescription: () => import('./metaballs/description/GroundDescription.vue'),
+    },
     { scene_name: 'volcano-scene', message_key_prefix: 'details.volcano', preview_url: volcano_preview_url, loadGroup: loadVolcanoGroup },
     { scene_name: 'lava-flow-scene', message_key_prefix: 'details.lava_flow', preview_url: lava_flow_preview_url, loadGroup: loadVolcanoGroup },
     {

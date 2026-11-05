@@ -132,10 +132,6 @@ export function createMetaballsController(scene, { sceneries = DEFAULT_SCENERIES
         setColorHot: color_hot.set,
         getColorCool: color_cool.get,
         setColorCool: color_cool.set,
-        getGlowEnabled: glow_enabled.get,
-        setGlowEnabled: glow_enabled.set,
-        getGlowColor: glow_color.get,
-        setGlowColor: glow_color.set,
 
         resetToDefaults() {
             Object.assign(settings, METABALLS_DEFAULTS);
@@ -172,8 +168,6 @@ export function createMetaballsController(scene, { sceneries = DEFAULT_SCENERIES
         raymarch_steps: [controller.getRaymarchSteps, controller.setRaymarchSteps],
         color_hot: [controller.getColorHot, controller.setColorHot],
         color_cool: [controller.getColorCool, controller.setColorCool],
-        glow_enabled: [controller.getGlowEnabled, controller.setGlowEnabled],
-        glow_color: [controller.getGlowColor, controller.setGlowColor],
     };
 
     Object.assign(controller, {

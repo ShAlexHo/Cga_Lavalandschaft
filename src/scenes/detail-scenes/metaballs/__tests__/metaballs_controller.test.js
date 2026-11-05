@@ -70,7 +70,6 @@ describe('createMetaballsController', () => {
 
     test('starts with the main scene’s lava look and the demo defaults', () => {
         expect(controller.getColorHot()).toBe(MAIN_SCENE_DEFAULTS.colorHot);
-        expect(controller.getGlowColor()).toBe(MAIN_SCENE_DEFAULTS.glowColor);
         expect(controller.getIsolation()).toBe(MAIN_SCENE_DEFAULTS.metaballIsolation);
         expect(controller.getRadius()).toBe(MAIN_SCENE_DEFAULTS.metaballRadius);
         expect(controller.getCount()).toBe(METABALLS_DEFAULTS.count);
@@ -106,11 +105,9 @@ describe('createMetaballsController', () => {
 
     test('color and raymarch setters write the material uniforms', () => {
         controller.setColorHot('#123456');
-        controller.setGlowEnabled(false);
         controller.setRaymarchSteps(12);
 
         expect(controller.getColorHot()).toBe('#123456');
-        expect(uniforms().u_glow_enabled.value).toBe(0.0);
         expect(uniforms().u_raymarch_steps.value).toBe(12);
     });
 
@@ -129,7 +126,6 @@ describe('createMetaballsController', () => {
         controller.setCount(4);
         controller.setIsolation(90);
         controller.setColorHot('#112233');
-        controller.setGlowEnabled(false);
         const snapshot = controller.getSnapshot();
 
         const rebuilt = createMetaballsController(new THREE.Scene());
@@ -140,13 +136,24 @@ describe('createMetaballsController', () => {
         expect(rebuilt.getColorHot()).toBe('#112233');
     });
 
+    test('the glow is not adjustable, it keeps the main scene’s glow and is restored on reset', () => {
+        expect(controller.setGlowEnabled).toBeUndefined();
+        expect(controller.setGlowColor).toBeUndefined();
+        expect(Object.keys(controller.getSnapshot()).filter(key => key.includes('glow'))).toEqual([]);
+
+        uniforms().u_glow_enabled.value = 0.0;
+        uniforms().u_glow_color.value.set('#000000');
+        controller.resetToDefaults();
+        expect(uniforms().u_glow_enabled.value).toBe(MAIN_SCENE_DEFAULTS.glowEnabled ? 1.0 : 0.0);
+        expect(`#${uniforms().u_glow_color.value.getHexString()}`).toBe(MAIN_SCENE_DEFAULTS.glowColor.toLowerCase());
+    });
+
     test('resetToDefaults() restores every parameter', () => {
         controller.setCount(1);
         controller.setIsolation(120);
         controller.setSpeed(0);
         controller.setSubtractScale(0);
         controller.setColorCool('#ffffff');
-        controller.setGlowEnabled(false);
         controller.setRaymarchSteps(4);
 
         controller.resetToDefaults();
@@ -156,7 +163,6 @@ describe('createMetaballsController', () => {
         expect(controller.getSpeed()).toBe(METABALLS_DEFAULTS.speed);
         expect(controller.getSubtractScale()).toBe(METABALLS_DEFAULTS.subtract_scale);
         expect(controller.getColorCool()).toBe(MAIN_SCENE_DEFAULTS.colorCool);
-        expect(controller.getGlowEnabled()).toBe(MAIN_SCENE_DEFAULTS.glowEnabled);
         expect(controller.getRaymarchSteps()).toBe(METABALLS_DEFAULTS.raymarch_steps);
     });
 });

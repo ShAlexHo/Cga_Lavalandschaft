@@ -10,6 +10,8 @@ import { captureCanvas } from '../../canvas_capture.js';
 const VISIBILITY_ROOT_MARGIN = '-1px';
 const MAX_FRAME_DELTA_SECONDS = 0.1;
 
+const whenImmediate = () => Promise.resolve();
+
 export function createSceneGroupState() {
     return { scene_states: new Map() };
 }
@@ -135,10 +137,12 @@ export function createDetailSceneEngine({
         container = null;
     }
 
-    function prepare() {
-        if (prepared_scene_names.has(active_scene_name)) return;
-        prepared_scene_names.add(active_scene_name);
-        renderer.compile(scene, camera);
+    async function prepare(scene_name, waitForTurn) {
+        if (prepared_scene_names.has(scene_name)) return;
+        prepared_scene_names.add(scene_name);
+        await renderer.compileAsync(scene, camera);
+        await waitForTurn();
+        if (container || active_scene_name !== scene_name) return;
         renderFrame(0);
     }
 
@@ -168,9 +172,9 @@ export function createDetailSceneEngine({
     return {
         viewFor(scene_name) {
             return {
-                prepare() {
+                prepare(waitForTurn = whenImmediate) {
                     activate(scene_name);
-                    prepare();
+                    return prepare(scene_name, waitForTurn);
                 },
                 mount(target_element) {
                     activate(scene_name);

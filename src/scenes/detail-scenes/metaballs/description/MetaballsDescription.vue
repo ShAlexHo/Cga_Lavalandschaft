@@ -1,10 +1,21 @@
 <script setup>
-import { descriptionText, formatNumber } from './description_format.js';
+import { createDescriptionText, formatNumber } from '../../shared/description/description_text.js';
+import TryItYourself from '../../shared/description/TryItYourself.vue';
 import {
     THRESHOLD, FIRST_BALL, SECOND_BALL, TEST_POINT, SINGLE_BALL, TWO_BALLS, FIRST_DISTANCE, SECOND_DISTANCE, SINGLE_BALL_POTENTIAL, TWO_BALLS_POTENTIAL,
 } from './metaball_example.js';
 import MetaballFieldDiagram from './MetaballFieldDiagram.vue';
 import DistanceCalculation from './DistanceCalculation.vue';
+import MathPoint from './MathPoint.vue';
+
+const descriptionText = createDescriptionText('metaballs');
+
+const SCENE_CONTROLS = [
+    { folder_key: 'gui.folder.metaballs', label_key: 'gui.metaballs.count', text_key: 'try_count' },
+    { folder_key: 'gui.folder.metaballs', label_key: 'gui.metaballs.isolation', text_key: 'try_isolation' },
+    { folder_key: 'gui.folder.metaballs', label_key: 'gui.metaballs.spread', text_key: 'try_spread' },
+    { folder_key: 'gui.folder.lava_colour', text_key: 'try_colours' },
+];
 </script>
 
 <template>
@@ -86,9 +97,28 @@ import DistanceCalculation from './DistanceCalculation.vue';
                 <p>{{ descriptionText('single_ball_step_1') }}</p>
                 <div class="formula-line">
                     <math displaystyle="true">
-                        <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msub><mi>r</mi><mn>1</mn></msub></mfrac><mo>,</mo>
-                        <mspace width="1.5em" />
                         <msub><mi>r</mi><mn>1</mn></msub><mo>=</mo><mo>‖</mo><mi>p</mi><mo>−</mo><msub><mi>c</mi><mn>1</mn></msub><mo>‖</mo>
+                        <mo>=</mo>
+                        <mo>‖</mo>
+                        <mrow><mo>(</mo><mi>x</mi><mo separator="true">{{ descriptionText('coordinate_separator') }}</mo><mi>y</mi><mo>)</mo></mrow>
+                        <mo>−</mo><MathPoint :point="FIRST_BALL" />
+                        <mo>‖</mo>
+                    </math>
+                    <math displaystyle="true">
+                        <mo>=</mo>
+                        <msqrt>
+                            <msup><mrow><mo>(</mo><mi>x</mi><mo>−</mo><mn>0</mn><mo>)</mo></mrow><mn>2</mn></msup>
+                            <mo>+</mo>
+                            <msup><mrow><mo>(</mo><mi>y</mi><mo>−</mo><mn>0</mn><mo>)</mo></mrow><mn>2</mn></msup>
+                        </msqrt>
+                        <mo>=</mo>
+                        <msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt>
+                    </math>
+                </div>
+                <p>{{ descriptionText('single_ball_step_1_potential') }}</p>
+                <div class="formula-line">
+                    <math displaystyle="true">
+                        <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msub><mi>r</mi><mn>1</mn></msub></mfrac>
                     </math>
                 </div>
             </li>
@@ -106,18 +136,36 @@ import DistanceCalculation from './DistanceCalculation.vue';
                 <p>{{ descriptionText('single_ball_step_3') }}</p>
                 <div class="formula-line">
                     <math displaystyle="true">
-                        <msub><mi>r</mi><mn>1</mn></msub><mo>≤</mo><mfrac><mn>1</mn><mn>{{ formatNumber(THRESHOLD) }}</mn></mfrac><mo>≈</mo><mn>{{ formatNumber(1 / THRESHOLD) }}</mn>
+                        <mn>1</mn><mo>≥</mo><mn>{{ formatNumber(THRESHOLD) }}</mn><mo>⋅</mo><msub><mi>r</mi><mn>1</mn></msub>
                     </math>
                 </div>
             </li>
             <li>
                 <p>{{ descriptionText('single_ball_step_4') }}</p>
                 <div class="formula-line">
-                    <DistanceCalculation :point="TEST_POINT" :center="FIRST_BALL" :center_index="1" />
+                    <math displaystyle="true">
+                        <mfrac><mn>1</mn><mn>{{ formatNumber(THRESHOLD) }}</mn></mfrac><mo>≥</mo><msub><mi>r</mi><mn>1</mn></msub>
+                        <mspace width="0.8em" /><mo>⇔</mo><mspace width="0.8em" />
+                        <msub><mi>r</mi><mn>1</mn></msub><mo>≤</mo><mfrac><mn>1</mn><mn>{{ formatNumber(THRESHOLD) }}</mn></mfrac><mo>≈</mo><mn>{{ formatNumber(1 / THRESHOLD) }}</mn>
+                    </math>
                 </div>
             </li>
             <li>
                 <p>{{ descriptionText('single_ball_step_5') }}</p>
+                <div class="formula-line">
+                    <math displaystyle="true">
+                        <msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt><mo>≤</mo><mn>{{ formatNumber(1 / THRESHOLD) }}</mn>
+                    </math>
+                </div>
+            </li>
+            <li>
+                <p>{{ descriptionText('single_ball_step_6') }}</p>
+                <div class="formula-line">
+                    <DistanceCalculation :point="TEST_POINT" :center="FIRST_BALL" :center_index="1" />
+                </div>
+            </li>
+            <li>
+                <p>{{ descriptionText('single_ball_step_7') }}</p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>P</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msub><mi>r</mi><mn>1</mn></msub></mfrac>
@@ -127,7 +175,7 @@ import DistanceCalculation from './DistanceCalculation.vue';
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_6') }}</p>
+                <p>{{ descriptionText('single_ball_step_8') }}</p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mn>{{ formatNumber(SINGLE_BALL_POTENTIAL) }}</mn><mo>&lt;</mo><mn>{{ formatNumber(THRESHOLD) }}</mn>
@@ -186,34 +234,17 @@ import DistanceCalculation from './DistanceCalculation.vue';
         </figure>
     </section>
 
+    <TryItYourself detail_key="metaballs" :controls="SCENE_CONTROLS" />
+
     <section>
         <h3>{{ descriptionText('usage_heading') }}</h3>
         <p>{{ descriptionText('usage_text') }}</p>
     </section>
 </template>
 
+<style scoped src="../../shared/description/description.css"></style>
+
 <style scoped>
-h3 {
-    margin: 2em 0 0.5em;
-    font-family: var(--font-serif);
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-section:first-child h3 {
-    margin-top: 0;
-}
-
-p {
-    margin-top: 0.8em;
-}
-
-h4 {
-    margin: 1.6em 0 0.4em;
-    font-size: 1.05rem;
-    font-weight: 600;
-}
-
 .example-steps {
     padding-left: 1.4em;
 }
@@ -248,29 +279,5 @@ h4 {
 .falloff-functions span {
     color: var(--color-text-muted);
     font-size: 0.95rem;
-}
-
-.formula-line {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    column-gap: 0.3em;
-    margin: 1em 0;
-    font-size: 1.15em;
-}
-
-math[display='block'] {
-    margin: 1em 0;
-    font-size: 1.15em;
-}
-
-figure {
-    margin: 1.5em 0;
-}
-
-figcaption {
-    margin-top: 0.5em;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
 }
 </style>

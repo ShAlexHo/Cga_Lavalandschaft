@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { formatNumber } from './description_format.js';
+import { formatNumber } from '../../shared/description/description_text.js';
 import MathPoint from './MathPoint.vue';
 
 const properties = defineProps({

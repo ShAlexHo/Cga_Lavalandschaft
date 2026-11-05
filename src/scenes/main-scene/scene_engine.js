@@ -11,6 +11,7 @@ import { MAIN_SCENE_NAME } from './scene_name.js';
 import { finishBuild } from '../stepwise_build.js';
 
 const WARM_UP_SLICES = 8;
+const whenImmediate = () => Promise.resolve();
 
 export function createSceneEngine(resume_state = null) {
     return finishBuild(buildSceneEngine(resume_state));
@@ -103,10 +104,12 @@ function* buildSceneEngine(resume_state = null) {
     }
 
     return {
-        prepare() {
+        async prepare(waitForTurn = whenImmediate) {
             if (is_prepared) return;
             is_prepared = true;
-            renderer.compile(scene, camera);
+            await renderer.compileAsync(scene, camera);
+            await waitForTurn();
+            if (container) return;
             post_processing.render();
         },
 
@@ -183,7 +186,7 @@ export async function prepareSceneEngineGradually(waitForTurn) {
         openEngine(step.value);
     }
     await waitForTurn();
-    engine.prepare();
+    await engine.prepare(waitForTurn);
 }
 
 export function closeSceneEngine() {

@@ -46,7 +46,7 @@ export function createScenePreparation() {
             await scene_module.prepareSceneEngineGradually(waitForTurn);
         } else {
             await waitForTurn();
-            scene_module.getSceneEngine().prepare();
+            await scene_module.getSceneEngine().prepare(waitForTurn);
         }
         is_busy = false;
         scheduleNext();

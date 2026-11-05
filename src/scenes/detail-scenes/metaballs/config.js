@@ -1,5 +1,5 @@
 import { METABALL_SCALE_XY, METABALL_STRENGTH_SCALE, METABALL_RAYMARCH_STEPS } from '../../main-scene/config.js';
-import { GROUND_PLATE_THICKNESS, DETAIL_CAMERA_SETUP } from '../shared/config.js';
+import { GROUND_PLATE_THICKNESS } from '../shared/config.js';
 
 export const MESH_SCALE = METABALL_SCALE_XY;
 export const BALL_STRENGTH = (METABALL_STRENGTH_SCALE / METABALL_SCALE_XY) ** 2;
@@ -42,4 +42,3 @@ export const GROUND_BALL_COUNT_RANGE = { min: 10, max: 30, step: 1 };
 export const GROUND_PATH_SPEED_SCALE = 0.5;
 export const GROUND_PLATE_SIZE = { width: 20, depth: 16, thickness: GROUND_PLATE_THICKNESS };
 export const GROUND_GLOW_LIGHT_POSITION = { x: 0, y: 0.5, z: 0 };
-export const GROUND_CAMERA_SETUP = { ...DETAIL_CAMERA_SETUP, auto_rotate: false };

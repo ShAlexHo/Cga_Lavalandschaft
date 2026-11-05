@@ -1,5 +1,7 @@
 <script setup>
-import { descriptionText, formatNumber } from './description_format.js';
+import { createDescriptionText, formatNumber } from '../../shared/description/description_text.js';
+
+const descriptionText = createDescriptionText('metaballs');
 
 const properties = defineProps({
     point: { type: Object, required: true },

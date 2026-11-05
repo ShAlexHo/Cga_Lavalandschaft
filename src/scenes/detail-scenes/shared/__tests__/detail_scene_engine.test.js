@@ -24,7 +24,7 @@ vi.mock('three', () => ({
             this.domElement.toDataURL = vi.fn(() => 'data:image/jpeg;base64,AAAA');
             this.setSize = vi.fn();
             this.setPixelRatio = vi.fn();
-            this.compile = vi.fn();
+            this.compileAsync = vi.fn(async () => {});
             this.dispose = vi.fn();
             this.forceContextLoss = vi.fn();
             renderer_state.last = this;
@@ -121,7 +121,7 @@ function makeSetupGui(class_name) {
     });
 }
 
-const ZOOMING_CAMERA_SETUP = { fov: 60, position: { x: 1, y: 2, z: 3 }, auto_rotate: false, zoom_distance: { min: 16, max: 36 }, polar_angle: { min: 1, max: 1.4 }, far: 2000 };
+const ZOOMING_CAMERA_SETUP = { fov: 60, position: { x: 1, y: 2, z: 3 }, auto_rotate: true, zoom_distance: { min: 16, max: 36 }, polar_angle: { min: 1, max: 1.4 }, far: 2000 };
 
 let setupPlainGui;
 let setupNoisyGui;
@@ -174,21 +174,21 @@ describe('createDetailSceneEngine', () => {
         expect(setupPlainGui).not.toHaveBeenCalled();
     });
 
-    test('each scene brings its own camera: the demo camera turning by itself, or its own framing, zoom, angles and reach', () => {
+    test('each scene brings its own camera: the still demo camera, or its own framing, turning, zoom, angles and reach', () => {
         const engine = createGroupEngine();
         engine.viewFor('plain-scene').prepare();
         const camera = renderer_state.camera;
         expect(camera.fov).toBe(DETAIL_CAMERA_SETUP.fov);
         expect(camera.far).toBe(DETAIL_CAMERA_FAR);
         expect(camera.position.set).toHaveBeenLastCalledWith(DETAIL_CAMERA_SETUP.position.x, DETAIL_CAMERA_SETUP.position.y, DETAIL_CAMERA_SETUP.position.z);
-        expect(renderer_state.controls).toMatchObject({ autoRotate: true, enableZoom: false, minPolarAngle: 0, maxPolarAngle: Math.PI });
+        expect(renderer_state.controls).toMatchObject({ autoRotate: false, enableZoom: false, minPolarAngle: 0, maxPolarAngle: Math.PI });
 
         engine.viewFor('noisy-scene').prepare();
         expect(camera.fov).toBe(60);
         expect(camera.far).toBe(2000);
         expect(camera.updateProjectionMatrix).toHaveBeenCalled();
         expect(camera.position.set).toHaveBeenLastCalledWith(1, 2, 3);
-        expect(renderer_state.controls).toMatchObject({ autoRotate: false, enableZoom: true, minDistance: 16, maxDistance: 36, minPolarAngle: 1, maxPolarAngle: 1.4 });
+        expect(renderer_state.controls).toMatchObject({ autoRotate: true, enableZoom: true, minDistance: 16, maxDistance: 36, minPolarAngle: 1, maxPolarAngle: 1.4 });
     });
 
     test('switching to another scene of the group swaps the panel without building anything anew', () => {
@@ -202,7 +202,7 @@ describe('createDetailSceneEngine', () => {
         expect(plain_signal.aborted).toBe(true);
         expect(container.querySelector('.noisy')).not.toBeNull();
         expect(createMockController).toHaveBeenCalledTimes(1);
-        expect(renderer_state.last.compile).not.toHaveBeenCalled();
+        expect(renderer_state.last.compileAsync).not.toHaveBeenCalled();
     });
 
     test('every scene keeps its own settings, camera position and scene time while the others are shown', () => {
@@ -318,16 +318,32 @@ describe('createDetailSceneEngine', () => {
         expect(renderer_state.last.setSize).not.toHaveBeenCalled();
     });
 
-    test('prepare() compiles and renders each scene once off-screen without advancing time, so its own objects and lava are ready', () => {
+    test('prepare() compiles and renders each scene once off-screen without advancing time, so its own objects and lava are ready', async () => {
         const engine = createGroupEngine();
-        engine.viewFor('plain-scene').prepare();
-        engine.viewFor('plain-scene').prepare();
-        engine.viewFor('noisy-scene').prepare();
+        await engine.viewFor('plain-scene').prepare();
+        await engine.viewFor('plain-scene').prepare();
+        await engine.viewFor('noisy-scene').prepare();
 
-        expect(renderer_state.last.compile).toHaveBeenCalledTimes(2);
+        expect(renderer_state.last.compileAsync).toHaveBeenCalledTimes(2);
         expect(renderer_state.composer.render).toHaveBeenCalledTimes(2);
         expect(lastController().update).toHaveBeenCalledWith(0, expect.anything());
         expect(requestAnimationFrame).not.toHaveBeenCalled();
+    });
+
+    test('prepare() compiles without blocking and renders its frame only on the next turn, unless the scene has been opened meanwhile', async () => {
+        const engine = createGroupEngine();
+        let releaseTurn;
+        const waitForTurn = vi.fn(() => new Promise(resolve => { releaseTurn = resolve; }));
+        const preparing = engine.viewFor('plain-scene').prepare(waitForTurn);
+        await vi.waitFor(() => expect(waitForTurn).toHaveBeenCalled());
+        expect(renderer_state.last.compileAsync).toHaveBeenCalledTimes(1);
+        expect(renderer_state.composer.render).not.toHaveBeenCalled();
+
+        engine.viewFor('plain-scene').mount(makeContainer());
+        renderer_state.composer.render.mockClear();
+        releaseTurn();
+        await preparing;
+        expect(renderer_state.composer.render).not.toHaveBeenCalled();
     });
 
     test('captureScreenshot() renders a fresh frame and returns a JPEG data URL', () => {

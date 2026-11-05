@@ -12,8 +12,6 @@ export function setupMetaballsGui(facade, { signal } = {}) {
         spread: [facade.getSpread, facade.setSpread],
         color_hot: [facade.getColorHot, facade.setColorHot],
         color_cool: [facade.getColorCool, facade.setColorCool],
-        glow_enabled: [facade.getGlowEnabled, facade.setGlowEnabled],
-        glow_color: [facade.getGlowColor, facade.setGlowColor],
     });
 
     const field_folder = scene_gui.addFolder('gui.folder.metaballs');
@@ -21,11 +19,9 @@ export function setupMetaballsGui(facade, { signal } = {}) {
     scene_gui.addSlider(field_folder, parameters, 'isolation', ISOLATION_RANGE, 'gui.metaballs.isolation');
     scene_gui.addSlider(field_folder, parameters, 'spread', SPREAD_RANGE, 'gui.metaballs.spread');
 
-    const colors_folder = scene_gui.addFolder('gui.folder.lava_colour', { open: false });
+    const colors_folder = scene_gui.addFolder('gui.folder.lava_colour');
     bind(colors_folder.addColor(parameters, 'color_hot'), 'gui.lava.colour_hot');
     bind(colors_folder.addColor(parameters, 'color_cool'), 'gui.lava.colour_cool');
-    bind(colors_folder.add(parameters, 'glow_enabled'), 'gui.lava.glow');
-    bind(colors_folder.addColor(parameters, 'glow_color'), 'gui.lava.glow_colour');
 
     return scene_gui.finish();
 }

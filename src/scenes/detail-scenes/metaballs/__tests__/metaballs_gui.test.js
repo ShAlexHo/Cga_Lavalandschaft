@@ -58,18 +58,19 @@ describe('setupMetaballsGui', () => {
         expect(isolation.name).not.toHaveBeenCalled();
     });
 
-    test('offers the explorable metaball parameters, with the field parameters in an opened folder', () => {
+    test('offers the explorable metaball parameters, with both folders opened', () => {
         const { registry, folders } = makeMockGui();
         setupMetaballsGui(makeFacade());
 
         expect(registry.map(entry => entry.key)).toEqual([
             'paused', 'speed',
             'count', 'isolation', 'spread',
-            'color_hot', 'color_cool', 'glow_enabled', 'glow_color',
+            'color_hot', 'color_cool',
             'reset',
         ]);
         expect(folders.map(folder => folder.name)).toEqual(['Metaballs', 'Lava colour']);
         expect(folders[0].open).toHaveBeenCalled();
+        expect(folders[1].open).toHaveBeenCalled();
     });
 
     test('the count slider keeps the metaballs scene’s range of 1 to 24', () => {

@@ -49,6 +49,7 @@ describe('createScenePreparation', () => {
 
         await runIdleTime();
         expect(engine.prepare).toHaveBeenCalledTimes(1);
+        expect(engine.prepare).toHaveBeenCalledWith(expect.any(Function));
         expect(idle_callbacks).toHaveLength(0);
     });
 

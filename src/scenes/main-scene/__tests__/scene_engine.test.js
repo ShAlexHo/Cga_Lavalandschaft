@@ -12,7 +12,7 @@ vi.mock('three', () => ({
             this.domElement.toDataURL = vi.fn(() => 'data:image/jpeg;base64,AAAA');
             this.setSize = vi.fn();
             this.setPixelRatio = vi.fn();
-            this.compile = vi.fn();
+            this.compileAsync = vi.fn(async () => {});
             this.dispose = vi.fn();
             this.forceContextLoss = vi.fn();
             renderer_state.last = this;
@@ -253,39 +253,39 @@ describe('createSceneEngine', () => {
         expect(resize).not.toHaveBeenCalled();
     });
 
-    test('prepare() compiles the shaders and renders one off-screen frame without starting the loop', () => {
+    test('prepare() compiles the shaders and renders one off-screen frame without starting the loop', async () => {
         const engine = createSceneEngine();
-        engine.prepare();
+        await engine.prepare();
 
-        expect(renderer_state.last.compile).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.compileAsync).toHaveBeenCalledTimes(1);
         expect(createPostProcessing.mock.results.at(-1).value.render).toHaveBeenCalledTimes(1);
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(renderer_state.last.domElement.isConnected).toBe(false);
     });
 
-    test('prepare() does not advance scene time', () => {
+    test('prepare() does not advance scene time', async () => {
         const engine = createSceneEngine();
         clock_state.deltas = [5];
-        engine.prepare();
+        await engine.prepare();
 
         expect(engine.getElapsedTime()).toBe(SCENE_WARM_UP_SECONDS);
         expect(lastController().update).not.toHaveBeenCalled();
     });
 
-    test('prepare() only does its work once', () => {
+    test('prepare() only does its work once', async () => {
         const engine = createSceneEngine();
-        engine.prepare();
-        engine.prepare();
+        await engine.prepare();
+        await engine.prepare();
 
-        expect(renderer_state.last.compile).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.compileAsync).toHaveBeenCalledTimes(1);
     });
 
-    test('prepare() is skipped once the scene has been mounted', () => {
+    test('prepare() is skipped once the scene has been mounted', async () => {
         const engine = createSceneEngine();
         engine.mount(makeContainer());
-        engine.prepare();
+        await engine.prepare();
 
-        expect(renderer_state.last.compile).not.toHaveBeenCalled();
+        expect(renderer_state.last.compileAsync).not.toHaveBeenCalled();
     });
 
     test('captureScreenshot() renders a fresh frame and returns a JPEG data URL', () => {
@@ -398,7 +398,7 @@ describe('prepareSceneEngineGradually', () => {
 
         expect(turns).toBeGreaterThanOrEqual(4);
         expect(createMockController).toHaveBeenCalledTimes(1);
-        expect(renderer_state.last.compile).toHaveBeenCalledTimes(1);
+        expect(renderer_state.last.compileAsync).toHaveBeenCalledTimes(1);
     });
 
     test('opening the scene during a gradual build finishes that same build at once instead of starting anew', async () => {

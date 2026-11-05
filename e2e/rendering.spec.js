@@ -147,10 +147,11 @@ test('metaballs detail opens its own scene with an explanation below it', async 
 
     await page.getByRole('button', { name: detailText('metaballs', 'scroll_hint') }).click();
     await expect(page.getByRole('heading', { name: numberedTitle('metaballs'), level: 2 })).toBeInViewport({ timeout: 60_000 });
-    for (const heading of ['field_heading', 'isosurface_heading', 'example_heading', 'usage_heading']) {
+    for (const heading of ['field_heading', 'isosurface_heading', 'example_heading', 'try_heading', 'usage_heading']) {
         await expect(page.getByRole('heading', { name: TEXT[`details.metaballs.description.${heading}`], level: 3 })).toBeVisible();
     }
-    await expect(page.locator('.scene-description math')).toHaveCount(20);
+    await expect(page.locator('.scene-description math')).toHaveCount(24);
+    await expect(page.locator('.scene-controls dt').filter({ hasText: TEXT['gui.metaballs.isolation'] })).toBeVisible();
     await expect(page.getByRole('img', { name: TEXT['details.metaballs.description.single_ball_figure_alt'] })).toBeVisible();
     await expect(page.getByRole('img', { name: TEXT['details.metaballs.description.two_balls_figure_alt'] })).toBeVisible();
     await expect(page.getByText(TEXT['scene.description_in_work'])).toHaveCount(0);
@@ -163,12 +164,19 @@ test('metaballs detail opens its own scene with an explanation below it', async 
 });
 
 const DETAIL_SCENE_CASES = [
-    { detail_key: 'noise', scene_name: 'noise-scene', labels: ['gui.noise.colour_1', 'gui.noise.colour_2'] },
+    {
+        detail_key: 'noise', scene_name: 'noise-scene', labels: ['gui.noise.colour_1', 'gui.noise.colour_2'],
+        description_headings: ['why_heading', 'layers_heading', 'flow_heading', 'colour_heading', 'try_heading', 'usage_heading'],
+    },
     {
         detail_key: 'surface', scene_name: 'surface-scene',
         labels: ['gui.surface.noise', 'gui.surface.bump_mapping', 'gui.surface.displacement_mapping', 'gui.surface.displacement_strength'],
+        description_headings: ['why_heading', 'bump_heading', 'displacement_heading', 'try_heading', 'usage_heading'],
     },
-    { detail_key: 'ground', scene_name: 'ground-scene', labels: ['gui.metaballs.count', 'gui.visible', 'gui.height'] },
+    {
+        detail_key: 'ground', scene_name: 'ground-scene', labels: ['gui.metaballs.count', 'gui.visible', 'gui.height'],
+        description_headings: ['why_heading', 'bloom_heading', 'try_heading', 'usage_heading'],
+    },
     {
         detail_key: 'volcano', scene_name: 'volcano-scene',
         labels: ['gui.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
@@ -214,6 +222,9 @@ for (const detail of DETAIL_SCENE_CASES) {
 
         await page.getByRole('button', { name: detailText(detail.detail_key, 'scroll_hint') }).click();
         await expect(page.getByRole('heading', { name: numberedTitle(detail.detail_key), level: 2 })).toBeInViewport({ timeout: 60_000 });
+        for (const heading of detail.description_headings ?? []) {
+            await expect(page.getByRole('heading', { name: TEXT[`details.${detail.detail_key}.description.${heading}`], level: 3, exact: true })).toBeVisible();
+        }
 
         expectNoConsoleErrors(console_errors);
     });
