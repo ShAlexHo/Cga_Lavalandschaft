@@ -24,6 +24,10 @@ const NAVIGATION = previous || next
     ? [{ direction: 'previous', target: previous }, { direction: 'next', target: next }]
     : [];
 
+function preventCanvasMenu(event) {
+    if (event.target instanceof HTMLCanvasElement) event.preventDefault();
+}
+
 function navigationLabel({ direction, target }) {
     return `${localize(`scene.${direction}`)}: ${detailTitle(target)}`;
 }
@@ -53,7 +57,7 @@ onBeforeUnmount(leaveScene);
 </script>
 
 <template>
-    <div ref="stage" class="scene-stage">
+    <div ref="stage" class="scene-stage" @contextmenu="preventCanvasMenu">
         <RouterLink :to="{ name: 'landing' }" class="scene-button home-button" :aria-label="localize('scene.home')" :title="localize('scene.home')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z" /></svg>
         </RouterLink>
@@ -85,6 +89,15 @@ onBeforeUnmount(leaveScene);
     height: 100svh;
     overflow: hidden;
     background: #000;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.scene-stage :deep(input) {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 .scene-stage :deep(canvas) {
