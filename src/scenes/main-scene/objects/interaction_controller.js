@@ -15,7 +15,7 @@ function applyTouch(time, point, metaballs, camera_position, squeezeMetaballNear
 export function createInteractionController(renderer, volcano_mesh, { signal } = {}) {
     const raycaster = new THREE.Raycaster();
     const pointer_ndc = new THREE.Vector2();
-    let is_mouse_down = false;
+    let is_pointer_down = false;
     let was_enabled = settings.enabled;
     let seconds_until_auto_touch = randomAutoTouchInterval();
     let auto_touch_active = false;
@@ -28,14 +28,21 @@ export function createInteractionController(renderer, volcano_mesh, { signal } =
         pointer_ndc.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
     }
 
-    renderer.domElement.addEventListener('mousedown', event => {
-        if (event.button !== 0) return;
-        is_mouse_down = true;
+    function releasePointer(event) {
+        if (event.isPrimary) is_pointer_down = false;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', event => {
+        if (!event.isPrimary || event.button !== 0) return;
+        is_pointer_down = true;
         resetTouchSession();
         updatePointerNdc(event);
     });
-    renderer.domElement.addEventListener('mousemove', updatePointerNdc);
-    window.addEventListener('mouseup', () => { is_mouse_down = false; }, { signal });
+    renderer.domElement.addEventListener('pointermove', event => {
+        if (event.isPrimary) updatePointerNdc(event);
+    });
+    window.addEventListener('pointerup', releasePointer, { signal });
+    window.addEventListener('pointercancel', releasePointer, { signal });
 
     return {
         step(time, camera, getMetaballWorldPositions, squeezeMetaballNear, real_delta_seconds) {
@@ -54,7 +61,7 @@ export function createInteractionController(renderer, volcano_mesh, { signal } =
 
                 renderer.domElement.style.cursor = on_lava ? 'pointer' : '';
 
-                if (is_mouse_down && hits.length > 0) {
+                if (is_pointer_down && hits.length > 0) {
                     applyTouch(time, hits[0].point, metaballs, camera.position, squeezeMetaballNear);
                     is_touching_lava = on_lava;
                 }

@@ -24,7 +24,7 @@ export const MESSAGES = {
         'landing.repository_link': 'Lava Landscape on GitHub',
         'landing.author_link': 'Shyue-Shyang Alexander Ho on GitHub',
         'landing.description': 'What happens to a still life that never stands still? Unstill Life: Lava Landscape invites you to slow down and explore a volcanic landscape where lava, sun, and ash shift almost imperceptibly. Metaballs give the glowing lava its soft, fluid forms. Touch the lava flow and see how the terrain responds.',
-        'landing.description_modes': 'The scene runs on its own, but you can explore it with the mouse and touch it in interaction mode. The panel in the top right switches between autonomous and interaction mode.',
+        'landing.description_modes': 'The scene runs on its own, but you can explore it with the mouse or your finger and touch it in interaction mode. The panel in the top right switches between autonomous and interaction mode.',
 
         'landing.details_title': 'Implementation details',
         'landing.details_intro': 'A closer look at how individual parts of the landscape were built.',
@@ -321,7 +321,7 @@ export const MESSAGES = {
         'landing.repository_link': 'Lavalandschaft auf GitHub',
         'landing.author_link': 'Shyue-Shyang Alexander Ho auf GitHub',
         'landing.description': 'Was geschieht mit einem Stillleben, das niemals stillsteht? Unstill Life: Lavalandschaft lädt dich ein, innezuhalten und eine Vulkanlandschaft zu erkunden, in der sich Lava, Sonne und Asche fast unmerklich verändern. Metaballs verleihen der glühenden Lava die weichen, fließenden Formen. Berühre den Lavastrom und sieh, wie das Terrain darauf reagiert.',
-        'landing.description_modes': 'Die Szene läuft von selbst, lässt sich aber mit der Maus erkunden und im Interaktionsmodus auch berühren. Über das Panel oben rechts wechselst du zwischen autonomem Modus und Interaktionsmodus.',
+        'landing.description_modes': 'Die Szene läuft von selbst, lässt sich aber mit der Maus oder dem Finger erkunden und im Interaktionsmodus auch berühren. Über das Panel oben rechts wechselst du zwischen autonomem Modus und Interaktionsmodus.',
 
         'landing.details_title': 'Implementierungsdetails',
         'landing.details_intro': 'Ein genauerer Blick darauf, wie einzelne Teile der Landschaft umgesetzt wurden.',

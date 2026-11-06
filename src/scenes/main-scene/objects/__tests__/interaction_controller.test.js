@@ -39,6 +39,10 @@ function makeRenderer() {
 
 function makeMesh() { return {}; }
 
+function pointerEvent(type, init = {}) {
+    return new PointerEvent(type, { isPrimary: true, pointerType: 'mouse', ...init });
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     isOnLava.mockReturnValue(false);
@@ -47,12 +51,12 @@ beforeEach(() => {
 });
 
 describe('createInteractionController', () => {
-    test('mousedown with the primary button sets the down-state and records pointer coordinates', () => {
+    test('pressing with the primary button sets the down-state and records pointer coordinates', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
         controller.step(0, {}, () => []);
 
         expect(raycaster_instances[0].setFromCamera).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0 }), {});
@@ -63,7 +67,7 @@ describe('createInteractionController', () => {
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 2, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 2, clientX: 400, clientY: 300 }));
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }]);
 
@@ -71,34 +75,34 @@ describe('createInteractionController', () => {
         expect(resetTouchSession).not.toHaveBeenCalled();
     });
 
-    test('mousedown with the primary button resets the touch session for a fresh attempt', () => {
+    test('pressing with the primary button resets the touch session for a fresh attempt', () => {
         const renderer = makeRenderer();
         createInteractionController(renderer, makeMesh());
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         expect(resetTouchSession).toHaveBeenCalledTimes(1);
     });
 
-    test('mousemove updates the tracked pointer position regardless of down-state', () => {
+    test('moving the pointer updates the tracked position regardless of down-state', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 0, clientY: 0 }));
-        renderer.domElement.dispatchEvent(new MouseEvent('mousemove', { clientX: 800, clientY: 0 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 0, clientY: 0 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointermove', { clientX: 800, clientY: 0 }));
         controller.step(0, {}, () => []);
 
         expect(raycaster_instances[0].setFromCamera).toHaveBeenCalledWith(expect.objectContaining({ x: 1, y: 1 }), {});
     });
 
-    test('mouseup on window clears the down-state - raycasting still happens for hover, but no touch is registered', () => {
+    test('releasing the pointer anywhere clears the down-state - raycasting still happens for hover, but no touch is registered', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
-        window.dispatchEvent(new MouseEvent('mouseup'));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
+        window.dispatchEvent(pointerEvent('pointerup'));
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }]);
 
@@ -106,19 +110,53 @@ describe('createInteractionController', () => {
         expect(registerTouch).not.toHaveBeenCalled();
     });
 
-    test('aborting the signal removes the window mouseup listener, so a closed scene leaves nothing behind', () => {
+    test('aborting the signal removes the window release listeners, so a closed scene leaves nothing behind', () => {
         const renderer = makeRenderer();
         const lifetime = new AbortController();
         const controller = createInteractionController(renderer, makeMesh(), { signal: lifetime.signal });
         settings.enabled = true;
 
         lifetime.abort();
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
-        window.dispatchEvent(new MouseEvent('mouseup'));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
+        window.dispatchEvent(pointerEvent('pointerup'));
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }], vi.fn());
 
         expect(registerTouch).toHaveBeenCalled();
+    });
+
+    test('a finger on a touch screen touches the lava like the mouse, and lifting or cancelling it stops the touch', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        settings.enabled = true;
+        const hit = [{ point: { x: 1, y: 2, z: 3 } }];
+
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', button: 0, clientX: 400, clientY: 300 }));
+        raycaster_instances[0].intersectObject.mockReturnValueOnce(hit);
+        controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }], vi.fn());
+        expect(registerTouch).toHaveBeenCalledTimes(1);
+
+        window.dispatchEvent(pointerEvent('pointercancel', { pointerType: 'touch' }));
+        raycaster_instances[0].intersectObject.mockReturnValueOnce(hit);
+        controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }], vi.fn());
+        expect(registerTouch).toHaveBeenCalledTimes(1);
+    });
+
+    test('a second finger neither starts, moves nor ends the touch of the first one', () => {
+        const renderer = makeRenderer();
+        const controller = createInteractionController(renderer, makeMesh());
+        settings.enabled = true;
+
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', isPrimary: false, button: 0, clientX: 0, clientY: 0 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointermove', { pointerType: 'touch', isPrimary: false, clientX: 0, clientY: 0 }));
+        window.dispatchEvent(pointerEvent('pointerup', { pointerType: 'touch', isPrimary: false }));
+        raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
+        controller.step(0, {}, () => [{ x: 0, y: 0, z: 0 }], vi.fn());
+
+        expect(resetTouchSession).toHaveBeenCalledTimes(1);
+        expect(raycaster_instances[0].setFromCamera).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0 }), {});
+        expect(registerTouch).toHaveBeenCalledTimes(1);
     });
 
     test('step() only raycasts when interaction mode is enabled, regardless of whether the mouse is pressed', () => {
@@ -138,7 +176,7 @@ describe('createInteractionController', () => {
         const mesh = makeMesh();
         const controller = createInteractionController(renderer, mesh);
         settings.enabled = true;
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         const hit_point = { x: 1, y: 2, z: 3 };
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: hit_point }]);
@@ -156,7 +194,7 @@ describe('createInteractionController', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         const squeeze = { x: 1, y: 2, z: 3, shrink_increment: 0.2 };
@@ -172,7 +210,7 @@ describe('createInteractionController', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         registerTouch.mockReturnValueOnce(null);
@@ -187,7 +225,7 @@ describe('createInteractionController', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         const getPositions = vi.fn(() => []);
         controller.step(0, {}, getPositions);
@@ -215,7 +253,7 @@ describe('createInteractionController', () => {
         const renderer = makeRenderer();
         const controller = createInteractionController(renderer, makeMesh());
         settings.enabled = true;
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
 
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         isOnLava.mockReturnValueOnce(true);
@@ -234,7 +272,7 @@ describe('createInteractionController', () => {
         isOnLava.mockReturnValueOnce(true);
         expect(controller.step(0, {}, () => [{ x: 1, y: 2, z: 3 }]).is_touching_lava).toBe(false);
 
-        renderer.domElement.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 400, clientY: 300 }));
+        renderer.domElement.dispatchEvent(pointerEvent('pointerdown', { button: 0, clientX: 400, clientY: 300 }));
         raycaster_instances[0].intersectObject.mockReturnValueOnce([{ point: { x: 1, y: 2, z: 3 } }]);
         isOnLava.mockReturnValueOnce(false);
         expect(controller.step(0, {}, () => [{ x: 1, y: 2, z: 3 }]).is_touching_lava).toBe(false);
