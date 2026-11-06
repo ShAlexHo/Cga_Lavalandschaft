@@ -62,6 +62,20 @@ button:focus-visible {
     line-height: 1.2;
 }
 
+.text-link {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent-soft);
+    text-underline-offset: 3px;
+    transition: color 200ms ease, text-decoration-color 200ms ease;
+}
+
+.text-link:hover,
+.text-link:focus-visible {
+    color: var(--color-accent);
+    text-decoration-color: var(--color-accent);
+}
+
 .spinner {
     border: 4px solid rgba(255, 255, 255, 0.2);
     border-top-color: var(--color-on-accent);

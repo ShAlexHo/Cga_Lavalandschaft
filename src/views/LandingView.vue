@@ -3,7 +3,7 @@ let saved_scroll_top = 0;
 </script>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { scene_screenshots } from '../scene_screenshot.js';
 import { expandIntoScene, whenReturnFinished } from '../scene_transition.js';
@@ -13,6 +13,7 @@ import { detailText, detailTitle } from '../ui/detail_texts.js';
 import main_scene_preview_url from '../assets/main_scene_preview.jpg';
 import GitHubIcon from '../components/GitHubIcon.vue';
 import ScenePreview from '../components/ScenePreview.vue';
+import CourseFooter from '../components/CourseFooter.vue';
 import { DETAIL_SCENES } from '../scenes/detail-scenes/detail_scenes.js';
 import { MAIN_SCENE_NAME } from '../scenes/main-scene/scene_name.js';
 import { createScenePreparation } from '../scene_preparation.js';
@@ -30,6 +31,12 @@ const main_scene_image_url = computed(() => scene_screenshots[MAIN_SCENE_NAME] ?
 
 function detailImageUrl(detail) {
     return scene_screenshots[detail.scene_name] ?? detail.preview_url;
+}
+
+const course_footer = ref(null);
+
+function showCourseNote() {
+    course_footer.value.show();
 }
 
 let is_entering = false;
@@ -84,8 +91,13 @@ onBeforeUnmount(() => {
                             target="_blank"
                             rel="noopener noreferrer"
                             :title="localize('landing.seminar_link')"
-                        >{{ localize('landing.seminar_name') }}</a>
-                        {{ localize('landing.by') }} {{ localize('landing.author_name') }}
+                        >{{ localize('landing.seminar_name') }}</a><sup><a
+                            href="#course-note"
+                            class="footnote-reference"
+                            :aria-label="localize('landing.course_note_reference')"
+                            @click.prevent="showCourseNote"
+                        >1</a></sup>{{ localize('landing.subtitle_author_prefix') }}
+                        {{ localize('landing.author_name') }}
                     </p>
                 </div>
 
@@ -170,6 +182,8 @@ onBeforeUnmount(() => {
                 </article>
             </div>
         </section>
+
+        <CourseFooter ref="course_footer" :seminar_url="SEMINAR_URL" />
     </main>
 </template>
 
@@ -249,7 +263,6 @@ onBeforeUnmount(() => {
     font-size: clamp(0.85rem, 1.4vw, 1rem);
 }
 
-.text-link,
 .github-link .link-text {
     text-decoration: underline;
     text-decoration-color: var(--color-accent-soft);
@@ -257,12 +270,6 @@ onBeforeUnmount(() => {
     transition: color 200ms ease, text-decoration-color 200ms ease;
 }
 
-.text-link {
-    color: var(--color-text);
-}
-
-.text-link:hover,
-.text-link:focus-visible,
 .github-link:hover .link-text,
 .github-link:focus-visible .link-text {
     color: var(--color-accent);
@@ -379,6 +386,19 @@ onBeforeUnmount(() => {
 .detail-text {
     font-size: 1.05rem;
     line-height: 1.65;
+}
+
+.footnote-reference {
+    margin-left: 1px;
+    color: var(--color-accent);
+    font-size: 0.75em;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.footnote-reference:hover,
+.footnote-reference:focus-visible {
+    text-decoration: underline;
 }
 
 @media (orientation: portrait) {
