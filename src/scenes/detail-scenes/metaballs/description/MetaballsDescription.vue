@@ -1,5 +1,6 @@
 <script setup>
 import { createDescriptionText, formatNumber } from '../../shared/description/description_text.js';
+import SceneLinkedText from '../../shared/description/SceneLinkedText.vue';
 import TryItYourself from '../../shared/description/TryItYourself.vue';
 import {
     THRESHOLD, FIRST_BALL, SECOND_BALL, TEST_POINT, SINGLE_BALL, TWO_BALLS, FIRST_DISTANCE, SECOND_DISTANCE, SINGLE_BALL_POTENTIAL, TWO_BALLS_POTENTIAL,
@@ -21,7 +22,7 @@ const SCENE_CONTROLS = [
 <template>
     <section>
         <h3>{{ descriptionText('field_heading') }}</h3>
-        <p>{{ descriptionText('field_text_1') }}</p>
+        <p><SceneLinkedText :text="descriptionText('field_text_1')" /></p>
         <math display="block">
             <msub><mi>f</mi><mi>i</mi></msub><mo>(</mo><mi>p</mi><mo>)</mo>
             <mo>=</mo>
@@ -32,7 +33,7 @@ const SCENE_CONTROLS = [
             <mo>=</mo>
             <mo>‖</mo><mi>p</mi><mo>−</mo><msub><mi>c</mi><mi>i</mi></msub><mo>‖</mo>
         </math>
-        <p>{{ descriptionText('field_text_2') }}</p>
+        <p><SceneLinkedText :text="descriptionText('field_text_2')" /></p>
         <ul class="falloff-functions">
             <li>
                 <span class="formula"><math displaystyle="true"><msub><mi>φ</mi><mi>i</mi></msub><mo>(</mo><mi>r</mi><mo>)</mo><mo>=</mo><mfrac><msub><mi>a</mi><mi>i</mi></msub><mi>r</mi></mfrac></math></span>
@@ -60,19 +61,19 @@ const SCENE_CONTROLS = [
                 <span>{{ descriptionText('falloff_clamped') }}</span>
             </li>
         </ul>
-        <p>{{ descriptionText('field_text_3') }}</p>
+        <p><SceneLinkedText :text="descriptionText('field_text_3')" /></p>
     </section>
 
     <section>
         <h3>{{ descriptionText('isosurface_heading') }}</h3>
-        <p>{{ descriptionText('isosurface_text_1') }}</p>
+        <p><SceneLinkedText :text="descriptionText('isosurface_text_1')" /></p>
         <math display="block">
             <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo>
             <mo>=</mo>
             <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
             <msub><mi>f</mi><mi>i</mi></msub><mo>(</mo><mi>p</mi><mo>)</mo>
         </math>
-        <p>{{ descriptionText('isosurface_text_2') }}</p>
+        <p><SceneLinkedText :text="descriptionText('isosurface_text_2')" /></p>
         <math display="block">
             <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>≥</mo><mi>τ</mi>
             <mspace width="1.5em" />
@@ -82,7 +83,7 @@ const SCENE_CONTROLS = [
 
     <section>
         <h3>{{ descriptionText('example_heading') }}</h3>
-        <p>{{ descriptionText('example_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('example_text')" /></p>
         <div class="formula-line">
             <math displaystyle="true">
                 <mi>τ</mi><mo>=</mo><mn>{{ formatNumber(THRESHOLD) }}</mn><mo>,</mo>
@@ -94,7 +95,7 @@ const SCENE_CONTROLS = [
         <h4>{{ descriptionText('single_ball_heading') }}</h4>
         <ol class="example-steps">
             <li>
-                <p>{{ descriptionText('single_ball_step_1') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_1')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <msub><mi>r</mi><mn>1</mn></msub><mo>=</mo><mo>‖</mo><mi>p</mi><mo>−</mo><msub><mi>c</mi><mn>1</mn></msub><mo>‖</mo>
@@ -115,7 +116,7 @@ const SCENE_CONTROLS = [
                         <msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt>
                     </math>
                 </div>
-                <p>{{ descriptionText('single_ball_step_1_potential') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_1_potential')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msub><mi>r</mi><mn>1</mn></msub></mfrac>
@@ -123,7 +124,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_2') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_2')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>≥</mo><mi>τ</mi>
@@ -133,7 +134,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_3') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_3')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mn>1</mn><mo>≥</mo><mn>{{ formatNumber(THRESHOLD) }}</mn><mo>⋅</mo><msub><mi>r</mi><mn>1</mn></msub>
@@ -141,7 +142,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_4') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_4')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mfrac><mn>1</mn><mn>{{ formatNumber(THRESHOLD) }}</mn></mfrac><mo>≥</mo><msub><mi>r</mi><mn>1</mn></msub>
@@ -151,7 +152,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_5') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_5')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt><mo>≤</mo><mn>{{ formatNumber(1 / THRESHOLD) }}</mn>
@@ -159,13 +160,13 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_6') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_6')" /></p>
                 <div class="formula-line">
                     <DistanceCalculation :point="TEST_POINT" :center="FIRST_BALL" :center_index="1" />
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_7') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_7')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>P</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msub><mi>r</mi><mn>1</mn></msub></mfrac>
@@ -175,7 +176,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('single_ball_step_8') }}</p>
+                <p><SceneLinkedText :text="descriptionText('single_ball_step_8')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mn>{{ formatNumber(SINGLE_BALL_POTENTIAL) }}</mn><mo>&lt;</mo><mn>{{ formatNumber(THRESHOLD) }}</mn>
@@ -185,13 +186,13 @@ const SCENE_CONTROLS = [
         </ol>
         <figure>
             <MetaballFieldDiagram :balls="SINGLE_BALL" :threshold="THRESHOLD" :point="TEST_POINT" :description="descriptionText('single_ball_figure_alt')" />
-            <figcaption>{{ descriptionText('single_ball_figure_caption') }}</figcaption>
+            <figcaption><SceneLinkedText :text="descriptionText('single_ball_figure_caption')" /></figcaption>
         </figure>
 
         <h4>{{ descriptionText('two_balls_heading') }}</h4>
         <ol class="example-steps">
             <li>
-                <p>{{ descriptionText('two_balls_step_1') }}</p>
+                <p><SceneLinkedText :text="descriptionText('two_balls_step_1')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>p</mi><mo>)</mo><mo>=</mo>
@@ -202,13 +203,13 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('two_balls_step_2') }}</p>
+                <p><SceneLinkedText :text="descriptionText('two_balls_step_2')" /></p>
                 <div class="formula-line">
                     <DistanceCalculation :point="TEST_POINT" :center="SECOND_BALL" :center_index="2" />
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('two_balls_step_3') }}</p>
+                <p><SceneLinkedText :text="descriptionText('two_balls_step_3')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mi>F</mi><mo>(</mo><mi>P</mi><mo>)</mo>
@@ -219,7 +220,7 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
             <li>
-                <p>{{ descriptionText('two_balls_step_4') }}</p>
+                <p><SceneLinkedText :text="descriptionText('two_balls_step_4')" /></p>
                 <div class="formula-line">
                     <math displaystyle="true">
                         <mn>{{ formatNumber(TWO_BALLS_POTENTIAL) }}</mn><mo>&gt;</mo><mn>{{ formatNumber(THRESHOLD) }}</mn>
@@ -227,10 +228,10 @@ const SCENE_CONTROLS = [
                 </div>
             </li>
         </ol>
-        <p>{{ descriptionText('two_balls_conclusion') }}</p>
+        <p><SceneLinkedText :text="descriptionText('two_balls_conclusion')" /></p>
         <figure>
             <MetaballFieldDiagram :balls="TWO_BALLS" :threshold="THRESHOLD" :point="TEST_POINT" show_single_circles :description="descriptionText('two_balls_figure_alt')" />
-            <figcaption>{{ descriptionText('two_balls_figure_caption') }}</figcaption>
+            <figcaption><SceneLinkedText :text="descriptionText('two_balls_figure_caption')" /></figcaption>
         </figure>
     </section>
 
@@ -238,7 +239,7 @@ const SCENE_CONTROLS = [
 
     <section>
         <h3>{{ descriptionText('usage_heading') }}</h3>
-        <p>{{ descriptionText('usage_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('usage_text')" /></p>
     </section>
 </template>
 

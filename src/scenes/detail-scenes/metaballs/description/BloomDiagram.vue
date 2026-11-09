@@ -41,7 +41,7 @@ const HEIGHT = ROWS.length * ROW_HEIGHT;
 </script>
 
 <template>
-    <svg class="bloom-diagram" :viewBox="`-10 0 ${WIDTH + 20} ${HEIGHT}`" role="img" :aria-label="properties.description">
+    <svg class="diagram" :viewBox="`-10 0 ${WIDTH + 20} ${HEIGHT}`" role="img" :aria-label="properties.description">
         <g v-for="row in ROWS" :key="row.label_key">
             <text class="label" x="0" :y="row.label_y">{{ descriptionText(row.label_key) }}</text>
             <line class="baseline" x1="0" :y1="row.baseline" :x2="WIDTH" :y2="row.baseline" />
@@ -55,22 +55,9 @@ const HEIGHT = ROWS.length * ROW_HEIGHT;
     </svg>
 </template>
 
+<style scoped src="../../shared/description/diagram.css"></style>
+
 <style scoped>
-.bloom-diagram {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    font-family: inherit;
-}
-
-.label {
-    fill: var(--color-text-muted);
-    font-size: 15px;
-}
-
 .threshold-label {
     fill: var(--color-text-muted);
     font-size: 13px;

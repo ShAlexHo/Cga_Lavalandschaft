@@ -1,5 +1,6 @@
 <script setup>
 import { createDescriptionText } from '../../shared/description/description_text.js';
+import SceneLinkedText from '../../shared/description/SceneLinkedText.vue';
 import TryItYourself from '../../shared/description/TryItYourself.vue';
 import SurfaceMappingDiagram from './SurfaceMappingDiagram.vue';
 
@@ -16,21 +17,21 @@ const SCENE_CONTROLS = [
 <template>
     <section>
         <h3>{{ descriptionText('why_heading') }}</h3>
-        <p>{{ descriptionText('why_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('why_text')" /></p>
     </section>
 
     <section>
         <h3>{{ descriptionText('bump_heading') }}</h3>
-        <p>{{ descriptionText('bump_text_1') }}</p>
-        <p>{{ descriptionText('bump_text_2') }}</p>
+        <p><SceneLinkedText :text="descriptionText('bump_text_1')" /></p>
+        <p><SceneLinkedText :text="descriptionText('bump_text_2')" /></p>
     </section>
 
     <section>
         <h3>{{ descriptionText('displacement_heading') }}</h3>
-        <p>{{ descriptionText('displacement_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('displacement_text')" /></p>
         <figure>
             <SurfaceMappingDiagram :description="descriptionText('mapping_figure_alt')" />
-            <figcaption>{{ descriptionText('mapping_figure_caption') }}</figcaption>
+            <figcaption><SceneLinkedText :text="descriptionText('mapping_figure_caption')" /></figcaption>
         </figure>
     </section>
 
@@ -38,7 +39,7 @@ const SCENE_CONTROLS = [
 
     <section>
         <h3>{{ descriptionText('usage_heading') }}</h3>
-        <p>{{ descriptionText('usage_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('usage_text')" /></p>
     </section>
 </template>
 

@@ -49,7 +49,7 @@ const HEIGHT = ROWS.length * ROW_HEIGHT;
 </script>
 
 <template>
-    <svg class="surface-mapping-diagram" :viewBox="`-10 0 ${WIDTH + 20} ${HEIGHT}`" role="img" :aria-label="properties.description">
+    <svg class="diagram" :viewBox="`-10 0 ${WIDTH + 20} ${HEIGHT}`" role="img" :aria-label="properties.description">
         <defs>
             <marker id="surface-normal-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                 <path class="arrow-head" d="M0,0 L10,5 L0,10 z" />
@@ -63,22 +63,9 @@ const HEIGHT = ROWS.length * ROW_HEIGHT;
     </svg>
 </template>
 
+<style scoped src="../../shared/description/diagram.css"></style>
+
 <style scoped>
-.surface-mapping-diagram {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    font-family: inherit;
-}
-
-.label {
-    fill: var(--color-text-muted);
-    font-size: 15px;
-}
-
 .surface {
     fill: none;
     stroke: var(--color-accent);

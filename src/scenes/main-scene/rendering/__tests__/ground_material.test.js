@@ -51,6 +51,7 @@ describe('createGroundMaterial', () => {
             'u_edge_fade_start',
             'u_edge_fade_end',
             'u_edge_fade_strength',
+            'u_height_occlusion_strength',
         ];
         expected_keys.forEach(key => {
             expect(material.uniforms).toHaveProperty(key);

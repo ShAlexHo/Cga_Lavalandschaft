@@ -42,6 +42,8 @@ export function createGround(scene) {
         setColor4: value => material.uniforms.u_rock_color_4.value.set(value),
         getEdgeFadeEnabled: () => material.uniforms.u_edge_fade_strength.value === 1.0,
         setEdgeFadeEnabled: value => { material.uniforms.u_edge_fade_strength.value = value ? 1.0 : 0.0; },
+        getHeightOcclusionEnabled: () => material.uniforms.u_height_occlusion_strength.value === 1.0,
+        setHeightOcclusionEnabled: value => { material.uniforms.u_height_occlusion_strength.value = value ? 1.0 : 0.0; },
         getCrackSoftness: () => material.uniforms.u_crack_softness.value,
         setCrackSoftness: value => { material.uniforms.u_crack_softness.value = value; },
         getProximityColor: () => toHexColor(material.uniforms.u_proximity_color.value),

@@ -30,7 +30,7 @@ import {
 import MAIN_SCENE_DEFAULTS from '../../../main-scene/default_settings.json';
 import { createLandscapeController } from '../landscape_controller.js';
 import { DETAIL_BACKGROUND_COLOR } from '../../shared/config.js';
-import { LANDSCAPE_DEFAULTS, LANDSCAPE_VOLCANO_AMBIENT_STRENGTH, LANDSCAPE_FOG_DEFAULT } from '../config.js';
+import { LANDSCAPE_DEFAULTS, LANDSCAPE_VOLCANO_AMBIENT_STRENGTH, LANDSCAPE_FOG_DEFAULT, LANDSCAPE_HEIGHT_OCCLUSION_DEFAULT } from '../config.js';
 
 let metaball_animation;
 let scene;
@@ -277,6 +277,18 @@ describe('createLandscapeController – with the crack ground', () => {
 
         with_cracks.resetToDefaults();
         expect(with_cracks.getFog()).toBe(true);
+    });
+
+    test('the darkening of the hollows is on by default, can be switched off and comes back with the reset', () => {
+        expect(with_cracks.getHeightOcclusion()).toBe(LANDSCAPE_HEIGHT_OCCLUSION_DEFAULT);
+        expect(crackGround().material.uniforms.u_height_occlusion_strength.value).toBe(1.0);
+
+        with_cracks.setHeightOcclusion(false);
+        expect(crackGround().material.uniforms.u_height_occlusion_strength.value).toBe(0.0);
+        expect(with_cracks.getSnapshot()).toMatchObject({ height_occlusion: false });
+
+        with_cracks.resetToDefaults();
+        expect(with_cracks.getHeightOcclusion()).toBe(true);
     });
 
     test('offers two rock colours, two crack colours, softness, roughness and range, starting at the landscape’s values', () => {

@@ -42,7 +42,7 @@ const is_point_inside = computed(() => fieldValue(properties.point, properties.b
 </script>
 
 <template>
-    <svg class="metaball-field-diagram" :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" role="img" :aria-label="properties.description">
+    <svg class="diagram" :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" role="img" :aria-label="properties.description">
         <g class="grid">
             <line v-for="x in grid_xs" :key="`x${x}`" :x1="toSvgX(x)" :x2="toSvgX(x)" :y1="0" :y2="HEIGHT" />
             <line v-for="y in grid_ys" :key="`y${y}`" :x1="0" :x2="WIDTH" :y1="toSvgY(y)" :y2="toSvgY(y)" />
@@ -77,17 +77,9 @@ const is_point_inside = computed(() => fieldValue(properties.point, properties.b
     </svg>
 </template>
 
-<style scoped>
-.metaball-field-diagram {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    font-family: inherit;
-}
+<style scoped src="../../shared/description/diagram.css"></style>
 
+<style scoped>
 .grid line {
     stroke: rgba(255, 255, 255, 0.07);
     stroke-width: 1;

@@ -81,6 +81,10 @@ describe('createGround', () => {
         ground.setEdgeFadeEnabled(false);
         expect(ground.getEdgeFadeEnabled()).toBe(false);
 
+        expect(ground.getHeightOcclusionEnabled()).toBe(true);
+        ground.setHeightOcclusionEnabled(false);
+        expect(ground.getHeightOcclusionEnabled()).toBe(false);
+
         ground.setProximityColor('#444444');
         expect(ground.getProximityColor()).toBe('#444444');
 

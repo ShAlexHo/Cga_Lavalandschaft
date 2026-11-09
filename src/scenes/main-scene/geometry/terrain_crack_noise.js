@@ -268,8 +268,10 @@ function crackDisplacementLayer(x, y, z, frequency) {
         floatMultiply(floatAdd(y, floatMultiply(warp_y, toFloat32(1.2))), frequency),
         floatMultiply(floatAdd(z, floatMultiply(warp_z, toFloat32(1.2))), frequency),
     ));
-    return toFloat32(Math.pow(noise_value, 0.18));
+    return toFloat32(Math.pow(noise_value, CRACK_SHARPNESS_EXPONENT));
 }
+
+export const CRACK_SHARPNESS_EXPONENT = 0.18;
 
 export function crackDisplacementNoise(x, y, z, frequency) {
     let accumulated_noise = toFloat32(0.0);

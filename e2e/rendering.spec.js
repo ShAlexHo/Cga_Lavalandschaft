@@ -180,30 +180,36 @@ const DETAIL_SCENE_CASES = [
     {
         detail_key: 'volcano', scene_name: 'volcano-scene',
         labels: ['gui.speed', 'gui.metaballs.spawn_height', 'gui.metaballs.flow_slope', 'gui.visible'],
+        description_headings: ['lathe_heading', 'flow_heading', 'try_heading', 'usage_heading'],
     },
     {
         detail_key: 'lava_flow', scene_name: 'lava-flow-scene',
         labels: ['gui.speed', 'gui.metaballs.slow_down', 'gui.metaballs.sectors_enabled', 'gui.metaballs.sector_count', 'gui.visible'],
         absent_labels: ['gui.metaballs.flow_slope'], folders: ['gui.folder.flow_speed', 'gui.folder.distribution', 'gui.folder.ground'],
+        description_headings: ['intro_heading', 'directions_heading', 'slow_heading', 'sectors_heading', 'try_heading'],
     },
     {
         detail_key: 'volcano_irregularities', scene_name: 'volcano-irregularities-scene',
         labels: ['gui.speed', 'gui.volcano.surface_irregularities'], absent_labels: ['gui.visible'], folders: ['gui.folder.volcano'],
+        description_headings: ['intro_heading', 'crack_heading', 'lava_heading', 'try_heading', 'usage_heading'],
     },
     {
         detail_key: 'smoke_ash', scene_name: 'smoke-ash-scene',
         labels: ['gui.speed', 'gui.smoke.count', 'gui.smoke.rise_speed', 'gui.smoke.ember_cooling_time'],
         absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.smoke'],
+        description_headings: ['particles_heading', 'motion_heading', 'appearance_heading', 'try_heading', 'usage_heading'],
     },
     {
         detail_key: 'lava_landscape', scene_name: 'lava-landscape-scene',
         labels: ['gui.speed', 'gui.fog', 'gui.ground.rock_colour_1', 'gui.ground.crack_colour_2', 'gui.ground.crack_softness'],
         absent_labels: ['gui.volcano.surface_irregularities'], folders: ['gui.folder.ground', 'gui.folder.cracks'],
+        description_headings: ['relief_heading', 'cracks_heading', 'zones_heading', 'try_heading'],
     },
     {
         detail_key: 'sun_god_rays', scene_name: 'sun-god-rays-scene',
         labels: ['gui.speed', 'gui.god_rays.decay', 'gui.god_rays.density'],
         absent_labels: ['gui.fog', 'gui.volcano.surface_irregularities', 'gui.sun.strength', 'gui.sun.focus'], folders: ['gui.folder.metaballs', 'gui.folder.god_rays'],
+        description_headings: ['sun_heading', 'rays_heading', 'try_heading', 'usage_heading'],
     },
 ];
 

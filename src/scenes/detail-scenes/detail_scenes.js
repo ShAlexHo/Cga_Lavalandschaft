@@ -38,15 +38,31 @@ export const DETAIL_SCENES = [
         scene_name: 'ground-scene', message_key_prefix: 'details.ground', preview_url: ground_preview_url, loadGroup: loadMetaballsGroup,
         loadDescription: () => import('./metaballs/description/GroundDescription.vue'),
     },
-    { scene_name: 'volcano-scene', message_key_prefix: 'details.volcano', preview_url: volcano_preview_url, loadGroup: loadVolcanoGroup },
-    { scene_name: 'lava-flow-scene', message_key_prefix: 'details.lava_flow', preview_url: lava_flow_preview_url, loadGroup: loadVolcanoGroup },
+    {
+        scene_name: 'volcano-scene', message_key_prefix: 'details.volcano', preview_url: volcano_preview_url, loadGroup: loadVolcanoGroup,
+        loadDescription: () => import('./volcano/description/VolcanoDescription.vue'),
+    },
+    {
+        scene_name: 'lava-flow-scene', message_key_prefix: 'details.lava_flow', preview_url: lava_flow_preview_url, loadGroup: loadVolcanoGroup,
+        loadDescription: () => import('./volcano/description/LavaFlowDescription.vue'),
+    },
     {
         scene_name: 'volcano-irregularities-scene', message_key_prefix: 'details.volcano_irregularities', preview_url: volcano_irregularities_preview_url,
         loadGroup: loadLandscapeGroup,
+        loadDescription: () => import('./landscape/description/VolcanoIrregularitiesDescription.vue'),
     },
-    { scene_name: 'smoke-ash-scene', message_key_prefix: 'details.smoke_ash', preview_url: smoke_ash_preview_url, loadGroup: loadLandscapeGroup },
-    { scene_name: 'lava-landscape-scene', message_key_prefix: 'details.lava_landscape', preview_url: lava_landscape_preview_url, loadGroup: loadLandscapeGroup },
-    { scene_name: 'sun-god-rays-scene', message_key_prefix: 'details.sun_god_rays', preview_url: sun_god_rays_preview_url, loadGroup: loadLandscapeGroup },
+    {
+        scene_name: 'smoke-ash-scene', message_key_prefix: 'details.smoke_ash', preview_url: smoke_ash_preview_url, loadGroup: loadLandscapeGroup,
+        loadDescription: () => import('./landscape/description/SmokeAshDescription.vue'),
+    },
+    {
+        scene_name: 'lava-landscape-scene', message_key_prefix: 'details.lava_landscape', preview_url: lava_landscape_preview_url, loadGroup: loadLandscapeGroup,
+        loadDescription: () => import('./landscape/description/LavaLandscapeDescription.vue'),
+    },
+    {
+        scene_name: 'sun-god-rays-scene', message_key_prefix: 'details.sun_god_rays', preview_url: sun_god_rays_preview_url, loadGroup: loadLandscapeGroup,
+        loadDescription: () => import('./landscape/description/SunGodRaysDescription.vue'),
+    },
 ].map(({ loadGroup, ...detail }, index) => ({
     ...detail,
     number: index + 1,

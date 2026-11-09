@@ -2,6 +2,8 @@ import {
     MAX_BALL_COUNT, PATH_AMPLITUDE, PATH_MIN_FREQUENCY, PATH_FREQUENCY_RANGE, STRENGTH_VARIANCE, SUBTRACT_RANGE, BALL_STRENGTH,
 } from './config.js';
 
+const FLOW_ANGLE_STEP = 0.6180339887;
+
 export function lowDiscrepancySequence(index, step) {
     return (index * step) % 1;
 }
@@ -23,7 +25,7 @@ export const BALL_PATHS = Array.from({ length: MAX_BALL_COUNT }, (_, i) => ({
     },
     strength: BALL_STRENGTH * interpolate(STRENGTH_VARIANCE.min, STRENGTH_VARIANCE.max, lowDiscrepancySequence(i + 1, 0.3819660113)),
     subtract: interpolate(SUBTRACT_RANGE.min, SUBTRACT_RANGE.max, lowDiscrepancySequence(i + 1, 0.8541019662)),
-    flow_angle: 2 * Math.PI * lowDiscrepancySequence(i + 1, 0.6180339887),
+    flow_angle: 2 * Math.PI * lowDiscrepancySequence(i + 1, FLOW_ANGLE_STEP),
 }));
 
 export function computeBalls(time, { count, spread, subtract_scale }, { planar = false } = {}) {

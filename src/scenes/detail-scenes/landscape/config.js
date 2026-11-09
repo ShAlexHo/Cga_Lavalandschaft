@@ -19,6 +19,7 @@ export const LANDSCAPE_DEFAULTS = {
 export const LANDSCAPE_SPEED_RANGE = { min: 0, max: 8, step: 0.05 };
 export const LANDSCAPE_VOLCANO_AMBIENT_STRENGTH = 0.6;
 export const LANDSCAPE_FOG_DEFAULT = true;
+export const LANDSCAPE_HEIGHT_OCCLUSION_DEFAULT = true;
 
 export const SMOKE_COUNT_RANGE = { min: 1, max: SMOKE_MAX_PARTICLES, step: 1 };
 export const SMOKE_RISE_SPEED_RANGE = { min: 0, max: 0.1, step: 0.001 };

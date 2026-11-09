@@ -20,6 +20,7 @@ function makeFacade() {
         isPaused: () => false, setPaused: vi.fn(),
         getSpeed: () => 6, setSpeed: vi.fn(),
         getFog: () => true, setFog: vi.fn(),
+        getHeightOcclusion: () => true, setHeightOcclusion: vi.fn(),
         resetToDefaults: vi.fn(),
     };
     for (const method of GROUND_METHODS) {
@@ -42,7 +43,7 @@ describe('setupLavaLandscapeGui', () => {
         expect(registry.map(entry => `${entry.folder}/${entry.key}`)).toEqual([
             'root/paused', 'root/speed', 'root/fog',
             'Ground/ground_color', 'Ground/ground_color_2',
-            'Ground/ground_displacement_scale', 'Ground/ground_displacement_frequency', 'Ground/ground_proximity_radius',
+            'Ground/ground_displacement_scale', 'Ground/ground_displacement_frequency', 'Ground/ground_proximity_radius', 'Ground/height_occlusion',
             'Cracks/ground_crack_color', 'Cracks/ground_crack_color_2',
             'Cracks/ground_crack_softness',
             'root/reset',
@@ -72,6 +73,8 @@ describe('setupLavaLandscapeGui', () => {
         expect(facade.setGroundCrackColor2).toHaveBeenCalledWith('#123456');
         findControl(registry, 'fog').bound_object.fog = false;
         expect(facade.setFog).toHaveBeenCalledWith(false);
+        findControl(registry, 'height_occlusion').bound_object.height_occlusion = false;
+        expect(facade.setHeightOcclusion).toHaveBeenCalledWith(false);
     });
 
     test('labels follow the language', () => {
@@ -80,9 +83,10 @@ describe('setupLavaLandscapeGui', () => {
         setLanguage('de');
 
         expect(findControl(registry, 'fog').controller.name).toHaveBeenLastCalledWith('Nebel');
+        expect(findControl(registry, 'height_occlusion').controller.name).toHaveBeenLastCalledWith('Mulden abdunkeln');
         expect(findControl(registry, 'ground_color_2').controller.name).toHaveBeenLastCalledWith('Gesteinsfarbe 2');
         expect(findControl(registry, 'ground_crack_color_2').controller.name).toHaveBeenLastCalledWith('Rissfarbe 2');
-        expect(findControl(registry, 'ground_crack_softness').controller.name).toHaveBeenLastCalledWith('Kantenweichheit');
+        expect(findControl(registry, 'ground_crack_softness').controller.name).toHaveBeenLastCalledWith('Rissbreite');
         expect(folders.map(folder => folder.name)).toEqual(['Boden', 'Risse']);
     });
 });

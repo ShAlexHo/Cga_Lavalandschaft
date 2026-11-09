@@ -3,6 +3,8 @@ import { VOLCANO_PROFILE, VOLCANO_PROFILE_SUBDIVISIONS, VOLCANO_LATHE_SEGMENTS }
 import { crackDisplacementNoise } from './terrain_crack_noise.js';
 import { bakeVertexDisplacement } from './vertex_displacement_utils.js';
 
+export const VOLCANO_CRACK_THRESHOLD = 0.85;
+
 function subdivideProfile(profile, steps) {
     const interpolated_points = [];
     for (let i = 0; i < profile.length - 1; i++) {
@@ -36,7 +38,7 @@ export function createVolcanoGeometry(scene, material) {
 export function bakeCrackDisplacement(mesh, frequency, scale) {
     bakeVertexDisplacement(mesh, (local_x, local_y, local_z, world_position) => {
         const noise = crackDisplacementNoise(world_position.x, world_position.y, world_position.z, frequency);
-        const displacement = -Math.max(0.0, 0.85 - noise);
+        const displacement = -Math.max(0.0, VOLCANO_CRACK_THRESHOLD - noise);
         return { x: local_x, y: local_y + displacement * scale, z: local_z };
     });
 }

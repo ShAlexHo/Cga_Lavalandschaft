@@ -47,6 +47,7 @@ export function createGroundMaterial() {
             u_edge_fade_start: { value: GROUND_EDGE_FADE_START },
             u_edge_fade_end: { value: GROUND_EDGE_FADE_END },
             u_edge_fade_strength: { value: 1.0 },
+            u_height_occlusion_strength: { value: 1.0 },
         },
         side: THREE.DoubleSide,
         precision: 'highp',

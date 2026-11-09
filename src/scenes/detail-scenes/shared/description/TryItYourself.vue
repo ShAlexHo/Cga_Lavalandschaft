@@ -1,10 +1,12 @@
 <script setup>
 import { localize } from '../../../../ui/language_state.js';
 import { createDescriptionText } from './description_text.js';
+import SceneLinkedText from './SceneLinkedText.vue';
 
 const properties = defineProps({
     detail_key: { type: String, required: true },
     controls: { type: Array, required: true },
+    with_tip: { type: Boolean, default: true },
 });
 
 const descriptionText = createDescriptionText(properties.detail_key);
@@ -17,14 +19,14 @@ function controlLabel({ folder_key, label_key }) {
 <template>
     <section class="try-it">
         <h3>{{ descriptionText('try_heading') }}</h3>
-        <p>{{ descriptionText('try_text') }}</p>
+        <p><SceneLinkedText :text="descriptionText('try_text')" /></p>
         <dl class="scene-controls">
             <template v-for="control in properties.controls" :key="control.text_key">
                 <dt>{{ controlLabel(control) }}</dt>
-                <dd>{{ descriptionText(control.text_key) }}</dd>
+                <dd><SceneLinkedText :text="descriptionText(control.text_key)" /></dd>
             </template>
         </dl>
-        <p>{{ descriptionText('try_tip') }}</p>
+        <p v-if="properties.with_tip"><SceneLinkedText :text="descriptionText('try_tip')" /></p>
     </section>
 </template>
 

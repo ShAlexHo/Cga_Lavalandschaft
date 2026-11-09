@@ -24,6 +24,7 @@ export function setupLavaLandscapeGui(facade, { signal } = {}) {
         ground_displacement_scale: [facade.getGroundDisplacementScale, facade.setGroundDisplacementScale],
         ground_displacement_frequency: [facade.getGroundDisplacementFrequency, facade.setGroundDisplacementFrequency],
         ground_proximity_radius: [facade.getGroundProximityRadius, facade.setGroundProximityRadius],
+        height_occlusion: [facade.getHeightOcclusion, facade.setHeightOcclusion],
         ground_crack_color: [facade.getGroundCrackColor, facade.setGroundCrackColor],
         ground_crack_color_2: [facade.getGroundCrackColor2, facade.setGroundCrackColor2],
         ground_crack_softness: [facade.getGroundCrackSoftness, facade.setGroundCrackSoftness],
@@ -36,6 +37,7 @@ export function setupLavaLandscapeGui(facade, { signal } = {}) {
     scene_gui.addSlider(ground_folder, parameters, 'ground_displacement_scale', GROUND_ROUGHNESS_RANGE, 'gui.ground.displacement_scale');
     scene_gui.addSlider(ground_folder, parameters, 'ground_displacement_frequency', GROUND_STRUCTURE_FREQUENCY_RANGE, 'gui.ground.displacement_frequency');
     scene_gui.addSlider(ground_folder, parameters, 'ground_proximity_radius', GROUND_PROXIMITY_RADIUS_RANGE, 'gui.ground.proximity_radius');
+    bind(ground_folder.add(parameters, 'height_occlusion'), 'gui.ground.height_occlusion');
 
     const cracks_folder = scene_gui.addFolder('gui.folder.cracks');
     for (const [key, message_key] of CRACK_COLOURS) bind(cracks_folder.addColor(parameters, key), message_key);

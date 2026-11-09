@@ -26,6 +26,7 @@ export function makeGroundMaterialUniformsMock() {
         u_crack_color_4: { value: makeColor('dd0000') },
         u_crack_softness: { value: 0.25 },
         u_edge_fade_strength: { value: 1.0 },
+        u_height_occlusion_strength: { value: 1.0 },
         u_proximity_color: { value: makeColor('9b9696') },
         u_proximity_noise_color: { value: makeColor('8a3a1a') },
         u_proximity_radius: { value: 18.0 },

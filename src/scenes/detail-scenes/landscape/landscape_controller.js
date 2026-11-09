@@ -13,7 +13,7 @@ import MAIN_SCENE_DEFAULTS from '../../main-scene/default_settings.json';
 import { createVolcanoLandscape } from '../volcano/volcano_landscape.js';
 import { averagedLatheProfile } from '../volcano/volcano_lathe.js';
 import { DETAIL_BACKGROUND_COLOR } from '../shared/config.js';
-import { LANDSCAPE_DEFAULTS, LANDSCAPE_VOLCANO_AMBIENT_STRENGTH, LANDSCAPE_FOG_DEFAULT } from './config.js';
+import { LANDSCAPE_DEFAULTS, LANDSCAPE_VOLCANO_AMBIENT_STRENGTH, LANDSCAPE_FOG_DEFAULT, LANDSCAPE_HEIGHT_OCCLUSION_DEFAULT } from './config.js';
 
 const UNUSED_SUN_POSITION = new THREE.Vector3();
 
@@ -172,6 +172,8 @@ export function createLandscapeController(scene, { renderer, god_rays_pass = nul
 
         getFog: crack_ground.getEdgeFadeEnabled,
         setFog: crack_ground.setEdgeFadeEnabled,
+        getHeightOcclusion: crack_ground.getHeightOcclusionEnabled,
+        setHeightOcclusion: crack_ground.setHeightOcclusionEnabled,
 
         getSmokeCount: smoke.getCount,
         setSmokeCount: smoke.setCount,
@@ -189,6 +191,7 @@ export function createLandscapeController(scene, { renderer, god_rays_pass = nul
             const { with_smoke, with_crack_ground, with_sun } = active_mode;
             if (with_crack_ground) {
                 crack_ground.setEdgeFadeEnabled(LANDSCAPE_FOG_DEFAULT);
+                crack_ground.setHeightOcclusionEnabled(LANDSCAPE_HEIGHT_OCCLUSION_DEFAULT);
                 resetCrackGroundSettings();
             }
             if (with_smoke) {
@@ -216,6 +219,7 @@ export function createLandscapeController(scene, { renderer, god_rays_pass = nul
     };
     const crack_ground_accessors = {
         fog: [controller.getFog, controller.setFog],
+        height_occlusion: [controller.getHeightOcclusion, controller.setHeightOcclusion],
         ...Object.fromEntries(CRACK_GROUND_SETTINGS.map(([key, method_suffix]) => [
             key, [controller[`getGround${method_suffix}`], controller[`setGround${method_suffix}`]],
         ])),

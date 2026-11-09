@@ -28,6 +28,7 @@ uniform vec3  u_sky_color;
 uniform float u_edge_fade_start;
 uniform float u_edge_fade_end;
 uniform float u_edge_fade_strength;
+uniform float u_height_occlusion_strength;
 
 varying vec3 v_world_position;
 varying vec3 v_view_position;
@@ -88,7 +89,7 @@ void main() {
 
     color += u_sun_color * sun_diffuse * u_sun_strength * u_sun_enabled;
 
-    color *= heightAmbientOcclusion(v_bump);
+    color *= mix(1.0, heightAmbientOcclusion(v_bump), u_height_occlusion_strength);
 
     float glow_variation = normalizedFractalBrownianMotion(v_world_position * 5.0 + vec3(0.0, u_time * 0.3, 0.0));
     float crack_glow_strength = mix(0.4, 1.2, glow_variation);
